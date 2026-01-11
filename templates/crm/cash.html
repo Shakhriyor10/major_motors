@@ -314,6 +314,10 @@
             <input type="number" id="employee-salary-day" name="salary_day" min="1" max="31" placeholder="например 25">
           </div>
           <div>
+            <label for="employee-salary-amount">Сумма зарплаты (сум)</label>
+            <input type="number" id="employee-salary-amount" name="salary_amount" min="0" step="0.01" required>
+          </div>
+          <div>
             <label for="employee-status">Статус</label>
             <select id="employee-status" name="status">
               <option value="staff">Сотрудник</option>
@@ -447,11 +451,13 @@
     employees.forEach((employee) => {
       const item = document.createElement('li');
       item.className = 'list-item';
+      const salaryAmount = Number(employee.salaryAmount || 0);
       item.innerHTML = `
         <div>
           <strong>${employee.lastName} ${employee.firstName}</strong>
           <span class="muted">${employee.position} · ${employee.status === 'intern' ? 'Стажер' : 'Сотрудник'}</span>
           <div class="muted">Тел: ${employee.phonePrimary}${employee.phoneSecondary ? `, ${employee.phoneSecondary}` : ''}</div>
+          <div class="muted">Зарплата: ${salaryAmount ? formatCurrency(salaryAmount, 'uzs') : 'не указана'}</div>
           <div class="muted">Добавил: ${employee.createdBy}</div>
         </div>
         <span class="badge">с ${employee.startDate}</span>
@@ -503,10 +509,25 @@
     const employees = loadItems(EMPLOYEES_KEY);
     const expenses = loadItems(EXPENSES_KEY);
     const paidMap = new Map();
+    const advanceMap = new Map();
+    const currentMonthKey = (() => {
+      const now = new Date();
+      return `${now.getFullYear()}-${now.getMonth()}`;
+    })();
     expenses
-      .filter((expense) => expense.category === 'salary')
+      .filter((expense) => expense.category === 'salary' && expense.employeeId)
       .forEach((expense) => {
-        if (!paidMap.has(expense.employeeId) || new Date(expense.createdAt) > new Date(paidMap.get(expense.employeeId))) {
+        const expenseDate = new Date(expense.createdAt);
+        const expenseMonthKey = `${expenseDate.getFullYear()}-${expenseDate.getMonth()}`;
+        if (expenseMonthKey !== currentMonthKey) {
+          return;
+        }
+        if (expense.salaryType === 'advance') {
+          const currentTotal = advanceMap.get(expense.employeeId) || 0;
+          advanceMap.set(expense.employeeId, currentTotal + expense.amount);
+          return;
+        }
+        if (!paidMap.has(expense.employeeId) || expenseDate > new Date(paidMap.get(expense.employeeId))) {
           paidMap.set(expense.employeeId, expense.createdAt);
         }
       });
@@ -529,6 +550,9 @@
     salaryEmpty.style.display = 'none';
     list.forEach((employee) => {
       const lastPaidAt = paidMap.get(employee.id);
+      const salaryAmount = Number(employee.salaryAmount || 0);
+      const advances = advanceMap.get(employee.id) || 0;
+      const remaining = Math.max(salaryAmount - advances, 0);
       const item = document.createElement('li');
       item.className = 'list-item';
       item.innerHTML = `
@@ -536,6 +560,11 @@
           <strong>${employee.lastName} ${employee.firstName}</strong>
           <span class="muted">${employee.position} · ${employee.status === 'intern' ? 'Стажер' : 'Сотрудник'}</span>
           <div class="muted">Последняя выплата: ${lastPaidAt ? formatDateTime(new Date(lastPaidAt)) : 'не было'}</div>
+          <div class="muted">
+            ${salaryAmount
+              ? `Авансы: ${formatCurrency(advances, 'uzs')} · К выплате: ${formatCurrency(remaining, 'uzs')}`
+              : 'Сумма зарплаты не указана'}
+          </div>
         </div>
         <span class="badge">${employee.salaryDay ? `дата ${employee.salaryDay}` : 'дата не указана'}</span>
       `;
@@ -636,6 +665,14 @@
   employeeForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const formData = new FormData(employeeForm);
+    const salaryDayField = document.getElementById('employee-salary-day');
+    const salaryDayValue = Number(formData.get('salary_day') || 0);
+    if (salaryDayValue && (salaryDayValue < 1 || salaryDayValue > 31)) {
+      salaryDayField.setCustomValidity('Введите число от 1 до 31');
+      salaryDayField.reportValidity();
+      return;
+    }
+    salaryDayField.setCustomValidity('');
     const employee = {
       id: crypto.randomUUID(),
       firstName: formData.get('first_name'),
@@ -645,6 +682,7 @@
       phonePrimary: formData.get('phone_primary'),
       phoneSecondary: formData.get('phone_secondary'),
       salaryDay: formData.get('salary_day'),
+      salaryAmount: Number(formData.get('salary_amount')),
       status: formData.get('status'),
       createdBy: currentUser,
       createdAt: new Date().toISOString(),
