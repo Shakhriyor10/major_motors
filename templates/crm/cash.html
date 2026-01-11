@@ -27,9 +27,16 @@
   }
   .form-grid {
     display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     margin-top: 12px;
+    width: 100%;
+  }
+  .form-grid + .form-grid {
+    margin-top: 16px;
+  }
+  .form-grid > div {
+    min-width: 0;
   }
   .form-grid label {
     font-size: 13px;
@@ -41,16 +48,19 @@
   .form-grid select,
   .form-grid textarea {
     width: 100%;
+    max-width: 100%;
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid #e5e7eb;
     font-size: 14px;
+    box-sizing: border-box;
   }
   .form-actions {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
     margin-top: 12px;
+    flex-wrap: wrap;
   }
   .pill {
     background: #f1f5f9;
