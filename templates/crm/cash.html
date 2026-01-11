@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Major Motors CRM · Касса{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h1>Касса и конвертация валют</h1>
+    <p>Настройте курс USD ↔ UZS и фиксируйте конвертации внутри смены кассы.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Текущий курс</h3>
+      {% if exchange_rate %}
+        <p>1 {{ exchange_rate.base_currency|upper }} = {{ exchange_rate.rate }} {{ exchange_rate.quote_currency|upper }}</p>
+        <p>Дата: {{ exchange_rate.effective_date }}</p>
+      {% else %}
+        <p>Курс не задан. Добавьте новый курс валюты.</p>
+      {% endif %}
+    </div>
+    <div class="card">
+      <h3>Конвертации</h3>
+      {% if conversions %}
+        <ul>
+          {% for conversion in conversions %}
+            <li>
+              {{ conversion.created_at|date:"d.m.Y H:i" }}:
+              {{ conversion.amount_from }} {{ conversion.from_currency|upper }} →
+              {{ conversion.amount_to }} {{ conversion.to_currency|upper }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Конвертаций пока нет.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
