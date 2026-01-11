@@ -345,6 +345,7 @@
       <h3>История конвертаций</h3>
       <ul class="list" id="conversion-list"></ul>
       <p class="muted" id="conversion-empty">Конвертаций пока нет.</p>
+      <button class="button secondary" type="button" id="conversion-load-more">Показать еще</button>
     </div>
   </div>
 
@@ -423,6 +424,7 @@
       <h3>Журнал расходов</h3>
       <ul class="list" id="expense-list"></ul>
       <p class="muted" id="expense-empty">Расходов пока нет.</p>
+      <button class="button secondary" type="button" id="expense-load-more">Показать еще</button>
     </div>
   </div>
 
@@ -480,6 +482,7 @@
       </form>
       <ul class="list" id="employee-list"></ul>
       <p class="muted" id="employee-empty">Сотрудников пока нет.</p>
+      <button class="button secondary" type="button" id="employee-load-more">Показать еще</button>
     </div>
 
     <div class="card">
@@ -643,11 +646,18 @@
   const rateUpdated = document.getElementById('rate-updated');
   const conversionList = document.getElementById('conversion-list');
   const conversionEmpty = document.getElementById('conversion-empty');
+  const conversionLoadMore = document.getElementById('conversion-load-more');
   const commentModal = document.getElementById('comment-modal');
   const commentModalText = document.getElementById('comment-modal-text');
   const commentModalClose = document.getElementById('comment-modal-close');
+  const expenseLoadMore = document.getElementById('expense-load-more');
+  const employeeLoadMore = document.getElementById('employee-load-more');
 
   const COMMENT_PREVIEW_LIMIT = 60;
+  const PAGE_SIZE = 5;
+  let conversionVisibleCount = PAGE_SIZE;
+  let expenseVisibleCount = PAGE_SIZE;
+  let employeeVisibleCount = PAGE_SIZE;
 
   const loadItems = (key) => JSON.parse(localStorage.getItem(key) || '[]');
   const saveItems = (key, items) => localStorage.setItem(key, JSON.stringify(items));
@@ -732,15 +742,24 @@
     openCommentModal(button.dataset.comment || '');
   };
 
+  const getVisibleCount = (current, total) => {
+    if (!total) {
+      return 0;
+    }
+    return Math.min(Math.max(current, PAGE_SIZE), total);
+  };
+
   const refreshConversionList = () => {
     const conversions = cashStore.getConversions();
     conversionList.innerHTML = '';
     if (!conversions.length) {
       conversionEmpty.style.display = 'block';
+      conversionLoadMore.style.display = 'none';
       return;
     }
     conversionEmpty.style.display = 'none';
-    conversions.forEach((conversion) => {
+    conversionVisibleCount = getVisibleCount(conversionVisibleCount, conversions.length);
+    conversions.slice(0, conversionVisibleCount).forEach((conversion) => {
       const item = document.createElement('li');
       item.className = 'list-item';
       item.innerHTML = `
@@ -752,6 +771,8 @@
       `;
       conversionList.appendChild(item);
     });
+    conversionLoadMore.style.display =
+      conversions.length > conversionVisibleCount ? 'inline-flex' : 'none';
   };
 
   const refreshEmployees = () => {
@@ -760,10 +781,12 @@
     salaryEmployeeSelect.innerHTML = '<option value="">Выберите сотрудника</option>';
     if (!employees.length) {
       employeeEmpty.style.display = 'block';
+      employeeLoadMore.style.display = 'none';
       return;
     }
     employeeEmpty.style.display = 'none';
-    employees.forEach((employee) => {
+    employeeVisibleCount = getVisibleCount(employeeVisibleCount, employees.length);
+    employees.slice(0, employeeVisibleCount).forEach((employee) => {
       const item = document.createElement('li');
       item.className = 'list-item';
       const salaryAmount = Number(employee.salaryAmount || 0);
@@ -789,6 +812,8 @@
       option.textContent = `${employee.lastName} ${employee.firstName}`;
       salaryEmployeeSelect.appendChild(option);
     });
+    employeeLoadMore.style.display =
+      employees.length > employeeVisibleCount ? 'inline-flex' : 'none';
     refreshSalaryList();
   };
 
@@ -797,10 +822,12 @@
     expenseList.innerHTML = '';
     if (!expenses.length) {
       expenseEmpty.style.display = 'block';
+      expenseLoadMore.style.display = 'none';
       return;
     }
     expenseEmpty.style.display = 'none';
-    expenses.forEach((expense) => {
+    expenseVisibleCount = getVisibleCount(expenseVisibleCount, expenses.length);
+    expenses.slice(0, expenseVisibleCount).forEach((expense) => {
       const item = document.createElement('li');
       item.className = 'list-item';
       const details = document.createElement('div');
@@ -820,6 +847,8 @@
       item.appendChild(amountBadge);
       expenseList.appendChild(item);
     });
+    expenseLoadMore.style.display =
+      expenses.length > expenseVisibleCount ? 'inline-flex' : 'none';
     refreshReport();
     refreshSalaryList();
   };
@@ -1206,6 +1235,27 @@
     event.target.classList.add('active');
     refreshSalaryList();
   });
+
+  if (conversionLoadMore) {
+    conversionLoadMore.addEventListener('click', () => {
+      conversionVisibleCount += PAGE_SIZE;
+      refreshConversionList();
+    });
+  }
+
+  if (expenseLoadMore) {
+    expenseLoadMore.addEventListener('click', () => {
+      expenseVisibleCount += PAGE_SIZE;
+      refreshExpenses();
+    });
+  }
+
+  if (employeeLoadMore) {
+    employeeLoadMore.addEventListener('click', () => {
+      employeeVisibleCount += PAGE_SIZE;
+      refreshEmployees();
+    });
+  }
 
   expenseList.addEventListener('click', handleCommentClick);
   reportBody.addEventListener('click', handleCommentClick);
