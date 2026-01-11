@@ -115,6 +115,40 @@
     border-radius: 999px;
     font-size: 12px;
   }
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .button.danger {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+  .button.danger:hover {
+    background: #fecaca;
+  }
+  #employee-modal .modal {
+    max-width: 720px;
+  }
+  .modal-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .modal-form-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .modal-form-grid .modal-actions {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+  }
+  @media (max-width: 640px) {
+    .modal-form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -370,6 +404,58 @@
       <tbody id="report-body"></tbody>
     </table>
   </div>
+
+  <div class="modal-overlay" id="employee-modal">
+    <div class="modal">
+      <h3>Изменить сотрудника</h3>
+      <form id="employee-edit-form" class="modal-form-grid">
+        <input type="hidden" id="employee-edit-id" name="employee_id">
+        <div>
+          <label for="employee-edit-first-name">Имя</label>
+          <input type="text" id="employee-edit-first-name" name="first_name" required>
+        </div>
+        <div>
+          <label for="employee-edit-last-name">Фамилия</label>
+          <input type="text" id="employee-edit-last-name" name="last_name" required>
+        </div>
+        <div>
+          <label for="employee-edit-position">Должность</label>
+          <input type="text" id="employee-edit-position" name="position" required>
+        </div>
+        <div>
+          <label for="employee-edit-start-date">Дата начала работы</label>
+          <input type="date" id="employee-edit-start-date" name="start_date" required>
+        </div>
+        <div>
+          <label for="employee-edit-phone-1">Телефон</label>
+          <input type="tel" id="employee-edit-phone-1" name="phone_primary" required>
+        </div>
+        <div>
+          <label for="employee-edit-phone-2">Телефон (доп.)</label>
+          <input type="tel" id="employee-edit-phone-2" name="phone_secondary">
+        </div>
+        <div>
+          <label for="employee-edit-salary-day">Дата выплаты</label>
+          <input type="number" id="employee-edit-salary-day" name="salary_day" min="1" max="31" placeholder="например 25">
+        </div>
+        <div>
+          <label for="employee-edit-salary-amount">Сумма зарплаты (сум)</label>
+          <input type="number" id="employee-edit-salary-amount" name="salary_amount" min="0" step="0.01" required>
+        </div>
+        <div>
+          <label for="employee-edit-status">Статус</label>
+          <select id="employee-edit-status" name="status">
+            <option value="staff">Сотрудник</option>
+            <option value="intern">Стажер</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="button secondary" type="button" id="employee-edit-cancel">Отмена</button>
+          <button class="button" type="submit">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -381,6 +467,10 @@
   const employeeForm = document.getElementById('employee-form');
   const employeeList = document.getElementById('employee-list');
   const employeeEmpty = document.getElementById('employee-empty');
+  const employeeModal = document.getElementById('employee-modal');
+  const employeeEditForm = document.getElementById('employee-edit-form');
+  const employeeEditIdField = document.getElementById('employee-edit-id');
+  const employeeEditCancel = document.getElementById('employee-edit-cancel');
   const salaryEmployeeSelect = document.getElementById('salary-employee');
   const salaryList = document.getElementById('salary-list');
   const salaryEmpty = document.getElementById('salary-empty');
@@ -460,7 +550,13 @@
           <div class="muted">Зарплата: ${salaryAmount ? formatCurrency(salaryAmount, 'uzs') : 'не указана'}</div>
           <div class="muted">Добавил: ${employee.createdBy}</div>
         </div>
-        <span class="badge">с ${employee.startDate}</span>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+          <span class="badge">с ${employee.startDate}</span>
+          <div class="actions">
+            <button type="button" class="button secondary" data-action="edit" data-id="${employee.id}">Изменить</button>
+            <button type="button" class="button danger" data-action="delete" data-id="${employee.id}">Удалить</button>
+          </div>
+        </div>
       `;
       employeeList.appendChild(item);
       const option = document.createElement('option');
@@ -662,6 +758,102 @@
     refreshExpenses();
   });
 
+  const openEmployeeModal = () => {
+    employeeModal.style.display = 'flex';
+  };
+
+  const closeEmployeeModal = () => {
+    employeeModal.style.display = 'none';
+    employeeEditForm.reset();
+    employeeEditIdField.value = '';
+  };
+
+  const fillEmployeeEditForm = (employee) => {
+    employeeEditIdField.value = employee.id;
+    document.getElementById('employee-edit-first-name').value = employee.firstName || '';
+    document.getElementById('employee-edit-last-name').value = employee.lastName || '';
+    document.getElementById('employee-edit-position').value = employee.position || '';
+    document.getElementById('employee-edit-start-date').value = employee.startDate || '';
+    document.getElementById('employee-edit-phone-1').value = employee.phonePrimary || '';
+    document.getElementById('employee-edit-phone-2').value = employee.phoneSecondary || '';
+    document.getElementById('employee-edit-salary-day').value = employee.salaryDay || '';
+    document.getElementById('employee-edit-salary-amount').value = employee.salaryAmount || '';
+    document.getElementById('employee-edit-status').value = employee.status || 'staff';
+  };
+
+  employeeEditCancel.addEventListener('click', closeEmployeeModal);
+
+  if (employeeModal) {
+    employeeModal.addEventListener('click', (event) => {
+      if (event.target === employeeModal) {
+        closeEmployeeModal();
+      }
+    });
+  }
+
+  employeeList.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) {
+      return;
+    }
+    const action = button.dataset.action;
+    const employeeId = button.dataset.id;
+    const employees = loadItems(EMPLOYEES_KEY);
+    const employeeIndex = employees.findIndex((employee) => employee.id === employeeId);
+    if (employeeIndex === -1) {
+      return;
+    }
+    if (action === 'edit') {
+      fillEmployeeEditForm(employees[employeeIndex]);
+      openEmployeeModal();
+      return;
+    }
+    if (action === 'delete') {
+      if (!window.confirm('Удалить сотрудника?')) {
+        return;
+      }
+      employees.splice(employeeIndex, 1);
+      saveItems(EMPLOYEES_KEY, employees);
+      refreshEmployees();
+    }
+  });
+
+  employeeEditForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const formData = new FormData(employeeEditForm);
+    const salaryDayField = document.getElementById('employee-edit-salary-day');
+    const salaryDayValue = Number(formData.get('salary_day') || 0);
+    if (salaryDayValue && (salaryDayValue < 1 || salaryDayValue > 31)) {
+      salaryDayField.setCustomValidity('Введите число от 1 до 31');
+      salaryDayField.reportValidity();
+      return;
+    }
+    salaryDayField.setCustomValidity('');
+    const employees = loadItems(EMPLOYEES_KEY);
+    const existingId = formData.get('employee_id');
+    const index = employees.findIndex((employee) => employee.id === existingId);
+    if (index === -1) {
+      closeEmployeeModal();
+      return;
+    }
+    employees[index] = {
+      ...employees[index],
+      firstName: formData.get('first_name'),
+      lastName: formData.get('last_name'),
+      position: formData.get('position'),
+      startDate: formData.get('start_date'),
+      phonePrimary: formData.get('phone_primary'),
+      phoneSecondary: formData.get('phone_secondary'),
+      salaryDay: formData.get('salary_day'),
+      salaryAmount: Number(formData.get('salary_amount')),
+      status: formData.get('status'),
+      updatedAt: new Date().toISOString(),
+    };
+    saveItems(EMPLOYEES_KEY, employees);
+    closeEmployeeModal();
+    refreshEmployees();
+  });
+
   employeeForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const formData = new FormData(employeeForm);
@@ -673,8 +865,8 @@
       return;
     }
     salaryDayField.setCustomValidity('');
-    const employee = {
-      id: crypto.randomUUID(),
+    const employees = loadItems(EMPLOYEES_KEY);
+    const employeePayload = {
       firstName: formData.get('first_name'),
       lastName: formData.get('last_name'),
       position: formData.get('position'),
@@ -684,10 +876,13 @@
       salaryDay: formData.get('salary_day'),
       salaryAmount: Number(formData.get('salary_amount')),
       status: formData.get('status'),
+    };
+    const employee = {
+      id: crypto.randomUUID(),
+      ...employeePayload,
       createdBy: currentUser,
       createdAt: new Date().toISOString(),
     };
-    const employees = loadItems(EMPLOYEES_KEY);
     employees.unshift(employee);
     saveItems(EMPLOYEES_KEY, employees);
     employeeForm.reset();
