@@ -739,7 +739,14 @@
       }
       const salaryDay = Number(employee.salaryDay || 0);
       const today = new Date().getDate();
-      return !paidThisMonth && (salaryDay === 0 || today >= salaryDay);
+      const salaryAmount = Number(employee.salaryAmount || 0);
+      const advances = advanceMap.get(employee.id) || 0;
+      const remaining = Math.max(salaryAmount - advances, 0);
+      return (
+        !paidThisMonth &&
+        remaining > 0 &&
+        (salaryDay === 0 || today >= salaryDay)
+      );
     });
     if (!list.length) {
       salaryEmpty.style.display = 'block';
