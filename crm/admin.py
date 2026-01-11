@@ -149,6 +149,18 @@ class CashShiftAdmin(admin.ModelAdmin):
     list_display = ('id', 'opened_by', 'opened_at', 'closed_at', 'opening_balance', 'closing_balance')
 
 
+@admin.register(models.CurrencyRate)
+class CurrencyRateAdmin(admin.ModelAdmin):
+    list_display = ('base_currency', 'quote_currency', 'rate', 'effective_date', 'created_by')
+    list_filter = ('base_currency', 'quote_currency')
+
+
+@admin.register(models.CashConversion)
+class CashConversionAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'shift', 'from_currency', 'to_currency', 'amount_from', 'amount_to')
+    list_filter = ('from_currency', 'to_currency')
+
+
 @admin.register(models.CreditApplication)
 class CreditApplicationAdmin(admin.ModelAdmin):
     list_display = ('customer', 'bank_name', 'status', 'requested_amount', 'approved_amount')
