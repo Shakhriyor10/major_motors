@@ -127,6 +127,17 @@
   .button.danger:hover {
     background: #fecaca;
   }
+  #employee-modal .modal {
+    max-width: 720px;
+  }
+  .modal-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px 16px;
+  }
+  .modal-form-grid .modal-actions {
+    grid-column: 1 / -1;
+  }
 </style>
 {% endblock %}
 
@@ -386,7 +397,7 @@
   <div class="modal-overlay" id="employee-modal">
     <div class="modal">
       <h3>Изменить сотрудника</h3>
-      <form id="employee-edit-form">
+      <form id="employee-edit-form" class="modal-form-grid">
         <input type="hidden" id="employee-edit-id" name="employee_id">
         <div>
           <label for="employee-edit-first-name">Имя</label>
