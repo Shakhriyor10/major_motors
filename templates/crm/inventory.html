@@ -3,37 +3,43 @@
 {% block title %}Major Motors CRM · Склад{% endblock %}
 
 {% block content %}
-  <div class="card">
-    <h1>Автосклад</h1>
-    <p class="muted">Статусы, цены и ключевые характеристики автомобилей.</p>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h1 class="h3">Автосклад</h1>
+      <p class="text-muted mb-0">Статусы, цены и ключевые характеристики автомобилей.</p>
+    </div>
   </div>
 
-  <div class="card">
-    <table>
-      <thead>
-        <tr>
-          <th>VIN</th>
-          <th>Авто</th>
-          <th>Год</th>
-          <th>Статус</th>
-          <th>Цена продажи</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for vehicle in vehicles %}
-          <tr>
-            <td>{{ vehicle.vin }}</td>
-            <td>{{ vehicle.make }} {{ vehicle.model }}</td>
-            <td>{{ vehicle.year }}</td>
-            <td><span class="status">{{ vehicle.get_status_display }}</span></td>
-            <td>{{ vehicle.sale_price|default:vehicle.purchase_price }}</td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5" class="muted">Автомобили пока не добавлены.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>VIN</th>
+              <th>Авто</th>
+              <th>Год</th>
+              <th>Статус</th>
+              <th>Цена продажи</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for vehicle in vehicles %}
+              <tr>
+                <td>{{ vehicle.vin }}</td>
+                <td>{{ vehicle.make }} {{ vehicle.model }}</td>
+                <td>{{ vehicle.year }}</td>
+                <td><span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span></td>
+                <td>{{ vehicle.sale_price|default:vehicle.purchase_price }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-muted">Автомобили пока не добавлены.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 {% endblock %}

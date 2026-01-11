@@ -2,298 +2,103 @@
 
 {% block title %}Major Motors CRM · Общий список{% endblock %}
 
-{% block extra_styles %}
-  <style>
-    .autosalon-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr);
-      gap: 24px;
-    }
-    .autosalon-hero {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-    }
-    .autosalon-hero h1 {
-      margin-bottom: 6px;
-    }
-    .autosalon-hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .autosalon-form {
-      display: grid;
-      gap: 20px;
-    }
-    .section-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-    .section-title h2,
-    .section-title h3 {
-      margin: 0;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px 16px;
-    }
-    .form-grid .full-width {
-      grid-column: 1 / -1;
-    }
-    .form-field label {
-      font-size: 12px;
-      color: #6b7280;
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-    .form-field input,
-    .form-field select,
-    .form-field textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      font-size: 14px;
-      background: #fff;
-    }
-    .form-field input:focus,
-    .form-field select:focus,
-    .form-field textarea:focus {
-      outline: 2px solid rgba(79, 70, 229, 0.3);
-      border-color: #6366f1;
-    }
-    .options-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 8px 12px;
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 12px;
-    }
-    .options-list label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: #374151;
-    }
-    .options-list input {
-      accent-color: #4f46e5;
-    }
-    .autosalon-summary {
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 20px;
-      display: grid;
-      gap: 16px;
-      position: sticky;
-      top: 24px;
-    }
-    .autosalon-summary h3 {
-      margin: 0;
-    }
-    .summary-metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-    }
-    .summary-metric {
-      background: #fff;
-      border-radius: 12px;
-      padding: 12px;
-      border: 1px solid #e5e7eb;
-    }
-    .summary-metric span {
-      font-size: 12px;
-      color: #6b7280;
-    }
-    .summary-metric strong {
-      display: block;
-      font-size: 18px;
-      margin-top: 4px;
-    }
-    .vehicle-card {
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 16px;
-      display: grid;
-      gap: 10px;
-      background: #fff;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .vehicle-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
-    }
-    .vehicle-meta {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 6px 12px;
-      font-size: 13px;
-      color: #4b5563;
-    }
-    .vehicle-meta strong {
-      color: #111827;
-      font-weight: 600;
-    }
-    .vehicle-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .vehicle-tags .tag {
-      margin-right: 0;
-    }
-    .vehicle-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .vehicle-title {
-      display: grid;
-      gap: 4px;
-    }
-    .vehicle-price {
-      font-weight: 700;
-      font-size: 16px;
-      color: #111827;
-      background: #eef2ff;
-      padding: 6px 12px;
-      border-radius: 999px;
-      height: fit-content;
-    }
-    .vehicle-divider {
-      height: 1px;
-      background: #e5e7eb;
-      border: none;
-      margin: 6px 0;
-    }
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .autosalon-vehicle-list {
-      display: grid;
-      gap: 18px;
-    }
-    @media (max-width: 960px) {
-      .autosalon-grid {
-        grid-template-columns: 1fr;
-      }
-      .autosalon-summary {
-        position: static;
-      }
-    }
-  </style>
-{% endblock %}
-
 {% block content %}
-  <div class="card">
-    <div class="autosalon-hero">
+  <div class="card shadow-sm mb-4">
+    <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-3">
       <div>
-        <h1>Общий список</h1>
-        <p class="muted">Полный каталог автомобилей, статусов и клиентов. Отсюда можно вернуть авто в автосалон.</p>
+        <h1 class="h3">Общий список</h1>
+        <p class="text-muted mb-0">Полный каталог автомобилей, статусов и клиентов. Отсюда можно вернуть авто в автосалон.</p>
       </div>
-      <div class="autosalon-hero-actions">
-        <span class="tag">VIN контроль</span>
-        <span class="tag">Опции и фото</span>
-        <span class="tag">Статусы продаж</span>
+      <div class="d-flex flex-wrap gap-2">
+        <span class="badge rounded-pill text-bg-primary-subtle text-primary">VIN контроль</span>
+        <span class="badge rounded-pill text-bg-primary-subtle text-primary">Опции и фото</span>
+        <span class="badge rounded-pill text-bg-primary-subtle text-primary">Статусы продаж</span>
       </div>
     </div>
   </div>
 
-  <div class="autosalon-grid">
-    <div class="card">
-      <form class="autosalon-form" method="post" enctype="multipart/form-data">
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" class="vstack gap-4">
         {% csrf_token %}
         <input type="hidden" name="action" value="create_vehicle">
-        <div class="section-title">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h2>Новый автомобиль</h2>
-            <p class="muted">Заполните основные параметры авто, чтобы оно появилось в списке.</p>
+            <h2 class="h4 mb-1">Новый автомобиль</h2>
+            <p class="text-muted mb-0">Заполните основные параметры авто, чтобы оно появилось в списке.</p>
           </div>
-          <span class="tag">Обязательные поля отмечены</span>
+          <span class="badge rounded-pill text-bg-light text-dark">Обязательные поля отмечены</span>
         </div>
 
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="name">Название машины</label>
-            <input id="name" name="name" type="text" required>
+        <div class="row g-3">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="name" class="form-label">Название машины</label>
+            <input id="name" name="name" type="text" class="form-control" required>
           </div>
-          <div class="form-field">
-            <label for="make">Марка</label>
-            <input id="make" name="make" type="text" required>
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="make" class="form-label">Марка</label>
+            <input id="make" name="make" type="text" class="form-control" required>
           </div>
-          <div class="form-field">
-            <label for="model">Модель</label>
-            <input id="model" name="model" type="text" required>
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="model" class="form-label">Модель</label>
+            <input id="model" name="model" type="text" class="form-control" required>
           </div>
-          <div class="form-field">
-            <label for="vin">VIN-код</label>
-            <input id="vin" name="vin" type="text" required>
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="vin" class="form-label">VIN-код</label>
+            <input id="vin" name="vin" type="text" class="form-control" required>
           </div>
-          <div class="form-field full-width">
-            <label for="description">Описание</label>
-            <textarea id="description" name="description" rows="3" placeholder="Например: полный сервис, один владелец, расширенная гарантия."></textarea>
+          <div class="col-12">
+            <label for="description" class="form-label">Описание</label>
+            <textarea id="description" name="description" rows="3" class="form-control" placeholder="Например: полный сервис, один владелец, расширенная гарантия."></textarea>
           </div>
         </div>
 
-        <div class="section-title">
-          <h3>Характеристики и цены</h3>
-          <span class="muted">Стоимость, двигатель, состояние</span>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h3 class="h5 mb-0">Характеристики и цены</h3>
+          <span class="text-muted small">Стоимость, двигатель, состояние</span>
         </div>
 
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="color">Цвет</label>
-            <input id="color" name="color" type="text">
+        <div class="row g-3">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="color" class="form-label">Цвет</label>
+            <input id="color" name="color" type="text" class="form-control">
           </div>
-          <div class="form-field">
-            <label for="body_type">Тип кузова</label>
-            <input id="body_type" name="body_type" type="text">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="body_type" class="form-label">Тип кузова</label>
+            <input id="body_type" name="body_type" type="text" class="form-control">
           </div>
-          <div class="form-field">
-            <label for="purchase_price">Цена по себестоимости</label>
-            <input id="purchase_price" name="purchase_price" type="number" min="0" step="0.01" required>
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="purchase_price" class="form-label">Цена по себестоимости</label>
+            <input id="purchase_price" name="purchase_price" type="number" min="0" step="0.01" class="form-control" required>
           </div>
-          <div class="form-field">
-            <label for="sale_price">Продаваемая цена</label>
-            <input id="sale_price" name="sale_price" type="number" min="0" step="0.01">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="sale_price" class="form-label">Продаваемая цена</label>
+            <input id="sale_price" name="sale_price" type="number" min="0" step="0.01" class="form-control">
           </div>
-          <div class="form-field">
-            <label for="stock_count">Количество в автосалоне</label>
-            <input id="stock_count" name="stock_count" type="number" min="0" step="1" required>
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="stock_count" class="form-label">Количество в автосалоне</label>
+            <input id="stock_count" name="stock_count" type="number" min="0" step="1" class="form-control" required>
           </div>
-          <div class="form-field">
-            <label for="engine_type">Тип двигателя</label>
-            <select id="engine_type" name="engine_type">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="engine_type" class="form-label">Тип двигателя</label>
+            <select id="engine_type" name="engine_type" class="form-select">
               <option value="gasoline">Бензин</option>
               <option value="diesel">Дизель</option>
               <option value="hybrid">Гибрид</option>
               <option value="electric">Электро</option>
             </select>
           </div>
-          <div class="form-field">
-            <label for="engine_volume">Объём двигателя (л)</label>
-            <input id="engine_volume" name="engine_volume" type="number" min="0" step="0.1">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="engine_volume" class="form-label">Объём двигателя (л)</label>
+            <input id="engine_volume" name="engine_volume" type="number" min="0" step="0.1" class="form-control">
           </div>
-          <div class="form-field">
-            <label for="horsepower">Мощность (л.с.)</label>
-            <input id="horsepower" name="horsepower" type="number" min="0" step="1">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="horsepower" class="form-label">Мощность (л.с.)</label>
+            <input id="horsepower" name="horsepower" type="number" min="0" step="1" class="form-control">
           </div>
-          <div class="form-field">
-            <label for="transmission">Коробка передач</label>
-            <select id="transmission" name="transmission">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="transmission" class="form-label">Коробка передач</label>
+            <select id="transmission" name="transmission" class="form-select">
               <option value="">—</option>
               <option value="automatic">Автомат</option>
               <option value="manual">Механика</option>
@@ -301,32 +106,32 @@
               <option value="cvt">Вариатор</option>
             </select>
           </div>
-          <div class="form-field">
-            <label for="fuel_consumption">Расход топлива (л/100км)</label>
-            <input id="fuel_consumption" name="fuel_consumption" type="number" min="0" step="0.1">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="fuel_consumption" class="form-label">Расход топлива (л/100км)</label>
+            <input id="fuel_consumption" name="fuel_consumption" type="number" min="0" step="0.1" class="form-control">
           </div>
-          <div class="form-field">
-            <label for="condition">Состояние</label>
-            <select id="condition" name="condition">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="condition" class="form-label">Состояние</label>
+            <select id="condition" name="condition" class="form-select">
               <option value="new">Новая</option>
               <option value="used">С пробегом</option>
             </select>
           </div>
-          <div class="form-field">
-            <label for="country">Страна производства</label>
-            <input id="country" name="country" type="text">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="country" class="form-label">Страна производства</label>
+            <input id="country" name="country" type="text" class="form-control">
           </div>
-          <div class="form-field">
-            <label for="trim_level">Комплектация</label>
-            <select id="trim_level" name="trim_level">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="trim_level" class="form-label">Комплектация</label>
+            <select id="trim_level" name="trim_level" class="form-select">
               <option value="standard">Standard</option>
               <option value="comfort">Comfort</option>
               <option value="luxury">Luxury</option>
             </select>
           </div>
-          <div class="form-field">
-            <label for="status">Статус</label>
-            <select id="status" name="status">
+          <div class="col-12 col-md-6 col-lg-4">
+            <label for="status" class="form-label">Статус</label>
+            <select id="status" name="status" class="form-select">
               <option value="for_sale">В продаже</option>
               <option value="sold">Продано</option>
               <option value="reserved">Бронь</option>
@@ -336,105 +141,110 @@
         </div>
 
         <div>
-          <div class="section-title">
-            <h3>Опции</h3>
-            <span class="muted">Выберите оснащение</span>
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <h3 class="h5 mb-0">Опции</h3>
+            <span class="text-muted small">Выберите оснащение</span>
           </div>
-          <div class="options-list">
+          <div class="row g-2 border rounded-3 p-3 bg-light">
             {% for option in options %}
-              <label>
-                <input type="checkbox" name="options" value="{{ option.id }}">
-                {{ option.name }}
-              </label>
+              <div class="col-12 col-md-6 col-lg-4">
+                <div class="form-check">
+                  <input type="checkbox" name="options" value="{{ option.id }}" class="form-check-input" id="option-{{ option.id }}">
+                  <label class="form-check-label" for="option-{{ option.id }}">{{ option.name }}</label>
+                </div>
+              </div>
             {% endfor %}
           </div>
         </div>
 
-        <div class="form-field full-width">
-          <label for="photos">Фото (несколько)</label>
-          <input id="photos" name="photos" type="file" accept="image/*" multiple>
+        <div class="col-12">
+          <label for="photos" class="form-label">Фото (несколько)</label>
+          <input id="photos" name="photos" type="file" accept="image/*" multiple class="form-control">
         </div>
 
-        <div class="form-actions">
-          <button class="button" type="submit">Добавить в автосалон</button>
+        <div class="d-flex justify-content-end gap-2">
+          <button class="btn btn-primary" type="submit">Добавить в автосалон</button>
         </div>
       </form>
     </div>
-
   </div>
 
-  <div class="card">
-    <h2>Автомобили в общем списке</h2>
-    <div class="autosalon-vehicle-list">
-      {% for vehicle in vehicles %}
-        <div class="vehicle-card">
-          <div class="vehicle-header">
-            <div class="vehicle-title">
-              <strong>{{ vehicle.name }}</strong>
-              <div class="muted">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
-            </div>
-            <div class="vehicle-price">{{ vehicle.sale_price|default:vehicle.purchase_price }}</div>
-          </div>
-          <div class="vehicle-tags">
-            <span class="tag">{{ vehicle.get_status_display }}</span>
-            <span class="tag">{{ vehicle.get_engine_type_display }}</span>
-            <span class="tag">{{ vehicle.get_condition_display }}</span>
-            <span class="tag">{{ vehicle.get_trim_level_display }}</span>
-          </div>
-          <hr class="vehicle-divider">
-          <div class="vehicle-meta">
-            <div><strong>Кузов:</strong> {{ vehicle.body_type|default:"—" }}</div>
-            <div><strong>Цвет:</strong> {{ vehicle.color|default:"—" }}</div>
-            <div><strong>Двигатель:</strong> {{ vehicle.engine_volume|default:"—" }} л</div>
-            <div><strong>Мощность:</strong> {{ vehicle.horsepower|default:"—" }} л.с.</div>
-            <div><strong>КПП:</strong> {{ vehicle.get_transmission_display|default:"—" }}</div>
-            <div><strong>Расход:</strong> {{ vehicle.fuel_consumption|default:"—" }}</div>
-            <div><strong>Страна:</strong> {{ vehicle.country|default:"—" }}</div>
-            <div><strong>Кол-во:</strong> {{ vehicle.stock_count }}</div>
-          </div>
-          <div class="vehicle-meta">
-            <div><strong>Себестоимость:</strong> {{ vehicle.purchase_price }}</div>
-            <div><strong>Фото:</strong> {{ vehicle.media.count }}</div>
-          </div>
-          {% if vehicle.options.exists %}
-            <div>
-              <strong>Опции:</strong>
-              <span class="muted">
-                {% for option in vehicle.options.all %}
-                  {{ option.name }}{% if not forloop.last %}, {% endif %}
-                {% endfor %}
-              </span>
-            </div>
-          {% endif %}
-          {% if vehicle.description %}
-            <div class="muted">{{ vehicle.description }}</div>
-          {% endif %}
-          {% if vehicle.latest_deal %}
-            <div>
-              <strong>Покупатель:</strong>
-              <span class="muted">
-                {{ vehicle.latest_deal.customer.full_name }} · {{ vehicle.latest_deal.customer.phone }}
-              </span>
-            </div>
-            <div class="vehicle-meta">
-              <div><strong>Паспорт:</strong> {{ vehicle.latest_deal.customer.passport_series }} {{ vehicle.latest_deal.customer.passport_number }}</div>
-              <div><strong>Сумма сделки:</strong> {{ vehicle.latest_deal.sale_price }}</div>
-            </div>
-          {% endif %}
-          {% if vehicle.status == 'sold' or vehicle.status == 'inactive' %}
-            <form method="post">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="return_to_autosalon">
-              <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-              <div class="form-actions">
-                <button class="button secondary" type="submit">Вернуть в автосалон</button>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h4">Автомобили в общем списке</h2>
+      <div class="vstack gap-3 mt-3">
+        {% for vehicle in vehicles %}
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between flex-wrap gap-2">
+                <div>
+                  <strong>{{ vehicle.name }}</strong>
+                  <div class="text-muted small">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
+                </div>
+                <span class="badge rounded-pill text-bg-primary-subtle text-primary fs-6">{{ vehicle.sale_price|default:vehicle.purchase_price }}</span>
               </div>
-            </form>
-          {% endif %}
-        </div>
-      {% empty %}
-        <p class="muted">Автомобили пока не добавлены.</p>
-      {% endfor %}
+              <div class="d-flex flex-wrap gap-2 mt-2">
+                <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
+                <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_engine_type_display }}</span>
+                <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
+                <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_trim_level_display }}</span>
+              </div>
+              <hr class="my-3">
+              <div class="row g-2 text-muted small">
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Кузов:</strong> {{ vehicle.body_type|default:"—" }}</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Цвет:</strong> {{ vehicle.color|default:"—" }}</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Двигатель:</strong> {{ vehicle.engine_volume|default:"—" }} л</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Мощность:</strong> {{ vehicle.horsepower|default:"—" }} л.с.</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">КПП:</strong> {{ vehicle.get_transmission_display|default:"—" }}</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Расход:</strong> {{ vehicle.fuel_consumption|default:"—" }}</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Страна:</strong> {{ vehicle.country|default:"—" }}</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Кол-во:</strong> {{ vehicle.stock_count }}</div>
+              </div>
+              <div class="row g-2 text-muted small mt-2">
+                <div class="col-12 col-md-6"><strong class="text-dark">Себестоимость:</strong> {{ vehicle.purchase_price }}</div>
+                <div class="col-12 col-md-6"><strong class="text-dark">Фото:</strong> {{ vehicle.media.count }}</div>
+              </div>
+              {% if vehicle.options.exists %}
+                <div class="mt-2">
+                  <strong>Опции:</strong>
+                  <span class="text-muted">
+                    {% for option in vehicle.options.all %}
+                      {{ option.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                  </span>
+                </div>
+              {% endif %}
+              {% if vehicle.description %}
+                <div class="text-muted mt-2">{{ vehicle.description }}</div>
+              {% endif %}
+              {% if vehicle.latest_deal %}
+                <div class="mt-2">
+                  <strong>Покупатель:</strong>
+                  <span class="text-muted">
+                    {{ vehicle.latest_deal.customer.full_name }} · {{ vehicle.latest_deal.customer.phone }}
+                  </span>
+                </div>
+                <div class="row g-2 text-muted small mt-2">
+                  <div class="col-12 col-md-6"><strong class="text-dark">Паспорт:</strong> {{ vehicle.latest_deal.customer.passport_series }} {{ vehicle.latest_deal.customer.passport_number }}</div>
+                  <div class="col-12 col-md-6"><strong class="text-dark">Сумма сделки:</strong> {{ vehicle.latest_deal.sale_price }}</div>
+                </div>
+              {% endif %}
+              {% if vehicle.status == 'sold' or vehicle.status == 'inactive' %}
+                <form method="post" class="mt-3">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="return_to_autosalon">
+                  <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                  <div class="d-flex justify-content-end">
+                    <button class="btn btn-outline-secondary" type="submit">Вернуть в автосалон</button>
+                  </div>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <p class="text-muted mb-0">Автомобили пока не добавлены.</p>
+        {% endfor %}
+      </div>
     </div>
   </div>
 {% endblock %}
