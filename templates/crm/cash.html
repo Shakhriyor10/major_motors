@@ -133,7 +133,12 @@
   .modal-form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 20px;
+  }
+  .modal-form-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
   .modal-form-grid .modal-actions {
     grid-column: 1 / -1;
