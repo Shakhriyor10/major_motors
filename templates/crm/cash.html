@@ -739,7 +739,14 @@
       }
       const salaryDay = Number(employee.salaryDay || 0);
       const today = new Date().getDate();
-      return !paidThisMonth && (salaryDay === 0 || today >= salaryDay);
+      const salaryAmount = Number(employee.salaryAmount || 0);
+      const advances = advanceMap.get(employee.id) || 0;
+      const remaining = Math.max(salaryAmount - advances, 0);
+      return (
+        !paidThisMonth &&
+        remaining > 0 &&
+        (salaryDay === 0 || today >= salaryDay)
+      );
     });
     if (!list.length) {
       salaryEmpty.style.display = 'block';
@@ -775,6 +782,13 @@
     const end = document.getElementById('report-end').value;
     const categoryFilter = reportCategory.value;
     const expenses = loadItems(EXPENSES_KEY);
+    const employees = loadItems(EMPLOYEES_KEY);
+    const employeeLookup = new Map(
+      employees.map((employee) => [
+        employee.id,
+        `${employee.lastName || ''} ${employee.firstName || ''}`.trim()
+      ])
+    );
     const tbody = document.getElementById('report-body');
     tbody.innerHTML = '';
     reportTotal.innerHTML = '';
@@ -812,10 +826,16 @@
     filtered.forEach((expense) => {
       const row = document.createElement('tr');
       totals[expense.currency] += expense.amount;
+      const baseComment = expense.comment || '—';
+      const employeeName = expense.employeeId ? employeeLookup.get(expense.employeeId) : '';
+      const comment =
+        categoryFilter === 'salary' && employeeName
+          ? `${baseComment}<br><span class="muted">Сотрудник: ${employeeName}</span>`
+          : baseComment;
       row.innerHTML = `
         <td>${formatDateTime(new Date(expense.createdAt))}</td>
         <td>${expense.categoryLabel}</td>
-        <td>${expense.comment || '—'}</td>
+        <td>${comment}</td>
         <td>${formatCurrency(expense.amount, expense.currency)}</td>
       `;
       tbody.appendChild(row);
