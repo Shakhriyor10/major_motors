@@ -144,6 +144,80 @@
     grid-column: 1 / -1;
     margin-top: 4px;
   }
+  .report-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    width: 100%;
+  }
+  .report-actions {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .report-table th,
+  .report-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    font-size: 14px;
+  }
+  .report-table thead th {
+    background: #f8fafc;
+    font-weight: 600;
+  }
+  .report-total {
+    font-weight: 600;
+    background: #f1f5f9;
+  }
+  .report-meta {
+    display: none;
+    gap: 6px;
+    font-size: 13px;
+    color: #475569;
+  }
+  .print-only {
+    display: none;
+  }
+  @media print {
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+    body {
+      background: #fff;
+    }
+    body * {
+      visibility: hidden;
+    }
+    .report-print,
+    .report-print * {
+      visibility: visible;
+    }
+    .report-print {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    .report-meta {
+      display: grid;
+    }
+    .print-only {
+      display: block;
+    }
+    .report-table th,
+    .report-table td {
+      font-size: 12px;
+      padding: 8px 10px;
+    }
+  }
   @media (max-width: 640px) {
     .modal-form-grid {
       grid-template-columns: 1fr;
@@ -383,26 +457,50 @@
   <div class="card">
     <div class="section-title">
       <h3>Отчет по расходам</h3>
-      <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
-        <div>
-          <label for="report-start">Период с</label>
-          <input type="date" id="report-start">
-        </div>
-        <div>
-          <label for="report-end">Период по</label>
-          <input type="date" id="report-end">
-        </div>
+      <div class="report-actions">
+        <button class="button secondary" type="button" id="report-print">Печать отчета</button>
       </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Категория</th>
-          <th>Сумма</th>
-        </tr>
-      </thead>
-      <tbody id="report-body"></tbody>
-    </table>
+    <div class="report-controls">
+      <div>
+        <label for="report-start">Период с</label>
+        <input type="date" id="report-start">
+      </div>
+      <div>
+        <label for="report-end">Период по</label>
+        <input type="date" id="report-end">
+      </div>
+      <div>
+        <label for="report-category">Категория</label>
+        <select id="report-category">
+          <option value="all">Все расходы</option>
+          <option value="salary">Только зарплаты</option>
+          <option value="non-salary">Прочие расходы</option>
+          <option value="rent">Аренда</option>
+          <option value="marketing">Маркетинг</option>
+          <option value="utilities">Коммунальные</option>
+          <option value="logistics">Логистика</option>
+          <option value="office">Офисные расходы</option>
+          <option value="other">Другое</option>
+        </select>
+      </div>
+    </div>
+    <div class="report-print" id="report-print-area">
+      <h2 class="print-only">Отчет по расходам</h2>
+      <div class="report-meta" id="report-meta"></div>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Категория</th>
+            <th>Комментарий</th>
+            <th>Сумма</th>
+          </tr>
+        </thead>
+        <tbody id="report-body"></tbody>
+        <tfoot id="report-total"></tfoot>
+      </table>
+    </div>
   </div>
 
   <div class="modal-overlay" id="employee-modal">
@@ -482,6 +580,10 @@
   const salaryFields = document.getElementById('salary-fields');
   const salarySource = document.getElementById('salary-source');
   const expenseDate = document.getElementById('expense-date');
+  const reportCategory = document.getElementById('report-category');
+  const reportMeta = document.getElementById('report-meta');
+  const reportTotal = document.getElementById('report-total');
+  const reportPrintButton = document.getElementById('report-print');
   const cashUzs = document.getElementById('cash-uzs');
   const cashUsd = document.getElementById('cash-usd');
   const cashRate = document.getElementById('cash-rate');
@@ -671,9 +773,11 @@
   const refreshReport = () => {
     const start = document.getElementById('report-start').value;
     const end = document.getElementById('report-end').value;
+    const categoryFilter = reportCategory.value;
     const expenses = loadItems(EXPENSES_KEY);
     const tbody = document.getElementById('report-body');
     tbody.innerHTML = '';
+    reportTotal.innerHTML = '';
     const filtered = expenses.filter((expense) => {
       const date = expense.createdAt.slice(0, 10);
       if (start && date < start) {
@@ -682,26 +786,57 @@
       if (end && date > end) {
         return false;
       }
+      if (categoryFilter === 'salary' && expense.category !== 'salary') {
+        return false;
+      }
+      if (categoryFilter === 'non-salary' && expense.category === 'salary') {
+        return false;
+      }
+      if (!['all', 'salary', 'non-salary'].includes(categoryFilter) && expense.category !== categoryFilter) {
+        return false;
+      }
       return true;
     });
-    const summary = {};
-    filtered.forEach((expense) => {
-      const key = `${expense.categoryLabel} (${expense.currency.toUpperCase()})`;
-      summary[key] = (summary[key] || 0) + expense.amount;
-    });
-    const entries = Object.entries(summary);
-    if (!entries.length) {
+    const totals = {
+      uzs: 0,
+      usd: 0
+    };
+    filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    if (!filtered.length) {
       const row = document.createElement('tr');
-      row.innerHTML = '<td colspan="2" class="muted">Нет расходов за выбранный период.</td>';
+      row.innerHTML = '<td colspan="4" class="muted">Нет расходов за выбранный период.</td>';
       tbody.appendChild(row);
+      reportMeta.innerHTML = '';
       return;
     }
-    entries.forEach(([category, amount]) => {
+    filtered.forEach((expense) => {
       const row = document.createElement('tr');
-      const currency = category.includes('USD') ? 'usd' : 'uzs';
-      row.innerHTML = `<td>${category}</td><td>${formatCurrency(amount, currency)}</td>`;
+      totals[expense.currency] += expense.amount;
+      row.innerHTML = `
+        <td>${formatDateTime(new Date(expense.createdAt))}</td>
+        <td>${expense.categoryLabel}</td>
+        <td>${expense.comment || '—'}</td>
+        <td>${formatCurrency(expense.amount, expense.currency)}</td>
+      `;
       tbody.appendChild(row);
     });
+    reportTotal.innerHTML = `
+      <tr class="report-total">
+        <td colspan="3">Итого (сум)</td>
+        <td>${formatCurrency(totals.uzs, 'uzs')}</td>
+      </tr>
+      <tr class="report-total">
+        <td colspan="3">Итого (USD)</td>
+        <td>${formatCurrency(totals.usd, 'usd')}</td>
+      </tr>
+    `;
+    const categoryLabel = reportCategory.selectedOptions[0].textContent;
+    const periodLabel = `${start || '...'} — ${end || '...'}`;
+    reportMeta.innerHTML = `
+      <strong>Период: ${periodLabel}</strong>
+      <span>Фильтр: ${categoryLabel}</span>
+      <span>Сформировано: ${formatDateTime(new Date())}</span>
+    `;
   };
 
   expenseCategory.addEventListener('change', (event) => {
@@ -900,6 +1035,11 @@
 
   document.getElementById('report-start').addEventListener('change', refreshReport);
   document.getElementById('report-end').addEventListener('change', refreshReport);
+  reportCategory.addEventListener('change', refreshReport);
+  reportPrintButton.addEventListener('click', () => {
+    refreshReport();
+    window.print();
+  });
 
   saveRate.addEventListener('click', () => {
     const rateValue = Number(cashRate.value);
