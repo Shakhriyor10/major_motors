@@ -2,666 +2,393 @@
 {% load l10n %}
 {% block title %}Major Motors CRM · Касса{% endblock %}
 
-{% block extra_styles %}
-<style>
-  .cash-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  .cash-balance {
-    display: grid;
-    gap: 8px;
-  }
-  .cash-balance strong {
-    font-size: 20px;
-  }
-  .section-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .form-grid {
-    display: grid;
-    gap: 16px;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    margin-top: 12px;
-    width: 100%;
-  }
-  .form-grid + .form-grid {
-    margin-top: 16px;
-  }
-  .form-grid > div {
-    min-width: 0;
-  }
-  .form-grid label {
-    font-size: 13px;
-    color: #6b7280;
-    display: block;
-    margin-bottom: 6px;
-  }
-  .form-grid input,
-  .form-grid select,
-  .form-grid textarea {
-    width: 100%;
-    max-width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-    font-size: 14px;
-    box-sizing: border-box;
-  }
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-  }
-  .pill {
-    background: #f1f5f9;
-    border-radius: 999px;
-    padding: 4px 10px;
-    font-size: 12px;
-    color: #475569;
-  }
-  .tabs {
-    display: inline-flex;
-    background: #e2e8f0;
-    border-radius: 999px;
-    padding: 4px;
-    gap: 4px;
-  }
-  .tabs button {
-    border: none;
-    background: transparent;
-    padding: 6px 12px;
-    border-radius: 999px;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .tabs button.active {
-    background: #fff;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-  }
-  .list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 10px;
-  }
-  .list-item {
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .list-item strong {
-    display: block;
-  }
-  .badge {
-    background: #eef2ff;
-    color: #4338ca;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-  }
-  .actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .button.danger {
-    background: #fee2e2;
-    color: #b91c1c;
-  }
-  .button.danger:hover {
-    background: #fecaca;
-  }
-  #employee-modal .modal {
-    max-width: 720px;
-  }
-  .modal-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
-  }
-  .modal-form-grid > div {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .modal-form-grid .modal-actions {
-    grid-column: 1 / -1;
-    margin-top: 4px;
-  }
-  .report-controls {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    width: 100%;
-  }
-  .report-controls > div {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
-  }
-  .report-controls label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #64748b;
-  }
-  .report-controls input[type="date"],
-  .report-controls select {
-    border-radius: 999px;
-    border: 1px solid #e2e8f0;
-    padding: 10px 14px;
-    font-size: 14px;
-    background: #fff;
-    color: #0f172a;
-    box-shadow: 0 6px 12px rgba(148, 163, 184, 0.15);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  }
-  .report-controls input[type="date"]:focus,
-  .report-controls select:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-    transform: translateY(-1px);
-  }
-  .report-controls select {
-    appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, #64748b 50%),
-      linear-gradient(135deg, #64748b 50%, transparent 50%),
-      linear-gradient(to right, #e2e8f0, #e2e8f0);
-    background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%, calc(100% - 38px) 50%;
-    background-size: 6px 6px, 6px 6px, 1px 20px;
-    background-repeat: no-repeat;
-    padding-right: 42px;
-  }
-  .report-controls input[type="date"]::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-    background-color: #e2e8f0;
-    padding: 6px;
-    border-radius: 999px;
-  }
-  .report-actions {
-    display: flex;
-    align-items: flex-end;
-    justify-content: flex-end;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .report-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  .report-table th,
-  .report-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-    font-size: 14px;
-  }
-  .report-table thead th {
-    background: #f8fafc;
-    font-weight: 600;
-  }
-  .report-total {
-    font-weight: 600;
-    background: #f1f5f9;
-  }
-  .report-meta {
-    display: none;
-    gap: 6px;
-    font-size: 13px;
-    color: #475569;
-  }
-  .comment-block {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .comment-preview {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .comment-text {
-    display: inline-block;
-    max-width: 320px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .comment-button {
-    border: 1px solid #e2e8f0;
-    background: #f8fafc;
-    color: #1f2937;
-    border-radius: 8px;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    line-height: 1;
-  }
-  .load-more {
-    margin-top: 12px;
-  }
-  #comment-modal .modal {
-    max-width: 520px;
-  }
-  #comment-modal .modal p {
-    margin: 0;
-    white-space: pre-wrap;
-  }
-  .print-only {
-    display: none;
-  }
-  @media print {
-    @page {
-      size: A4;
-      margin: 14mm;
-    }
-    body {
-      background: #fff;
-    }
-    body * {
-      visibility: hidden;
-    }
-    .report-print,
-    .report-print * {
-      visibility: visible;
-    }
-    .report-print {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-    }
-    .report-meta {
-      display: grid;
-    }
-    .print-only {
-      display: block;
-    }
-    .report-table th,
-    .report-table td {
-      font-size: 12px;
-      padding: 8px 10px;
-    }
-  }
-  .report-table .comment-text {
-    max-width: 240px;
-  }
-  @media (max-width: 640px) {
-    .modal-form-grid {
-      grid-template-columns: 1fr;
-    }
-    .report-controls {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-{% endblock %}
-
 {% block content %}
-  <div class="card">
-    <div class="cash-header">
+  <div class="card shadow-sm mb-4">
+    <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-3">
       <div>
-        <h1>Касса и расходы</h1>
-        <p class="muted">Касса доступна прямо в шапке. Все операции пересчитываются без перезагрузки.</p>
+        <h1 class="h3">Касса и расходы</h1>
+        <p class="text-muted mb-0">Касса доступна прямо в шапке. Все операции пересчитываются без перезагрузки.</p>
       </div>
-      <div class="cash-balance">
-        <span class="muted">Текущий баланс</span>
-        <strong id="cash-uzs">-- UZS</strong>
-        <span id="cash-usd">-- USD</span>
+      <div class="text-end">
+        <span class="text-muted small">Текущий баланс</span>
+        <div class="fw-semibold fs-5" id="cash-uzs">-- UZS</div>
+        <div id="cash-usd">-- USD</div>
       </div>
     </div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <div class="section-title">
-        <h3>Текущая касса</h3>
-        <span class="pill">Доступно только суперпользователю</span>
-      </div>
-      {% if request.user.is_superuser %}
-        <form method="post">
-          {% csrf_token %}
-          <div class="form-grid">
-            <div>
-              <label for="cash-uzs-balance">Сум (UZS)</label>
-              <input type="number" id="cash-uzs-balance" name="uzs_balance" min="0" step="0.01" value="{{ cash_account.uzs_balance|unlocalize }}">
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="h5 mb-0">Текущая касса</h3>
+            <span class="badge rounded-pill text-bg-light text-dark border">Доступно только суперпользователю</span>
+          </div>
+          {% if request.user.is_superuser %}
+            <form method="post" class="mt-3">
+              {% csrf_token %}
+              <div class="row g-3">
+                <div class="col-12">
+                  <label for="cash-uzs-balance" class="form-label">Сум (UZS)</label>
+                  <input type="number" id="cash-uzs-balance" name="uzs_balance" min="0" step="0.01" value="{{ cash_account.uzs_balance|unlocalize }}" class="form-control">
+                </div>
+                <div class="col-12">
+                  <label for="cash-usd-balance" class="form-label">Доллар (USD)</label>
+                  <input type="number" id="cash-usd-balance" name="usd_balance" min="0" step="0.01" value="{{ cash_account.usd_balance|unlocalize }}" class="form-control">
+                </div>
+              </div>
+              <div class="d-flex justify-content-end mt-3">
+                <button class="btn btn-primary" type="submit">Обновить кассу</button>
+              </div>
+            </form>
+          {% else %}
+            <p class="text-muted mt-3">Текущую кассу может менять только суперпользователь.</p>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Сум (UZS)</label>
+                <input type="text" value="{{ cash_account.uzs_balance|unlocalize }}" class="form-control" readonly>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Доллар (USD)</label>
+                <input type="text" value="{{ cash_account.usd_balance|unlocalize }}" class="form-control" readonly>
+              </div>
             </div>
-            <div>
-              <label for="cash-usd-balance">Доллар (USD)</label>
-              <input type="number" id="cash-usd-balance" name="usd_balance" min="0" step="0.01" value="{{ cash_account.usd_balance|unlocalize }}">
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="h5 mb-0">Курс конвертации</h3>
+            <span class="badge rounded-pill text-bg-light text-dark border" id="rate-updated">обновлено сегодня</span>
+          </div>
+          <p class="text-muted small mt-2">Используется для расчетов в модальном окне конвертации.</p>
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="cash-rate" class="form-label">Курс USD → UZS</label>
+              <input type="number" id="cash-rate" min="0" step="0.0001" class="form-control">
+            </div>
+            <div class="col-12">
+              <label for="cash-rate-note" class="form-label">Комментарий</label>
+              <input type="text" id="cash-rate-note" placeholder="Например: курс на рынке" class="form-control">
             </div>
           </div>
-          <div class="form-actions">
-            <button class="button" type="submit">Обновить кассу</button>
-          </div>
-        </form>
-      {% else %}
-        <p class="muted">Текущую кассу может менять только суперпользователь.</p>
-        <div class="form-grid">
-          <div>
-            <label>Сум (UZS)</label>
-            <input type="text" value="{{ cash_account.uzs_balance|unlocalize }}" readonly>
-          </div>
-          <div>
-            <label>Доллар (USD)</label>
-            <input type="text" value="{{ cash_account.usd_balance|unlocalize }}" readonly>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary" type="button" id="save-rate">Сохранить курс</button>
           </div>
         </div>
-      {% endif %}
-    </div>
-
-    <div class="card">
-      <div class="section-title">
-        <h3>Курс конвертации</h3>
-        <span class="pill" id="rate-updated">обновлено сегодня</span>
-      </div>
-      <p class="muted">Используется для расчетов в модальном окне конвертации.</p>
-      <div class="form-grid">
-        <div>
-          <label for="cash-rate">Курс USD → UZS</label>
-          <input type="number" id="cash-rate" min="0" step="0.0001">
-        </div>
-        <div>
-          <label for="cash-rate-note">Комментарий</label>
-          <input type="text" id="cash-rate-note" placeholder="Например: курс на рынке">
-        </div>
-      </div>
-      <div class="form-actions">
-        <button class="button" type="button" id="save-rate">Сохранить курс</button>
       </div>
     </div>
 
-    <div class="card">
-      <h3>История конвертаций</h3>
-      <ul class="list" id="conversion-list"></ul>
-      <p class="muted" id="conversion-empty">Конвертаций пока нет.</p>
-      <button class="button secondary load-more" type="button" id="conversion-load-more">Показать еще</button>
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h3 class="h5">История конвертаций</h3>
+          <ul class="list-group list-group-flush" id="conversion-list"></ul>
+          <p class="text-muted mt-2" id="conversion-empty">Конвертаций пока нет.</p>
+          <button class="btn btn-outline-secondary btn-sm mt-2" type="button" id="conversion-load-more">Показать еще</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <div class="section-title">
-        <h3>Добавить расход</h3>
-        <span class="pill" id="expense-added-by">Добавляет: Администратор</span>
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="h5 mb-0">Добавить расход</h3>
+            <span class="badge rounded-pill text-bg-light text-dark border" id="expense-added-by">Добавляет: Администратор</span>
+          </div>
+          <form id="expense-form" class="mt-3">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label for="expense-category" class="form-label">Категория</label>
+                <select id="expense-category" name="category" class="form-select" required>
+                  <option value="">Выберите категорию</option>
+                  <option value="rent">Аренда</option>
+                  <option value="marketing">Маркетинг</option>
+                  <option value="utilities">Коммунальные</option>
+                  <option value="logistics">Логистика</option>
+                  <option value="office">Офисные расходы</option>
+                  <option value="other">Другое</option>
+                  <option value="salary">Зарплата сотрудникам</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="expense-currency" class="form-label">Валюта</label>
+                <select id="expense-currency" name="currency" class="form-select" required>
+                  <option value="uzs">Сум (UZS)</option>
+                  <option value="usd">Доллар (USD)</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="expense-amount" class="form-label">Сумма</label>
+                <input type="number" id="expense-amount" name="amount" min="0" step="0.01" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="expense-comment" class="form-label">Комментарий</label>
+                <input type="text" id="expense-comment" name="comment" placeholder="Например: счет за электричество" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="expense-date" class="form-label">Дата и время</label>
+                <input type="text" id="expense-date" name="date" class="form-control" readonly>
+              </div>
+            </div>
+            <div class="row g-3 mt-1 d-none" id="salary-fields">
+              <div class="col-12 col-md-6">
+                <label for="salary-employee" class="form-label">Сотрудник</label>
+                <select id="salary-employee" name="employee" class="form-select"></select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="salary-type" class="form-label">Тип выплаты</label>
+                <select id="salary-type" name="salary_type" class="form-select">
+                  <option value="salary">Зарплата</option>
+                  <option value="advance">Аванс</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="salary-source" class="form-label">С какой кассы списать</label>
+                <select id="salary-source" name="salary_source" class="form-select">
+                  <option value="uzs">Сум (UZS)</option>
+                  <option value="usd">Доллар (USD)</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="salary-comment" class="form-label">Комментарий к выплате</label>
+                <input type="text" id="salary-comment" name="salary_comment" placeholder="Например: доплата за смены" class="form-control">
+              </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+              <button class="btn btn-primary" type="submit">Добавить расход</button>
+            </div>
+          </form>
+        </div>
       </div>
-      <form id="expense-form">
-        <div class="form-grid">
-          <div>
-            <label for="expense-category">Категория</label>
-            <select id="expense-category" name="category" required>
-              <option value="">Выберите категорию</option>
-              <option value="rent">Аренда</option>
-              <option value="marketing">Маркетинг</option>
-              <option value="utilities">Коммунальные</option>
-              <option value="logistics">Логистика</option>
-              <option value="office">Офисные расходы</option>
-              <option value="other">Другое</option>
-              <option value="salary">Зарплата сотрудникам</option>
-            </select>
-          </div>
-          <div>
-            <label for="expense-currency">Валюта</label>
-            <select id="expense-currency" name="currency" required>
-              <option value="uzs">Сум (UZS)</option>
-              <option value="usd">Доллар (USD)</option>
-            </select>
-          </div>
-          <div>
-            <label for="expense-amount">Сумма</label>
-            <input type="number" id="expense-amount" name="amount" min="0" step="0.01" required>
-          </div>
-          <div>
-            <label for="expense-comment">Комментарий</label>
-            <input type="text" id="expense-comment" name="comment" placeholder="Например: счет за электричество">
-          </div>
-          <div>
-            <label for="expense-date">Дата и время</label>
-            <input type="text" id="expense-date" name="date" readonly>
-          </div>
-        </div>
-        <div class="form-grid" id="salary-fields" style="display: none;">
-          <div>
-            <label for="salary-employee">Сотрудник</label>
-            <select id="salary-employee" name="employee"></select>
-          </div>
-          <div>
-            <label for="salary-type">Тип выплаты</label>
-            <select id="salary-type" name="salary_type">
-              <option value="salary">Зарплата</option>
-              <option value="advance">Аванс</option>
-            </select>
-          </div>
-          <div>
-            <label for="salary-source">С какой кассы списать</label>
-            <select id="salary-source" name="salary_source">
-              <option value="uzs">Сум (UZS)</option>
-              <option value="usd">Доллар (USD)</option>
-            </select>
-          </div>
-          <div>
-            <label for="salary-comment">Комментарий к выплате</label>
-            <input type="text" id="salary-comment" name="salary_comment" placeholder="Например: доплата за смены">
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="button" type="submit">Добавить расход</button>
-        </div>
-      </form>
     </div>
 
-    <div class="card">
-      <h3>Журнал расходов</h3>
-      <ul class="list" id="expense-list"></ul>
-      <p class="muted" id="expense-empty">Расходов пока нет.</p>
-      <button class="button secondary load-more" type="button" id="expense-load-more">Показать еще</button>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h3 class="h5">Журнал расходов</h3>
+          <ul class="list-group list-group-flush" id="expense-list"></ul>
+          <p class="text-muted mt-2" id="expense-empty">Расходов пока нет.</p>
+          <button class="btn btn-outline-secondary btn-sm mt-2" type="button" id="expense-load-more">Показать еще</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <div class="section-title">
-        <h3>Сотрудники</h3>
-        <span class="pill">Добавляет: Администратор</span>
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="h5 mb-0">Сотрудники</h3>
+            <span class="badge rounded-pill text-bg-light text-dark border">Добавляет: Администратор</span>
+          </div>
+          <form id="employee-form" class="mt-3">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label for="employee-first-name" class="form-label">Имя</label>
+                <input type="text" id="employee-first-name" name="first_name" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-last-name" class="form-label">Фамилия</label>
+                <input type="text" id="employee-last-name" name="last_name" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-position" class="form-label">Должность</label>
+                <input type="text" id="employee-position" name="position" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-start-date" class="form-label">Дата начала работы</label>
+                <input type="date" id="employee-start-date" name="start_date" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-phone-1" class="form-label">Телефон</label>
+                <input type="tel" id="employee-phone-1" name="phone_primary" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-phone-2" class="form-label">Телефон (доп.)</label>
+                <input type="tel" id="employee-phone-2" name="phone_secondary" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-salary-day" class="form-label">Дата выплаты</label>
+                <input type="number" id="employee-salary-day" name="salary_day" min="1" max="31" placeholder="например 25" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-salary-amount" class="form-label">Сумма зарплаты (сум)</label>
+                <input type="number" id="employee-salary-amount" name="salary_amount" min="0" step="0.01" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-status" class="form-label">Статус</label>
+                <select id="employee-status" name="status" class="form-select">
+                  <option value="staff">Сотрудник</option>
+                  <option value="intern">Стажер</option>
+                </select>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+              <button class="btn btn-primary" type="submit">Добавить сотрудника</button>
+            </div>
+          </form>
+          <ul class="list-group list-group-flush mt-3" id="employee-list"></ul>
+          <p class="text-muted mt-2" id="employee-empty">Сотрудников пока нет.</p>
+          <button class="btn btn-outline-secondary btn-sm mt-2" type="button" id="employee-load-more">Показать еще</button>
+        </div>
       </div>
-      <form id="employee-form">
-        <div class="form-grid">
-          <div>
-            <label for="employee-first-name">Имя</label>
-            <input type="text" id="employee-first-name" name="first_name" required>
-          </div>
-          <div>
-            <label for="employee-last-name">Фамилия</label>
-            <input type="text" id="employee-last-name" name="last_name" required>
-          </div>
-          <div>
-            <label for="employee-position">Должность</label>
-            <input type="text" id="employee-position" name="position" required>
-          </div>
-          <div>
-            <label for="employee-start-date">Дата начала работы</label>
-            <input type="date" id="employee-start-date" name="start_date" required>
-          </div>
-          <div>
-            <label for="employee-phone-1">Телефон</label>
-            <input type="tel" id="employee-phone-1" name="phone_primary" required>
-          </div>
-          <div>
-            <label for="employee-phone-2">Телефон (доп.)</label>
-            <input type="tel" id="employee-phone-2" name="phone_secondary">
-          </div>
-          <div>
-            <label for="employee-salary-day">Дата выплаты</label>
-            <input type="number" id="employee-salary-day" name="salary_day" min="1" max="31" placeholder="например 25">
-          </div>
-          <div>
-            <label for="employee-salary-amount">Сумма зарплаты (сум)</label>
-            <input type="number" id="employee-salary-amount" name="salary_amount" min="0" step="0.01" required>
-          </div>
-          <div>
-            <label for="employee-status">Статус</label>
-            <select id="employee-status" name="status">
-              <option value="staff">Сотрудник</option>
-              <option value="intern">Стажер</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="button" type="submit">Добавить сотрудника</button>
-        </div>
-      </form>
-      <ul class="list" id="employee-list"></ul>
-      <p class="muted" id="employee-empty">Сотрудников пока нет.</p>
-      <button class="button secondary load-more" type="button" id="employee-load-more">Показать еще</button>
     </div>
 
-    <div class="card">
-      <div class="section-title">
-        <h3>Зарплата сотрудникам</h3>
-        <div class="tabs" id="salary-tabs">
-          <button type="button" class="active" data-filter="due">Должны получить</button>
-          <button type="button" data-filter="paid">Уже получили</button>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="h5 mb-0">Зарплата сотрудникам</h3>
+            <div class="btn-group" role="group" id="salary-tabs">
+              <button type="button" class="btn btn-outline-secondary active" data-filter="due">Должны получить</button>
+              <button type="button" class="btn btn-outline-secondary" data-filter="paid">Уже получили</button>
+            </div>
+          </div>
+          <ul class="list-group list-group-flush mt-3" id="salary-list"></ul>
+          <p class="text-muted mt-2" id="salary-empty">Нет данных по выплатам.</p>
         </div>
       </div>
-      <ul class="list" id="salary-list"></ul>
-      <p class="muted" id="salary-empty">Нет данных по выплатам.</p>
     </div>
   </div>
 
-  <div class="card">
-    <div class="section-title">
-      <h3>Отчет по расходам</h3>
-      <div class="report-actions">
-        <button class="button secondary" type="button" id="report-print">Печать отчета</button>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h3 class="h5 mb-0">Отчет по расходам</h3>
+        <div class="report-actions">
+          <button class="btn btn-outline-secondary" type="button" id="report-print">Печать отчета</button>
+        </div>
       </div>
-    </div>
-    <div class="report-controls">
-      <div>
-        <label for="report-start">Период с</label>
-        <input type="date" id="report-start">
-      </div>
-      <div>
-        <label for="report-end">Период по</label>
-        <input type="date" id="report-end">
-      </div>
-      <div>
-        <label for="report-category">Категория</label>
-        <select id="report-category">
-          <option value="all">Все расходы</option>
-          <option value="salary">Только зарплаты</option>
-          <option value="non-salary">Прочие расходы</option>
-          <option value="rent">Аренда</option>
-          <option value="marketing">Маркетинг</option>
-          <option value="utilities">Коммунальные</option>
-          <option value="logistics">Логистика</option>
-          <option value="office">Офисные расходы</option>
-          <option value="other">Другое</option>
-        </select>
-      </div>
-    </div>
-    <div class="report-print" id="report-print-area">
-      <h2 class="print-only">Отчет по расходам</h2>
-      <div class="report-meta" id="report-meta"></div>
-      <table class="report-table">
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Категория</th>
-            <th>Комментарий</th>
-            <th>Сумма</th>
-          </tr>
-        </thead>
-        <tbody id="report-body"></tbody>
-        <tfoot id="report-total"></tfoot>
-      </table>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="employee-modal">
-    <div class="modal">
-      <h3>Изменить сотрудника</h3>
-      <form id="employee-edit-form" class="modal-form-grid">
-        <input type="hidden" id="employee-edit-id" name="employee_id">
-        <div>
-          <label for="employee-edit-first-name">Имя</label>
-          <input type="text" id="employee-edit-first-name" name="first_name" required>
+      <div class="row g-3 mt-3">
+        <div class="col-12 col-md-4">
+          <label for="report-start" class="form-label">Период с</label>
+          <input type="date" id="report-start" class="form-control">
         </div>
-        <div>
-          <label for="employee-edit-last-name">Фамилия</label>
-          <input type="text" id="employee-edit-last-name" name="last_name" required>
+        <div class="col-12 col-md-4">
+          <label for="report-end" class="form-label">Период по</label>
+          <input type="date" id="report-end" class="form-control">
         </div>
-        <div>
-          <label for="employee-edit-position">Должность</label>
-          <input type="text" id="employee-edit-position" name="position" required>
-        </div>
-        <div>
-          <label for="employee-edit-start-date">Дата начала работы</label>
-          <input type="date" id="employee-edit-start-date" name="start_date" required>
-        </div>
-        <div>
-          <label for="employee-edit-phone-1">Телефон</label>
-          <input type="tel" id="employee-edit-phone-1" name="phone_primary" required>
-        </div>
-        <div>
-          <label for="employee-edit-phone-2">Телефон (доп.)</label>
-          <input type="tel" id="employee-edit-phone-2" name="phone_secondary">
-        </div>
-        <div>
-          <label for="employee-edit-salary-day">Дата выплаты</label>
-          <input type="number" id="employee-edit-salary-day" name="salary_day" min="1" max="31" placeholder="например 25">
-        </div>
-        <div>
-          <label for="employee-edit-salary-amount">Сумма зарплаты (сум)</label>
-          <input type="number" id="employee-edit-salary-amount" name="salary_amount" min="0" step="0.01" required>
-        </div>
-        <div>
-          <label for="employee-edit-status">Статус</label>
-          <select id="employee-edit-status" name="status">
-            <option value="staff">Сотрудник</option>
-            <option value="intern">Стажер</option>
+        <div class="col-12 col-md-4">
+          <label for="report-category" class="form-label">Категория</label>
+          <select id="report-category" class="form-select">
+            <option value="all">Все расходы</option>
+            <option value="salary">Только зарплаты</option>
+            <option value="non-salary">Прочие расходы</option>
+            <option value="rent">Аренда</option>
+            <option value="marketing">Маркетинг</option>
+            <option value="utilities">Коммунальные</option>
+            <option value="logistics">Логистика</option>
+            <option value="office">Офисные расходы</option>
+            <option value="other">Другое</option>
           </select>
         </div>
-        <div class="modal-actions">
-          <button class="button secondary" type="button" id="employee-edit-cancel">Отмена</button>
-          <button class="button" type="submit">Сохранить</button>
+      </div>
+      <div class="mt-4" id="report-print-area">
+        <h2 class="h4 d-none d-print-block">Отчет по расходам</h2>
+        <div class="d-none d-print-flex flex-column gap-1 text-muted small" id="report-meta"></div>
+        <div class="table-responsive">
+          <table class="table align-middle" id="report-table">
+            <thead class="table-light">
+              <tr>
+                <th>Дата</th>
+                <th>Категория</th>
+                <th>Комментарий</th>
+                <th>Сумма</th>
+              </tr>
+            </thead>
+            <tbody id="report-body"></tbody>
+            <tfoot id="report-total"></tfoot>
+          </table>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
-  <div class="modal-overlay" id="comment-modal">
-    <div class="modal">
-      <div class="section-title">
-        <h3>Комментарий к расходу</h3>
-        <button type="button" class="button secondary" id="comment-modal-close">Закрыть</button>
+  <div class="modal fade" id="employee-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="h5 mb-0">Изменить сотрудника</h3>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <form id="employee-edit-form">
+          <div class="modal-body">
+            <input type="hidden" id="employee-edit-id" name="employee_id">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label for="employee-edit-first-name" class="form-label">Имя</label>
+                <input type="text" id="employee-edit-first-name" name="first_name" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-edit-last-name" class="form-label">Фамилия</label>
+                <input type="text" id="employee-edit-last-name" name="last_name" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-edit-position" class="form-label">Должность</label>
+                <input type="text" id="employee-edit-position" name="position" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-edit-start-date" class="form-label">Дата начала работы</label>
+                <input type="date" id="employee-edit-start-date" name="start_date" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-edit-phone-1" class="form-label">Телефон</label>
+                <input type="tel" id="employee-edit-phone-1" name="phone_primary" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-edit-phone-2" class="form-label">Телефон (доп.)</label>
+                <input type="tel" id="employee-edit-phone-2" name="phone_secondary" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-edit-salary-day" class="form-label">Дата выплаты</label>
+                <input type="number" id="employee-edit-salary-day" name="salary_day" min="1" max="31" placeholder="например 25" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-edit-salary-amount" class="form-label">Сумма зарплаты (сум)</label>
+                <input type="number" id="employee-edit-salary-amount" name="salary_amount" min="0" step="0.01" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="employee-edit-status" class="form-label">Статус</label>
+                <select id="employee-edit-status" name="status" class="form-select">
+                  <option value="staff">Сотрудник</option>
+                  <option value="intern">Стажер</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-secondary" type="button" id="employee-edit-cancel">Отмена</button>
+            <button class="btn btn-primary" type="submit">Сохранить</button>
+          </div>
+        </form>
       </div>
-      <p id="comment-modal-text"></p>
+    </div>
+  </div>
+
+  <div class="modal fade" id="comment-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="h5 mb-0">Комментарий к расходу</h3>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <p id="comment-modal-text" class="mb-0"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" id="comment-modal-close">Закрыть</button>
+        </div>
+      </div>
     </div>
   </div>
 {% endblock %}
@@ -708,6 +435,8 @@
   const commentModalClose = document.getElementById('comment-modal-close');
   const expenseLoadMore = document.getElementById('expense-load-more');
   const employeeLoadMore = document.getElementById('employee-load-more');
+  const employeeModalInstance = employeeModal ? bootstrap.Modal.getOrCreateInstance(employeeModal) : null;
+  const commentModalInstance = commentModal ? bootstrap.Modal.getOrCreateInstance(commentModal) : null;
 
   const COMMENT_PREVIEW_LIMIT = 60;
   const PAGE_SIZE = 5;
@@ -742,15 +471,15 @@
 
   const createCommentPreview = (comment, textClass) => {
     const preview = document.createElement('div');
-    preview.className = 'comment-preview';
+    preview.className = 'd-flex align-items-center gap-2';
     const textSpan = document.createElement('span');
-    textSpan.className = textClass || 'comment-text';
+    textSpan.className = textClass || 'text-muted';
     textSpan.textContent = comment;
     preview.appendChild(textSpan);
     if (comment && comment.length > COMMENT_PREVIEW_LIMIT) {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'comment-button';
+      button.className = 'comment-button btn btn-sm btn-outline-secondary';
       button.dataset.action = 'view-comment';
       button.dataset.comment = comment;
       button.setAttribute('aria-label', 'Открыть комментарий');
@@ -762,12 +491,12 @@
 
   const createCommentBlock = (comment, options = {}) => {
     const container = document.createElement('div');
-    container.className = 'comment-block';
-    const textClass = options.textClass || 'comment-text';
+    container.className = 'd-flex flex-column gap-1';
+    const textClass = options.textClass || 'text-muted';
     container.appendChild(createCommentPreview(comment, textClass));
     if (options.subText) {
       const subLine = document.createElement('div');
-      subLine.className = 'muted';
+      subLine.className = 'text-muted small';
       subLine.textContent = options.subText;
       container.appendChild(subLine);
     }
@@ -779,14 +508,14 @@
       return;
     }
     commentModalText.textContent = comment;
-    commentModal.style.display = 'flex';
+    commentModalInstance?.show();
   };
 
   const closeCommentModal = () => {
     if (!commentModal) {
       return;
     }
-    commentModal.style.display = 'none';
+    commentModalInstance?.hide();
     commentModalText.textContent = '';
   };
 
@@ -809,26 +538,25 @@
     const conversions = cashStore.getConversions();
     conversionList.innerHTML = '';
     if (!conversions.length) {
-      conversionEmpty.style.display = 'block';
-      conversionLoadMore.style.display = 'none';
+      conversionEmpty.classList.remove('d-none');
+      conversionLoadMore.classList.add('d-none');
       return;
     }
-    conversionEmpty.style.display = 'none';
+    conversionEmpty.classList.add('d-none');
     conversionVisibleCount = getVisibleCount(conversionVisibleCount, conversions.length);
     conversions.slice(0, conversionVisibleCount).forEach((conversion) => {
       const item = document.createElement('li');
-      item.className = 'list-item';
+      item.className = 'list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2';
       item.innerHTML = `
         <div>
           <strong>${formatCurrency(conversion.amountFrom, conversion.fromCurrency)} → ${formatCurrency(conversion.amountTo, conversion.toCurrency)}</strong>
-          <span class="muted">${formatDateTime(new Date(conversion.createdAt))}</span>
+          <div class="text-muted small">${formatDateTime(new Date(conversion.createdAt))}</div>
         </div>
-        <span class="badge">курс ${conversion.rate}</span>
+        <span class="badge rounded-pill text-bg-primary-subtle text-primary">курс ${conversion.rate}</span>
       `;
       conversionList.appendChild(item);
     });
-    conversionLoadMore.style.display =
-      conversions.length > conversionVisibleCount ? 'inline-flex' : 'none';
+    conversionLoadMore.classList.toggle('d-none', conversions.length <= conversionVisibleCount);
   };
 
   const refreshEmployees = () => {
@@ -836,29 +564,29 @@
     employeeList.innerHTML = '';
     salaryEmployeeSelect.innerHTML = '<option value="">Выберите сотрудника</option>';
     if (!employees.length) {
-      employeeEmpty.style.display = 'block';
-      employeeLoadMore.style.display = 'none';
+      employeeEmpty.classList.remove('d-none');
+      employeeLoadMore.classList.add('d-none');
       return;
     }
-    employeeEmpty.style.display = 'none';
+    employeeEmpty.classList.add('d-none');
     employeeVisibleCount = getVisibleCount(employeeVisibleCount, employees.length);
     employees.slice(0, employeeVisibleCount).forEach((employee) => {
       const item = document.createElement('li');
-      item.className = 'list-item';
+      item.className = 'list-group-item d-flex justify-content-between align-items-start flex-wrap gap-3';
       const salaryAmount = Number(employee.salaryAmount || 0);
       item.innerHTML = `
         <div>
           <strong>${employee.lastName} ${employee.firstName}</strong>
-          <span class="muted">${employee.position} · ${employee.status === 'intern' ? 'Стажер' : 'Сотрудник'}</span>
-          <div class="muted">Тел: ${employee.phonePrimary}${employee.phoneSecondary ? `, ${employee.phoneSecondary}` : ''}</div>
-          <div class="muted">Зарплата: ${salaryAmount ? formatCurrency(salaryAmount, 'uzs') : 'не указана'}</div>
-          <div class="muted">Добавил: ${employee.createdBy}</div>
+          <div class="text-muted small">${employee.position} · ${employee.status === 'intern' ? 'Стажер' : 'Сотрудник'}</div>
+          <div class="text-muted small">Тел: ${employee.phonePrimary}${employee.phoneSecondary ? `, ${employee.phoneSecondary}` : ''}</div>
+          <div class="text-muted small">Зарплата: ${salaryAmount ? formatCurrency(salaryAmount, 'uzs') : 'не указана'}</div>
+          <div class="text-muted small">Добавил: ${employee.createdBy}</div>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-          <span class="badge">с ${employee.startDate}</span>
-          <div class="actions">
-            <button type="button" class="button secondary" data-action="edit" data-id="${employee.id}">Изменить</button>
-            <button type="button" class="button danger" data-action="delete" data-id="${employee.id}">Удалить</button>
+        <div class="text-end">
+          <span class="badge rounded-pill text-bg-primary-subtle text-primary">с ${employee.startDate}</span>
+          <div class="d-flex gap-2 mt-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-action="edit" data-id="${employee.id}">Изменить</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${employee.id}">Удалить</button>
           </div>
         </div>
       `;
@@ -868,8 +596,7 @@
       option.textContent = `${employee.lastName} ${employee.firstName}`;
       salaryEmployeeSelect.appendChild(option);
     });
-    employeeLoadMore.style.display =
-      employees.length > employeeVisibleCount ? 'inline-flex' : 'none';
+    employeeLoadMore.classList.toggle('d-none', employees.length <= employeeVisibleCount);
     refreshSalaryList();
   };
 
@@ -877,34 +604,33 @@
     const expenses = loadItems(EXPENSES_KEY);
     expenseList.innerHTML = '';
     if (!expenses.length) {
-      expenseEmpty.style.display = 'block';
-      expenseLoadMore.style.display = 'none';
+      expenseEmpty.classList.remove('d-none');
+      expenseLoadMore.classList.add('d-none');
       return;
     }
-    expenseEmpty.style.display = 'none';
+    expenseEmpty.classList.add('d-none');
     expenseVisibleCount = getVisibleCount(expenseVisibleCount, expenses.length);
     expenses.slice(0, expenseVisibleCount).forEach((expense) => {
       const item = document.createElement('li');
-      item.className = 'list-item';
+      item.className = 'list-group-item d-flex justify-content-between align-items-start flex-wrap gap-3';
       const details = document.createElement('div');
       const title = document.createElement('strong');
       title.textContent = getExpenseCategoryLabel(expense);
       details.appendChild(title);
       const commentText = expense.comment || 'Без комментария';
-      details.appendChild(createCommentBlock(commentText, { textClass: 'muted comment-text' }));
+      details.appendChild(createCommentBlock(commentText, { textClass: 'text-muted small' }));
       const meta = document.createElement('div');
-      meta.className = 'muted';
+      meta.className = 'text-muted small';
       meta.textContent = `${expense.createdBy} · ${formatDateTime(new Date(expense.createdAt))}`;
       details.appendChild(meta);
       item.appendChild(details);
       const amountBadge = document.createElement('span');
-      amountBadge.className = 'badge';
+      amountBadge.className = 'badge rounded-pill text-bg-danger-subtle text-danger';
       amountBadge.textContent = `-${formatCurrency(expense.amount, expense.currency)}`;
       item.appendChild(amountBadge);
       expenseList.appendChild(item);
     });
-    expenseLoadMore.style.display =
-      expenses.length > expenseVisibleCount ? 'inline-flex' : 'none';
+    expenseLoadMore.classList.toggle('d-none', expenses.length <= expenseVisibleCount);
     refreshReport();
     refreshSalaryList();
   };
@@ -964,29 +690,29 @@
       );
     });
     if (!list.length) {
-      salaryEmpty.style.display = 'block';
+      salaryEmpty.classList.remove('d-none');
       return;
     }
-    salaryEmpty.style.display = 'none';
+    salaryEmpty.classList.add('d-none');
     list.forEach((employee) => {
       const lastPaidAt = paidMap.get(employee.id);
       const salaryAmount = Number(employee.salaryAmount || 0);
       const advances = advanceMap.get(employee.id) || 0;
       const remaining = Math.max(salaryAmount - advances, 0);
       const item = document.createElement('li');
-      item.className = 'list-item';
+      item.className = 'list-group-item d-flex justify-content-between align-items-start flex-wrap gap-3';
       item.innerHTML = `
         <div>
           <strong>${employee.lastName} ${employee.firstName}</strong>
-          <span class="muted">${employee.position} · ${employee.status === 'intern' ? 'Стажер' : 'Сотрудник'}</span>
-          <div class="muted">Последняя выплата: ${lastPaidAt ? formatDateTime(new Date(lastPaidAt)) : 'не было'}</div>
-          <div class="muted">
+          <div class="text-muted small">${employee.position} · ${employee.status === 'intern' ? 'Стажер' : 'Сотрудник'}</div>
+          <div class="text-muted small">Последняя выплата: ${lastPaidAt ? formatDateTime(new Date(lastPaidAt)) : 'не было'}</div>
+          <div class="text-muted small">
             ${salaryAmount
               ? `Авансы: ${formatCurrency(advances, 'uzs')} · К выплате: ${formatCurrency(remaining, 'uzs')}`
               : 'Сумма зарплаты не указана'}
           </div>
         </div>
-        <span class="badge">${employee.salaryDay ? `дата ${employee.salaryDay}` : 'дата не указана'}</span>
+        <span class="badge rounded-pill text-bg-primary-subtle text-primary">${employee.salaryDay ? `дата ${employee.salaryDay}` : 'дата не указана'}</span>
       `;
       salaryList.appendChild(item);
     });
@@ -1033,7 +759,7 @@
     filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     if (!filtered.length) {
       const row = document.createElement('tr');
-      row.innerHTML = '<td colspan="4" class="muted">Нет расходов за выбранный период.</td>';
+      row.innerHTML = '<td colspan="4" class="text-muted">Нет расходов за выбранный период.</td>';
       tbody.appendChild(row);
       reportMeta.innerHTML = '';
       return;
@@ -1051,7 +777,7 @@
       const subText =
         categoryFilter === 'salary' && employeeName ? `Сотрудник: ${employeeName}` : '';
       const commentBlock = createCommentBlock(baseComment, {
-        textClass: 'comment-text',
+        textClass: 'text-muted small',
         subText: subText || null
       });
       commentCell.appendChild(commentBlock);
@@ -1064,11 +790,11 @@
       tbody.appendChild(row);
     });
     reportTotal.innerHTML = `
-      <tr class="report-total">
+      <tr class="table-light">
         <td colspan="3">Итого (сум)</td>
         <td>${formatCurrency(totals.uzs, 'uzs')}</td>
       </tr>
-      <tr class="report-total">
+      <tr class="table-light">
         <td colspan="3">Итого (USD)</td>
         <td>${formatCurrency(totals.usd, 'usd')}</td>
       </tr>
@@ -1084,7 +810,7 @@
 
   expenseCategory.addEventListener('change', (event) => {
     const isSalary = event.target.value === 'salary';
-    salaryFields.style.display = isSalary ? 'grid' : 'none';
+    salaryFields.classList.toggle('d-none', !isSalary);
     document.getElementById('salary-employee').required = isSalary;
     const expenseCurrency = document.getElementById('expense-currency');
     expenseCurrency.disabled = isSalary;
@@ -1134,18 +860,18 @@
     };
     cashStore.setState(updated);
     expenseForm.reset();
-    salaryFields.style.display = 'none';
+    salaryFields.classList.add('d-none');
     document.getElementById('expense-currency').disabled = false;
     expenseDate.value = formatDateTime(now);
     refreshExpenses();
   });
 
   const openEmployeeModal = () => {
-    employeeModal.style.display = 'flex';
+    employeeModalInstance?.show();
   };
 
   const closeEmployeeModal = () => {
-    employeeModal.style.display = 'none';
+    employeeModalInstance?.hide();
     employeeEditForm.reset();
     employeeEditIdField.value = '';
   };
@@ -1164,22 +890,6 @@
   };
 
   employeeEditCancel.addEventListener('click', closeEmployeeModal);
-
-  if (employeeModal) {
-    employeeModal.addEventListener('click', (event) => {
-      if (event.target === employeeModal) {
-        closeEmployeeModal();
-      }
-    });
-  }
-
-  if (commentModal) {
-    commentModal.addEventListener('click', (event) => {
-      if (event.target === commentModal) {
-        closeCommentModal();
-      }
-    });
-  }
 
   if (commentModalClose) {
     commentModalClose.addEventListener('click', closeCommentModal);
