@@ -113,6 +113,25 @@
     .modal-large {
       max-width: 720px;
     }
+    .sale-modal {
+      width: min(92vw, 820px);
+      border-radius: 20px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+    .sale-modal .modal-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .sale-modal .modal-title h3 {
+      margin-bottom: 4px;
+    }
+    .sale-modal .modal-actions {
+      flex-wrap: wrap;
+    }
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -127,6 +146,9 @@
       }
       .showroom-photo {
         min-height: 180px;
+      }
+      .sale-modal {
+        padding: 18px;
       }
     }
     @media print {
@@ -257,9 +279,14 @@
   </div>
 
   <div class="modal-overlay" id="sale-modal">
-    <div class="modal modal-large">
-      <h3>Оформление продажи</h3>
-      <p class="muted" id="sale-modal-title">Выберите клиента и подтвердите данные.</p>
+    <div class="modal modal-large sale-modal">
+      <div class="modal-title">
+        <div>
+          <h3>Оформление продажи</h3>
+          <p class="muted" id="sale-modal-title">Выберите клиента и подтвердите данные.</p>
+        </div>
+        <span class="tag">Быстрый чек</span>
+      </div>
       <form method="post">
         {% csrf_token %}
         <input type="hidden" name="action" value="sell_vehicle">

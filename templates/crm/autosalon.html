@@ -125,6 +125,12 @@
       display: grid;
       gap: 10px;
       background: #fff;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .vehicle-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
     }
     .vehicle-meta {
       display: grid;
@@ -175,6 +181,10 @@
       justify-content: flex-end;
       gap: 12px;
       flex-wrap: wrap;
+    }
+    .autosalon-vehicle-list {
+      display: grid;
+      gap: 18px;
     }
     @media (max-width: 960px) {
       .autosalon-grid {
@@ -378,7 +388,7 @@
 
   <div class="card">
     <h2>Автомобили в общем списке</h2>
-    <div class="grid">
+    <div class="autosalon-vehicle-list">
       {% for vehicle in vehicles %}
         <div class="vehicle-card">
           <div class="vehicle-header">
