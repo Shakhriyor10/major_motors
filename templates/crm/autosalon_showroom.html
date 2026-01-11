@@ -2,380 +2,203 @@
 
 {% block title %}Major Motors CRM · Автосалон{% endblock %}
 
-{% block extra_styles %}
-  <style>
-    .showroom-hero {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .showroom-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-    .showroom-card {
-      background: #fff;
-      border-radius: 18px;
-      border: 1px solid #e5e7eb;
-      overflow: hidden;
-      display: grid;
-      grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
-      gap: 0;
-      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .showroom-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
-    }
-    .showroom-photo {
-      width: 100%;
-      height: 100%;
-      min-height: 200px;
-      object-fit: cover;
-      background: #e5e7eb;
-    }
-    .showroom-photo.placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #6b7280;
-      font-size: 12px;
-    }
-    .showroom-body {
-      padding: 20px;
-      display: grid;
-      gap: 12px;
-      align-content: start;
-    }
-    .showroom-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .showroom-price {
-      font-weight: 700;
-      font-size: 16px;
-      color: #111827;
-      background: #eef2ff;
-      padding: 6px 12px;
-      border-radius: 999px;
-      white-space: nowrap;
-    }
-    .showroom-meta {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 6px 12px;
-      font-size: 13px;
-      color: #4b5563;
-    }
-    .showroom-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .showroom-description {
-      font-size: 13px;
-      color: #4b5563;
-    }
-    .receipt-card {
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      padding: 20px;
-      background: #f9fafb;
-      margin-bottom: 20px;
-    }
-    .receipt-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin-top: 12px;
-    }
-    .receipt-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .receipt-box {
-      border: 1px dashed #d1d5db;
-      border-radius: 12px;
-      padding: 12px;
-      background: #fff;
-    }
-    .receipt-box strong {
-      display: block;
-      margin-bottom: 4px;
-    }
-    .modal-overlay.active {
-      display: flex;
-    }
-    .modal-large {
-      max-width: 760px;
-    }
-    .sale-modal {
-      width: min(94vw, 880px);
-      border-radius: 22px;
-      background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      box-shadow: 0 28px 60px rgba(15, 23, 42, 0.2);
-    }
-    .sale-modal .modal-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .sale-modal .modal-title h3 {
-      margin-bottom: 4px;
-    }
-    .sale-modal .modal-actions {
-      flex-wrap: wrap;
-    }
-    .sale-modal .form-field {
-      background: #fff;
-      border-radius: 14px;
-      padding: 12px;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
-    }
-    .sale-modal .form-field label {
-      margin-bottom: 8px;
-    }
-    .sale-modal input,
-    .sale-modal select,
-    .sale-modal textarea {
-      box-sizing: border-box;
-      width: 100%;
-      border: 1px solid #e5e7eb;
-      padding: 10px 12px;
-      background: #f8fafc;
-      border-radius: 10px;
-      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px 20px;
-    }
-    .form-grid .full-width {
-      grid-column: 1 / -1;
-    }
-    @media (max-width: 720px) {
-      .showroom-card {
-        grid-template-columns: 1fr;
-      }
-      .showroom-photo {
-        min-height: 180px;
-      }
-      .sale-modal {
-        padding: 18px;
-      }
-    }
-    @media print {
-      body {
-        background: #fff;
-      }
-      header,
-      footer,
-      .showroom-hero,
-      .showroom-grid,
-      .receipt-card .button,
-      .button,
-      .modal-overlay {
-        display: none !important;
-      }
-      main {
-        padding: 0;
-      }
-      .receipt-card {
-        border: none;
-        box-shadow: none;
-        margin: 0;
-      }
-    }
-  </style>
-{% endblock %}
-
 {% block content %}
-  <div class="card">
-    <div class="showroom-hero">
+  <div class="card shadow-sm mb-4 d-print-none">
+    <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-3">
       <div>
-        <h1>Автосалон</h1>
-        <p class="muted">Витрина для авто в продаже и на брони. Отсюда можно оформить продажу и распечатать чек.</p>
+        <h1 class="h3">Автосалон</h1>
+        <p class="text-muted mb-0">Витрина для авто в продаже и на брони. Отсюда можно оформить продажу и распечатать чек.</p>
       </div>
-      <div>
-        <span class="tag">Фото и статусы</span>
-        <span class="tag">Продажа из карточки</span>
+      <div class="d-flex flex-wrap gap-2">
+        <span class="badge rounded-pill text-bg-primary-subtle text-primary">Фото и статусы</span>
+        <span class="badge rounded-pill text-bg-primary-subtle text-primary">Продажа из карточки</span>
       </div>
     </div>
   </div>
 
   {% if receipt %}
-    <div class="receipt-card" id="sale-receipt">
-      <div class="receipt-title">
-        <div>
-          <h2>Квитанция о покупке</h2>
-          <p class="muted">Распечатайте документ для клиента (формат A4).</p>
+    <div class="card shadow-sm mb-4" id="sale-receipt">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h2 class="h4">Квитанция о покупке</h2>
+            <p class="text-muted mb-0">Распечатайте документ для клиента (формат A4).</p>
+          </div>
+          <button class="btn btn-primary d-print-none" type="button" id="print-receipt">Печать</button>
         </div>
-        <button class="button" type="button" id="print-receipt">Печать</button>
-      </div>
-      <div class="receipt-grid">
-        <div class="receipt-box">
-          <strong>Клиент</strong>
-          <div>{{ receipt.customer.full_name }}</div>
-          <div class="muted">Телефон: {{ receipt.customer.phone }}</div>
-          <div class="muted">Паспорт: {{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}</div>
-        </div>
-        <div class="receipt-box">
-          <strong>Автомобиль</strong>
-          <div>{{ receipt.vehicle.name }}</div>
-          <div class="muted">{{ receipt.vehicle.make }} · {{ receipt.vehicle.model }}</div>
-          <div class="muted">VIN {{ receipt.vehicle.vin }}</div>
-        </div>
-        <div class="receipt-box">
-          <strong>Сумма сделки</strong>
-          <div>{{ receipt.sale_price }}</div>
-          <div class="muted">Тип оплаты: {{ receipt.get_financing_type_display }}</div>
-          <div class="muted">Дата: {{ receipt.signed_at|date:"d.m.Y" }}</div>
-        </div>
-        <div class="receipt-box">
-          <strong>Автосалон</strong>
-          <div>Major Motors</div>
-          <div class="muted">Контакт: +998 (00) 000-00-00</div>
-          <div class="muted">Адрес: ул. Демонстрационная, 10</div>
+        <div class="row g-3 mt-2">
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="border rounded-3 p-3 bg-light h-100">
+              <strong class="d-block mb-1">Клиент</strong>
+              <div>{{ receipt.customer.full_name }}</div>
+              <div class="text-muted small">Телефон: {{ receipt.customer.phone }}</div>
+              <div class="text-muted small">Паспорт: {{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="border rounded-3 p-3 bg-light h-100">
+              <strong class="d-block mb-1">Автомобиль</strong>
+              <div>{{ receipt.vehicle.name }}</div>
+              <div class="text-muted small">{{ receipt.vehicle.make }} · {{ receipt.vehicle.model }}</div>
+              <div class="text-muted small">VIN {{ receipt.vehicle.vin }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="border rounded-3 p-3 bg-light h-100">
+              <strong class="d-block mb-1">Сумма сделки</strong>
+              <div>{{ receipt.sale_price }}</div>
+              <div class="text-muted small">Тип оплаты: {{ receipt.get_financing_type_display }}</div>
+              <div class="text-muted small">Дата: {{ receipt.signed_at|date:"d.m.Y" }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="border rounded-3 p-3 bg-light h-100">
+              <strong class="d-block mb-1">Автосалон</strong>
+              <div>Major Motors</div>
+              <div class="text-muted small">Контакт: +998 (00) 000-00-00</div>
+              <div class="text-muted small">Адрес: ул. Демонстрационная, 10</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   {% endif %}
 
-  <div class="showroom-grid">
+  <div class="vstack gap-4">
     {% for vehicle in vehicles %}
-      <div class="showroom-card">
-        {% if vehicle.primary_photo %}
-          <img class="showroom-photo" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
-        {% else %}
-          <div class="showroom-photo placeholder">Фото отсутствует</div>
-        {% endif %}
-        <div class="showroom-body">
-          <div class="showroom-title">
-            <div>
-              <strong>{{ vehicle.name }}</strong>
-              <div class="muted">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
+      <div class="card shadow-sm overflow-hidden">
+        <div class="row g-0">
+          <div class="col-12 col-md-4">
+            <div class="ratio ratio-4x3 h-100">
+              {% if vehicle.primary_photo %}
+                <img class="img-fluid object-fit-cover" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-secondary-subtle text-muted">Фото отсутствует</div>
+              {% endif %}
             </div>
-            <div class="showroom-price">{{ vehicle.sale_price|default:vehicle.purchase_price }}</div>
           </div>
-          <div>
-            <span class="tag">{{ vehicle.get_status_display }}</span>
-            <span class="tag">{{ vehicle.get_condition_display }}</span>
-          </div>
-          <div class="showroom-meta">
-            <div><strong>Цвет:</strong> {{ vehicle.color|default:"—" }}</div>
-            <div><strong>КПП:</strong> {{ vehicle.get_transmission_display|default:"—" }}</div>
-            <div><strong>Двигатель:</strong> {{ vehicle.engine_volume|default:"—" }} л</div>
-            <div><strong>Кол-во:</strong> {{ vehicle.stock_count }}</div>
-          </div>
-          {% if vehicle.description %}
-            <div class="showroom-description">{{ vehicle.description }}</div>
-          {% endif %}
-          <div class="showroom-actions">
-            <button
-              class="button"
-              type="button"
-              data-open-sale
-              data-vehicle-id="{{ vehicle.id }}"
-              data-vehicle-name="{{ vehicle.name }}"
-              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
-            >
-              Продать
-            </button>
+          <div class="col-12 col-md-8">
+            <div class="card-body vstack gap-3">
+              <div class="d-flex justify-content-between flex-wrap gap-2">
+                <div>
+                  <strong>{{ vehicle.name }}</strong>
+                  <div class="text-muted small">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
+                </div>
+                <span class="badge rounded-pill text-bg-primary-subtle text-primary fs-6">{{ vehicle.sale_price|default:vehicle.purchase_price }}</span>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
+                <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
+              </div>
+              <div class="row g-2 text-muted small">
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Цвет:</strong> {{ vehicle.color|default:"—" }}</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">КПП:</strong> {{ vehicle.get_transmission_display|default:"—" }}</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Двигатель:</strong> {{ vehicle.engine_volume|default:"—" }} л</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Кол-во:</strong> {{ vehicle.stock_count }}</div>
+              </div>
+              {% if vehicle.description %}
+                <div class="text-muted small">{{ vehicle.description }}</div>
+              {% endif %}
+              <div class="d-flex justify-content-end">
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  data-open-sale
+                  data-vehicle-id="{{ vehicle.id }}"
+                  data-vehicle-name="{{ vehicle.name }}"
+                  data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                >
+                  Продать
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     {% empty %}
-      <div class="card">
-        <p class="muted">Витрина пустая. Добавьте авто в общем списке и переведите статус в продажу.</p>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <p class="text-muted mb-0">Витрина пустая. Добавьте авто в общем списке и переведите статус в продажу.</p>
+        </div>
       </div>
     {% endfor %}
   </div>
 
-  <div class="modal-overlay" id="sale-modal">
-    <div class="modal modal-large sale-modal">
-      <div class="modal-title">
-        <div>
-          <h3>Оформление продажи</h3>
-          <p class="muted" id="sale-modal-title">Выберите клиента и подтвердите данные.</p>
+  <div class="modal fade" id="sale-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="h5 mb-1">Оформление продажи</h3>
+            <p class="text-muted mb-0" id="sale-modal-title">Выберите клиента и подтвердите данные.</p>
+          </div>
+          <span class="badge rounded-pill text-bg-primary-subtle text-primary">Быстрый чек</span>
+          <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
-        <span class="tag">Быстрый чек</span>
+        <form method="post">
+          <div class="modal-body">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="sell_vehicle">
+            <input type="hidden" name="vehicle_id" id="sale-vehicle-id">
+            <div class="row g-3">
+              <div class="col-12 col-md-6 col-lg-4">
+                <label for="customer_id" class="form-label">Клиент из базы</label>
+                <select id="customer_id" name="customer_id" class="form-select">
+                  <option value="">Новый клиент</option>
+                  {% for customer in customers %}
+                    <option value="{{ customer.id }}">{{ customer.full_name }} · {{ customer.phone }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label for="sale_price" class="form-label">Сумма продажи</label>
+                <input id="sale_price" name="sale_price" type="number" min="0" step="0.01" class="form-control">
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label for="financing_type" class="form-label">Тип оплаты</label>
+                <select id="financing_type" name="financing_type" class="form-select">
+                  <option value="cash">Наличные</option>
+                  <option value="credit">Кредит</option>
+                  <option value="lease">Лизинг</option>
+                  <option value="trade_in">Трейд-ин</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="full_name" class="form-label">ФИО клиента</label>
+                <input id="full_name" name="full_name" type="text" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="phone" class="form-label">Телефон</label>
+                <input id="phone" name="phone" type="text" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="passport_series" class="form-label">Серия паспорта</label>
+                <input id="passport_series" name="passport_series" type="text" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="passport_number" class="form-label">Номер паспорта</label>
+                <input id="passport_number" name="passport_number" type="text" class="form-control">
+              </div>
+              <div class="col-12">
+                <label for="passport_issued_by" class="form-label">Кем выдан</label>
+                <input id="passport_issued_by" name="passport_issued_by" type="text" class="form-control">
+              </div>
+              <div class="col-12">
+                <label for="address" class="form-label">Адрес регистрации</label>
+                <input id="address" name="address" type="text" class="form-control">
+              </div>
+              <div class="col-12">
+                <label for="deal_notes" class="form-label">Комментарий</label>
+                <textarea id="deal_notes" name="deal_notes" rows="2" class="form-control"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-secondary" type="button" data-close-sale>Отмена</button>
+            <button class="btn btn-primary" type="submit">Подтвердить продажу</button>
+          </div>
+        </form>
       </div>
-      <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="sell_vehicle">
-        <input type="hidden" name="vehicle_id" id="sale-vehicle-id">
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="customer_id">Клиент из базы</label>
-            <select id="customer_id" name="customer_id">
-              <option value="">Новый клиент</option>
-              {% for customer in customers %}
-                <option value="{{ customer.id }}">{{ customer.full_name }} · {{ customer.phone }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="sale_price">Сумма продажи</label>
-            <input id="sale_price" name="sale_price" type="number" min="0" step="0.01">
-          </div>
-          <div class="form-field">
-            <label for="financing_type">Тип оплаты</label>
-            <select id="financing_type" name="financing_type">
-              <option value="cash">Наличные</option>
-              <option value="credit">Кредит</option>
-              <option value="lease">Лизинг</option>
-              <option value="trade_in">Трейд-ин</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="full_name">ФИО клиента</label>
-            <input id="full_name" name="full_name" type="text" required>
-          </div>
-          <div class="form-field">
-            <label for="phone">Телефон</label>
-            <input id="phone" name="phone" type="text" required>
-          </div>
-          <div class="form-field">
-            <label for="passport_series">Серия паспорта</label>
-            <input id="passport_series" name="passport_series" type="text">
-          </div>
-          <div class="form-field">
-            <label for="passport_number">Номер паспорта</label>
-            <input id="passport_number" name="passport_number" type="text">
-          </div>
-          <div class="form-field full-width">
-            <label for="passport_issued_by">Кем выдан</label>
-            <input id="passport_issued_by" name="passport_issued_by" type="text">
-          </div>
-          <div class="form-field full-width">
-            <label for="address">Адрес регистрации</label>
-            <input id="address" name="address" type="text">
-          </div>
-          <div class="form-field full-width">
-            <label for="deal_notes">Комментарий</label>
-            <textarea id="deal_notes" name="deal_notes" rows="2"></textarea>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="button secondary" type="button" data-close-sale>Отмена</button>
-          <button class="button" type="submit">Подтвердить продажу</button>
-        </div>
-      </form>
     </div>
   </div>
 {% endblock %}
@@ -390,6 +213,7 @@
     const customerSelect = document.getElementById('customer_id');
     const customerFields = ['full_name', 'phone', 'passport_series', 'passport_number', 'passport_issued_by', 'address'];
     const printButton = document.getElementById('print-receipt');
+    const saleModalInstance = saleModal ? bootstrap.Modal.getOrCreateInstance(saleModal) : null;
 
     const toggleCustomerFields = (disabled) => {
       customerFields.forEach((fieldId) => {
@@ -403,7 +227,7 @@
 
     document.querySelectorAll('[data-open-sale]').forEach((button) => {
       button.addEventListener('click', () => {
-        saleModal.classList.add('active');
+        saleModalInstance?.show();
         saleVehicleId.value = button.dataset.vehicleId;
         saleModalTitle.textContent = `Оформление продажи: ${button.dataset.vehicleName}`;
         salePriceInput.value = button.dataset.vehiclePrice || '';
@@ -414,17 +238,9 @@
 
     closeButtons.forEach((button) => {
       button.addEventListener('click', () => {
-        saleModal.classList.remove('active');
+        saleModalInstance?.hide();
       });
     });
-
-    if (saleModal) {
-      saleModal.addEventListener('click', (event) => {
-        if (event.target === saleModal) {
-          saleModal.classList.remove('active');
-        }
-      });
-    }
 
     if (customerSelect) {
       customerSelect.addEventListener('change', () => {

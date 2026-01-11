@@ -5,304 +5,98 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Major Motors CRM{% endblock %}</title>
-  <style>
-    :root {
-      color-scheme: light;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f6f7fb;
-      color: #1f2937;
-    }
-    body {
-      margin: 0;
-    }
-    header {
-      background: #111827;
-      color: #fff;
-      padding: 16px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 24px;
-    }
-    header .nav-group {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      flex-wrap: wrap;
-    }
-    header nav a {
-      color: #fff;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    header nav {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .nav-link {
-      color: #fff;
-      font-weight: 500;
-      cursor: default;
-    }
-    .nav-dropdown {
-      position: relative;
-    }
-    .nav-dropdown-menu {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      background: #fff;
-      border-radius: 12px;
-      padding: 8px;
-      min-width: 200px;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2);
-      display: none;
-      z-index: 20;
-    }
-    .nav-dropdown-menu a {
-      color: #111827;
-      text-decoration: none;
-      display: block;
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-weight: 500;
-    }
-    .nav-dropdown-menu a:hover {
-      background: #f3f4f6;
-    }
-    .nav-dropdown:hover .nav-dropdown-menu {
-      display: block;
-    }
-    .cash-summary {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.12);
-      padding: 8px 12px;
-      border-radius: 999px;
-    }
-    .cash-summary .amounts {
-      display: flex;
-      flex-direction: column;
-      font-size: 12px;
-      line-height: 1.2;
-    }
-    .cash-summary .amounts strong {
-      font-size: 14px;
-    }
-    .icon-button {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: #fff;
-      border-radius: 999px;
-      width: 32px;
-      height: 32px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 50;
-    }
-    .modal {
-      background: #fff;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.2);
-    }
-    .modal h3 {
-      margin-top: 0;
-    }
-    .modal form {
-      display: grid;
-      gap: 12px;
-    }
-    .modal label {
-      font-size: 13px;
-      color: #6b7280;
-      display: block;
-      margin-bottom: 4px;
-    }
-    .modal input,
-    .modal select,
-    .modal textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid #e5e7eb;
-      font-size: 14px;
-    }
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-    }
-    .button {
-      background: #4f46e5;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .button.secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-    main {
-      padding: 24px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
-      margin-bottom: 20px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
-    h1, h2, h3 {
-      margin-top: 0;
-    }
-    footer {
-      text-align: center;
-      padding: 16px;
-      color: #6b7280;
-    }
-    .tag {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #4338ca;
-      font-size: 12px;
-      margin-right: 8px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-    }
-    th, td {
-      text-align: left;
-      padding: 10px;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 14px;
-    }
-    th {
-      color: #6b7280;
-      font-weight: 600;
-    }
-    .muted {
-      color: #6b7280;
-      font-size: 13px;
-    }
-    .status {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 8px;
-      background: #e0f2fe;
-      color: #0369a1;
-      font-size: 12px;
-    }
-  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   {% block extra_styles %}{% endblock %}
 </head>
-<body data-cash-uzs="{{ cash_account.uzs_balance|default:0|unlocalize }}"
+<body class="bg-light" data-cash-uzs="{{ cash_account.uzs_balance|default:0|unlocalize }}"
       data-cash-usd="{{ cash_account.usd_balance|default:0|unlocalize }}"
       data-cash-rate="{{ cash_rate|default:0|unlocalize }}"
       data-cash-updated="{{ cash_account.updated_at|date:'c' }}">
-  <header>
-    <div class="nav-group">
-      <strong>Major Motors CRM</strong>
-      <nav>
-        <a href="/">Главная</a>
-        <a href="/dashboard/">Дашборд</a>
-        <a href="/customers/">Клиенты</a>
-        <a href="/leads/">Лиды</a>
-        <div class="nav-dropdown">
-          <span class="nav-link">Автосалон</span>
-          <div class="nav-dropdown-menu">
-            <a href="/autosalon/">Автосалон</a>
-            <a href="/inventory/">Общий список</a>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-print-none">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-semibold" href="/">Major Motors CRM</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Переключить навигацию">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
+          <li class="nav-item"><a class="nav-link" href="/dashboard/">Дашборд</a></li>
+          <li class="nav-item"><a class="nav-link" href="/customers/">Клиенты</a></li>
+          <li class="nav-item"><a class="nav-link" href="/leads/">Лиды</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Автосалон</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/autosalon/">Автосалон</a></li>
+              <li><a class="dropdown-item" href="/inventory/">Общий список</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="/deals/">Сделки</a></li>
+          <li class="nav-item"><a class="nav-link" href="/cash/">Касса</a></li>
+          <li class="nav-item"><a class="nav-link" href="/roles/">Роли</a></li>
+        </ul>
+        <div class="d-flex align-items-center gap-3 text-white">
+          <div class="text-end">
+            <div class="small text-white-50">Касса</div>
+            <div class="fw-semibold" id="navbar-uzs">-- UZS</div>
+            <div class="small" id="navbar-usd">-- USD</div>
           </div>
+          <button class="btn btn-outline-light btn-sm" id="open-conversion-modal" type="button" aria-label="Конвертация валюты">⇄</button>
         </div>
-        <a href="/deals/">Сделки</a>
-        <a href="/cash/">Касса</a>
-        <a href="/roles/">Роли</a>
-      </nav>
-    </div>
-    <div class="cash-summary">
-      <div class="amounts">
-        <span class="muted">Касса</span>
-        <strong id="navbar-uzs">-- UZS</strong>
-        <span id="navbar-usd">-- USD</span>
       </div>
-      <button class="icon-button" id="open-conversion-modal" type="button" aria-label="Конвертация валюты">⇄</button>
     </div>
-  </header>
-  <main>
+  </nav>
+  <main class="container py-4">
     {% block content %}{% endblock %}
   </main>
-  <footer>
+  <footer class="py-3 text-center text-muted small d-print-none">
     CRM автосалона · версия демо интерфейса
   </footer>
-  <div class="modal-overlay" id="conversion-modal">
-    <div class="modal">
-      <h3>Конвертация кассы</h3>
-      <form id="conversion-form">
-        <div>
-          <label for="conversion-from">Из валюты</label>
-          <select id="conversion-from" name="from_currency">
-            <option value="uzs">Сум (UZS)</option>
-            <option value="usd">Доллар (USD)</option>
-          </select>
+  <div class="modal fade" id="conversion-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Конвертация кассы</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
-        <div>
-          <label for="conversion-to">В валюту</label>
-          <select id="conversion-to" name="to_currency">
-            <option value="usd">Доллар (USD)</option>
-            <option value="uzs">Сум (UZS)</option>
-          </select>
+        <div class="modal-body">
+          <form id="conversion-form" class="vstack gap-3">
+            <div>
+              <label for="conversion-from" class="form-label">Из валюты</label>
+              <select id="conversion-from" name="from_currency" class="form-select">
+                <option value="uzs">Сум (UZS)</option>
+                <option value="usd">Доллар (USD)</option>
+              </select>
+            </div>
+            <div>
+              <label for="conversion-to" class="form-label">В валюту</label>
+              <select id="conversion-to" name="to_currency" class="form-select">
+                <option value="usd">Доллар (USD)</option>
+                <option value="uzs">Сум (UZS)</option>
+              </select>
+            </div>
+            <div>
+              <label for="conversion-amount" class="form-label">Сумма</label>
+              <input type="number" id="conversion-amount" name="amount" min="0" step="0.01" class="form-control" required>
+            </div>
+            <div>
+              <label for="conversion-rate" class="form-label">Курс</label>
+              <input type="number" id="conversion-rate" name="rate" min="0" step="0.0001" class="form-control" required>
+            </div>
+            <div>
+              <label for="conversion-note" class="form-label">Комментарий</label>
+              <textarea id="conversion-note" name="note" rows="2" class="form-control" placeholder="Например: обмен на рынке"></textarea>
+            </div>
+          </form>
         </div>
-        <div>
-          <label for="conversion-amount">Сумма</label>
-          <input type="number" id="conversion-amount" name="amount" min="0" step="0.01" required>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal" id="conversion-cancel">Отмена</button>
+          <button class="btn btn-primary" type="submit" form="conversion-form">Конвертировать</button>
         </div>
-        <div>
-          <label for="conversion-rate">Курс</label>
-          <input type="number" id="conversion-rate" name="rate" min="0" step="0.0001" required>
-        </div>
-        <div>
-          <label for="conversion-note">Комментарий</label>
-          <textarea id="conversion-note" name="note" rows="2" placeholder="Например: обмен на рынке"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="button secondary" type="button" id="conversion-cancel">Отмена</button>
-          <button class="button" type="submit">Конвертировать</button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const initialUzs = Number(document.body.dataset.cashUzs || 0);
     const initialUsd = Number(document.body.dataset.cashUsd || 0);
@@ -372,14 +166,15 @@
     const cancelButton = document.getElementById('conversion-cancel');
     const form = document.getElementById('conversion-form');
     const rateInput = document.getElementById('conversion-rate');
+    const conversionModal = modal ? bootstrap.Modal.getOrCreateInstance(modal) : null;
 
     const openModal = () => {
       const state = cashStore.getState();
       rateInput.value = state.rate;
-      modal.style.display = 'flex';
+      conversionModal?.show();
     };
     const closeModal = () => {
-      modal.style.display = 'none';
+      conversionModal?.hide();
       form.reset();
     };
 
@@ -388,13 +183,6 @@
     }
     if (cancelButton) {
       cancelButton.addEventListener('click', closeModal);
-    }
-    if (modal) {
-      modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          closeModal();
-        }
-      });
     }
     if (form) {
       form.addEventListener('submit', (event) => {
