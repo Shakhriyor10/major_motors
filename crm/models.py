@@ -21,6 +21,7 @@ class Role(models.Model):
         ACCOUNTANT = 'accountant', 'Бухгалтер'
         LOGISTICS = 'logistics', 'Склад/логистика'
         SERVICE = 'service', 'Сервис/СТО'
+        CALL_CENTER = 'call_center', 'Call-центр'
 
     name = models.CharField(max_length=64, choices=RoleName.choices, unique=True)
     description = models.TextField(blank=True)
@@ -454,6 +455,45 @@ class CashShift(TimeStampedModel):
     def __str__(self):
         return f'Смена кассы #{self.pk}'
 
+
+class CurrencyRate(TimeStampedModel):
+    class Currency(models.TextChoices):
+        USD = 'usd', 'USD'
+        UZS = 'uzs', 'UZS'
+
+    base_currency = models.CharField(max_length=8, choices=Currency.choices, default=Currency.USD)
+    quote_currency = models.CharField(max_length=8, choices=Currency.choices, default=Currency.UZS)
+    rate = models.DecimalField(max_digits=12, decimal_places=4)
+    effective_date = models.DateField()
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-effective_date', '-created_at']
+
+    def __str__(self):
+        return f'1 {self.base_currency.upper()} = {self.rate} {self.quote_currency.upper()}'
+
+
+class CashConversion(TimeStampedModel):
+    class Currency(models.TextChoices):
+        USD = 'usd', 'USD'
+        UZS = 'uzs', 'UZS'
+
+    shift = models.ForeignKey(CashShift, on_delete=models.SET_NULL, null=True, blank=True, related_name='conversions')
+    from_currency = models.CharField(max_length=8, choices=Currency.choices)
+    to_currency = models.CharField(max_length=8, choices=Currency.choices)
+    amount_from = models.DecimalField(max_digits=12, decimal_places=2)
+    amount_to = models.DecimalField(max_digits=12, decimal_places=2)
+    rate_used = models.DecimalField(max_digits=12, decimal_places=4)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.amount_from} {self.from_currency.upper()} → {self.amount_to} {self.to_currency.upper()}'
 
 class CreditApplication(TimeStampedModel):
     class CreditStatus(models.TextChoices):
