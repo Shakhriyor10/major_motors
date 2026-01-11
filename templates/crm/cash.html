@@ -2,37 +2,641 @@
 
 {% block title %}Major Motors CRM · Касса{% endblock %}
 
+{% block extra_styles %}
+<style>
+  .cash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .cash-balance {
+    display: grid;
+    gap: 8px;
+  }
+  .cash-balance strong {
+    font-size: 20px;
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .form-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-top: 12px;
+  }
+  .form-grid label {
+    font-size: 13px;
+    color: #6b7280;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    font-size: 14px;
+  }
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .pill {
+    background: #f1f5f9;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #475569;
+  }
+  .tabs {
+    display: inline-flex;
+    background: #e2e8f0;
+    border-radius: 999px;
+    padding: 4px;
+    gap: 4px;
+  }
+  .tabs button {
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .tabs button.active {
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+  .list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+  }
+  .list-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .list-item strong {
+    display: block;
+  }
+  .badge {
+    background: #eef2ff;
+    color: #4338ca;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
   <div class="card">
-    <h1>Касса и конвертация валют</h1>
-    <p>Настройте курс USD ↔ UZS и фиксируйте конвертации внутри смены кассы.</p>
+    <div class="cash-header">
+      <div>
+        <h1>Касса и расходы</h1>
+        <p class="muted">Касса доступна прямо в шапке. Все операции пересчитываются без перезагрузки.</p>
+      </div>
+      <div class="cash-balance">
+        <span class="muted">Текущий баланс</span>
+        <strong id="cash-uzs">-- UZS</strong>
+        <span id="cash-usd">-- USD</span>
+      </div>
+    </div>
   </div>
 
   <div class="grid">
     <div class="card">
-      <h3>Текущий курс</h3>
-      {% if exchange_rate %}
-        <p>1 {{ exchange_rate.base_currency|upper }} = {{ exchange_rate.rate }} {{ exchange_rate.quote_currency|upper }}</p>
-        <p>Дата: {{ exchange_rate.effective_date }}</p>
-      {% else %}
-        <p>Курс не задан. Добавьте новый курс валюты.</p>
-      {% endif %}
+      <div class="section-title">
+        <h3>Курс конвертации</h3>
+        <span class="pill" id="rate-updated">обновлено сегодня</span>
+      </div>
+      <p class="muted">Используется для расчетов в модальном окне конвертации.</p>
+      <div class="form-grid">
+        <div>
+          <label for="cash-rate">Курс USD → UZS</label>
+          <input type="number" id="cash-rate" min="0" step="0.0001">
+        </div>
+        <div>
+          <label for="cash-rate-note">Комментарий</label>
+          <input type="text" id="cash-rate-note" placeholder="Например: курс на рынке">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="button" type="button" id="save-rate">Сохранить курс</button>
+      </div>
     </div>
+
     <div class="card">
-      <h3>Конвертации</h3>
-      {% if conversions %}
-        <ul>
-          {% for conversion in conversions %}
-            <li>
-              {{ conversion.created_at|date:"d.m.Y H:i" }}:
-              {{ conversion.amount_from }} {{ conversion.from_currency|upper }} →
-              {{ conversion.amount_to }} {{ conversion.to_currency|upper }}
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>Конвертаций пока нет.</p>
-      {% endif %}
+      <h3>История конвертаций</h3>
+      <ul class="list" id="conversion-list"></ul>
+      <p class="muted" id="conversion-empty">Конвертаций пока нет.</p>
     </div>
   </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="section-title">
+        <h3>Добавить расход</h3>
+        <span class="pill" id="expense-added-by">Добавляет: Администратор</span>
+      </div>
+      <form id="expense-form">
+        <div class="form-grid">
+          <div>
+            <label for="expense-category">Категория</label>
+            <select id="expense-category" name="category" required>
+              <option value="">Выберите категорию</option>
+              <option value="rent">Аренда</option>
+              <option value="marketing">Маркетинг</option>
+              <option value="utilities">Коммунальные</option>
+              <option value="logistics">Логистика</option>
+              <option value="office">Офисные расходы</option>
+              <option value="other">Другое</option>
+              <option value="salary">Зарплата сотрудникам</option>
+            </select>
+          </div>
+          <div>
+            <label for="expense-currency">Валюта</label>
+            <select id="expense-currency" name="currency" required>
+              <option value="uzs">Сум (UZS)</option>
+              <option value="usd">Доллар (USD)</option>
+            </select>
+          </div>
+          <div>
+            <label for="expense-amount">Сумма</label>
+            <input type="number" id="expense-amount" name="amount" min="0" step="0.01" required>
+          </div>
+          <div>
+            <label for="expense-comment">Комментарий</label>
+            <input type="text" id="expense-comment" name="comment" placeholder="Например: счет за электричество">
+          </div>
+          <div>
+            <label for="expense-date">Дата и время</label>
+            <input type="text" id="expense-date" name="date" readonly>
+          </div>
+        </div>
+        <div class="form-grid" id="salary-fields" style="display: none;">
+          <div>
+            <label for="salary-employee">Сотрудник</label>
+            <select id="salary-employee" name="employee"></select>
+          </div>
+          <div>
+            <label for="salary-type">Тип выплаты</label>
+            <select id="salary-type" name="salary_type">
+              <option value="salary">Зарплата</option>
+              <option value="advance">Аванс</option>
+            </select>
+          </div>
+          <div>
+            <label for="salary-source">С какой кассы списать</label>
+            <select id="salary-source" name="salary_source">
+              <option value="uzs">Сум (UZS)</option>
+              <option value="usd">Доллар (USD)</option>
+            </select>
+          </div>
+          <div>
+            <label for="salary-comment">Комментарий к выплате</label>
+            <input type="text" id="salary-comment" name="salary_comment" placeholder="Например: доплата за смены">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="button" type="submit">Добавить расход</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Журнал расходов</h3>
+      <ul class="list" id="expense-list"></ul>
+      <p class="muted" id="expense-empty">Расходов пока нет.</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="section-title">
+        <h3>Сотрудники</h3>
+        <span class="pill">Добавляет: Администратор</span>
+      </div>
+      <form id="employee-form">
+        <div class="form-grid">
+          <div>
+            <label for="employee-first-name">Имя</label>
+            <input type="text" id="employee-first-name" name="first_name" required>
+          </div>
+          <div>
+            <label for="employee-last-name">Фамилия</label>
+            <input type="text" id="employee-last-name" name="last_name" required>
+          </div>
+          <div>
+            <label for="employee-position">Должность</label>
+            <input type="text" id="employee-position" name="position" required>
+          </div>
+          <div>
+            <label for="employee-start-date">Дата начала работы</label>
+            <input type="date" id="employee-start-date" name="start_date" required>
+          </div>
+          <div>
+            <label for="employee-phone-1">Телефон</label>
+            <input type="tel" id="employee-phone-1" name="phone_primary" required>
+          </div>
+          <div>
+            <label for="employee-phone-2">Телефон (доп.)</label>
+            <input type="tel" id="employee-phone-2" name="phone_secondary">
+          </div>
+          <div>
+            <label for="employee-salary-day">Дата выплаты</label>
+            <input type="number" id="employee-salary-day" name="salary_day" min="1" max="31" placeholder="например 25">
+          </div>
+          <div>
+            <label for="employee-status">Статус</label>
+            <select id="employee-status" name="status">
+              <option value="staff">Сотрудник</option>
+              <option value="intern">Стажер</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="button" type="submit">Добавить сотрудника</button>
+        </div>
+      </form>
+      <ul class="list" id="employee-list"></ul>
+      <p class="muted" id="employee-empty">Сотрудников пока нет.</p>
+    </div>
+
+    <div class="card">
+      <div class="section-title">
+        <h3>Зарплата сотрудникам</h3>
+        <div class="tabs" id="salary-tabs">
+          <button type="button" class="active" data-filter="due">Должны получить</button>
+          <button type="button" data-filter="paid">Уже получили</button>
+        </div>
+      </div>
+      <ul class="list" id="salary-list"></ul>
+      <p class="muted" id="salary-empty">Нет данных по выплатам.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">
+      <h3>Отчет по расходам</h3>
+      <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+        <div>
+          <label for="report-start">Период с</label>
+          <input type="date" id="report-start">
+        </div>
+        <div>
+          <label for="report-end">Период по</label>
+          <input type="date" id="report-end">
+        </div>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Категория</th>
+          <th>Сумма</th>
+        </tr>
+      </thead>
+      <tbody id="report-body"></tbody>
+    </table>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const currentUser = 'Администратор';
+  const EMPLOYEES_KEY = 'crm_employees_v1';
+  const EXPENSES_KEY = 'crm_expenses_v1';
+
+  const employeeForm = document.getElementById('employee-form');
+  const employeeList = document.getElementById('employee-list');
+  const employeeEmpty = document.getElementById('employee-empty');
+  const salaryEmployeeSelect = document.getElementById('salary-employee');
+  const salaryList = document.getElementById('salary-list');
+  const salaryEmpty = document.getElementById('salary-empty');
+  const salaryTabs = document.getElementById('salary-tabs');
+  const expenseForm = document.getElementById('expense-form');
+  const expenseList = document.getElementById('expense-list');
+  const expenseEmpty = document.getElementById('expense-empty');
+  const expenseCategory = document.getElementById('expense-category');
+  const salaryFields = document.getElementById('salary-fields');
+  const salarySource = document.getElementById('salary-source');
+  const expenseDate = document.getElementById('expense-date');
+  const cashUzs = document.getElementById('cash-uzs');
+  const cashUsd = document.getElementById('cash-usd');
+  const cashRate = document.getElementById('cash-rate');
+  const saveRate = document.getElementById('save-rate');
+  const rateUpdated = document.getElementById('rate-updated');
+  const conversionList = document.getElementById('conversion-list');
+  const conversionEmpty = document.getElementById('conversion-empty');
+
+  const loadItems = (key) => JSON.parse(localStorage.getItem(key) || '[]');
+  const saveItems = (key, items) => localStorage.setItem(key, JSON.stringify(items));
+
+  const updateCashBalances = () => {
+    const state = cashStore.getState();
+    cashUzs.textContent = formatCurrency(state.uzs, 'uzs');
+    cashUsd.textContent = formatCurrency(state.usd, 'usd');
+    cashRate.value = state.rate;
+  };
+
+  const formatDateTime = (date) => {
+    return new Intl.DateTimeFormat('ru-RU', {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }).format(date);
+  };
+
+  const refreshConversionList = () => {
+    const conversions = cashStore.getConversions();
+    conversionList.innerHTML = '';
+    if (!conversions.length) {
+      conversionEmpty.style.display = 'block';
+      return;
+    }
+    conversionEmpty.style.display = 'none';
+    conversions.forEach((conversion) => {
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.innerHTML = `
+        <div>
+          <strong>${formatCurrency(conversion.amountFrom, conversion.fromCurrency)} → ${formatCurrency(conversion.amountTo, conversion.toCurrency)}</strong>
+          <span class="muted">${formatDateTime(new Date(conversion.createdAt))}</span>
+        </div>
+        <span class="badge">курс ${conversion.rate}</span>
+      `;
+      conversionList.appendChild(item);
+    });
+  };
+
+  const refreshEmployees = () => {
+    const employees = loadItems(EMPLOYEES_KEY);
+    employeeList.innerHTML = '';
+    salaryEmployeeSelect.innerHTML = '<option value="">Выберите сотрудника</option>';
+    if (!employees.length) {
+      employeeEmpty.style.display = 'block';
+      return;
+    }
+    employeeEmpty.style.display = 'none';
+    employees.forEach((employee) => {
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.innerHTML = `
+        <div>
+          <strong>${employee.lastName} ${employee.firstName}</strong>
+          <span class="muted">${employee.position} · ${employee.status === 'intern' ? 'Стажер' : 'Сотрудник'}</span>
+          <div class="muted">Тел: ${employee.phonePrimary}${employee.phoneSecondary ? `, ${employee.phoneSecondary}` : ''}</div>
+          <div class="muted">Добавил: ${employee.createdBy}</div>
+        </div>
+        <span class="badge">с ${employee.startDate}</span>
+      `;
+      employeeList.appendChild(item);
+      const option = document.createElement('option');
+      option.value = employee.id;
+      option.textContent = `${employee.lastName} ${employee.firstName}`;
+      salaryEmployeeSelect.appendChild(option);
+    });
+    refreshSalaryList();
+  };
+
+  const refreshExpenses = () => {
+    const expenses = loadItems(EXPENSES_KEY);
+    expenseList.innerHTML = '';
+    if (!expenses.length) {
+      expenseEmpty.style.display = 'block';
+      return;
+    }
+    expenseEmpty.style.display = 'none';
+    expenses.forEach((expense) => {
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.innerHTML = `
+        <div>
+          <strong>${expense.categoryLabel}</strong>
+          <span class="muted">${expense.comment || 'Без комментария'}</span>
+          <div class="muted">${expense.createdBy} · ${formatDateTime(new Date(expense.createdAt))}</div>
+        </div>
+        <span class="badge">-${formatCurrency(expense.amount, expense.currency)}</span>
+      `;
+      expenseList.appendChild(item);
+    });
+    refreshReport();
+    refreshSalaryList();
+  };
+
+  const isPaidThisMonth = (dateIso) => {
+    if (!dateIso) {
+      return false;
+    }
+    const date = new Date(dateIso);
+    const now = new Date();
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  };
+
+  const refreshSalaryList = () => {
+    const employees = loadItems(EMPLOYEES_KEY);
+    const expenses = loadItems(EXPENSES_KEY);
+    const paidMap = new Map();
+    expenses
+      .filter((expense) => expense.category === 'salary')
+      .forEach((expense) => {
+        if (!paidMap.has(expense.employeeId) || new Date(expense.createdAt) > new Date(paidMap.get(expense.employeeId))) {
+          paidMap.set(expense.employeeId, expense.createdAt);
+        }
+      });
+    const activeFilter = salaryTabs.querySelector('button.active')?.dataset.filter || 'due';
+    salaryList.innerHTML = '';
+    const list = employees.filter((employee) => {
+      const lastPaidAt = paidMap.get(employee.id);
+      const paidThisMonth = isPaidThisMonth(lastPaidAt);
+      if (activeFilter === 'paid') {
+        return paidThisMonth;
+      }
+      const salaryDay = Number(employee.salaryDay || 0);
+      const today = new Date().getDate();
+      return !paidThisMonth && (salaryDay === 0 || today >= salaryDay);
+    });
+    if (!list.length) {
+      salaryEmpty.style.display = 'block';
+      return;
+    }
+    salaryEmpty.style.display = 'none';
+    list.forEach((employee) => {
+      const lastPaidAt = paidMap.get(employee.id);
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.innerHTML = `
+        <div>
+          <strong>${employee.lastName} ${employee.firstName}</strong>
+          <span class="muted">${employee.position} · ${employee.status === 'intern' ? 'Стажер' : 'Сотрудник'}</span>
+          <div class="muted">Последняя выплата: ${lastPaidAt ? formatDateTime(new Date(lastPaidAt)) : 'не было'}</div>
+        </div>
+        <span class="badge">${employee.salaryDay ? `дата ${employee.salaryDay}` : 'дата не указана'}</span>
+      `;
+      salaryList.appendChild(item);
+    });
+  };
+
+  const refreshReport = () => {
+    const start = document.getElementById('report-start').value;
+    const end = document.getElementById('report-end').value;
+    const expenses = loadItems(EXPENSES_KEY);
+    const tbody = document.getElementById('report-body');
+    tbody.innerHTML = '';
+    const filtered = expenses.filter((expense) => {
+      const date = expense.createdAt.slice(0, 10);
+      if (start && date < start) {
+        return false;
+      }
+      if (end && date > end) {
+        return false;
+      }
+      return true;
+    });
+    const summary = {};
+    filtered.forEach((expense) => {
+      const key = `${expense.categoryLabel} (${expense.currency.toUpperCase()})`;
+      summary[key] = (summary[key] || 0) + expense.amount;
+    });
+    const entries = Object.entries(summary);
+    if (!entries.length) {
+      const row = document.createElement('tr');
+      row.innerHTML = '<td colspan="2" class="muted">Нет расходов за выбранный период.</td>';
+      tbody.appendChild(row);
+      return;
+    }
+    entries.forEach(([category, amount]) => {
+      const row = document.createElement('tr');
+      const currency = category.includes('USD') ? 'usd' : 'uzs';
+      row.innerHTML = `<td>${category}</td><td>${formatCurrency(amount, currency)}</td>`;
+      tbody.appendChild(row);
+    });
+  };
+
+  expenseCategory.addEventListener('change', (event) => {
+    const isSalary = event.target.value === 'salary';
+    salaryFields.style.display = isSalary ? 'grid' : 'none';
+    document.getElementById('salary-employee').required = isSalary;
+    const expenseCurrency = document.getElementById('expense-currency');
+    expenseCurrency.disabled = isSalary;
+    if (isSalary) {
+      expenseCurrency.value = salarySource.value;
+    }
+  });
+
+  salarySource.addEventListener('change', () => {
+    document.getElementById('expense-currency').value = salarySource.value;
+  });
+
+  expenseForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const formData = new FormData(expenseForm);
+    const now = new Date();
+    const category = formData.get('category');
+    const currency = category === 'salary' ? formData.get('salary_source') : formData.get('currency');
+    const amount = Number(formData.get('amount'));
+    if (!category || !currency || !amount) {
+      return;
+    }
+    const categoryLabel = expenseCategory.selectedOptions[0].textContent;
+    const expense = {
+      id: crypto.randomUUID(),
+      category,
+      categoryLabel,
+      currency,
+      amount,
+      comment: formData.get('comment') || formData.get('salary_comment') || '',
+      createdBy: currentUser,
+      createdAt: now.toISOString(),
+      employeeId: formData.get('employee') || null,
+      salaryType: formData.get('salary_type') || null,
+    };
+    const expenses = loadItems(EXPENSES_KEY);
+    expenses.unshift(expense);
+    saveItems(EXPENSES_KEY, expenses.slice(0, 50));
+    const state = cashStore.getState();
+    const updated = {
+      uzs: state.uzs - (currency === 'uzs' ? amount : 0),
+      usd: state.usd - (currency === 'usd' ? amount : 0),
+    };
+    cashStore.setState(updated);
+    expenseForm.reset();
+    salaryFields.style.display = 'none';
+    document.getElementById('expense-currency').disabled = false;
+    expenseDate.value = formatDateTime(now);
+    refreshExpenses();
+  });
+
+  employeeForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const formData = new FormData(employeeForm);
+    const employee = {
+      id: crypto.randomUUID(),
+      firstName: formData.get('first_name'),
+      lastName: formData.get('last_name'),
+      position: formData.get('position'),
+      startDate: formData.get('start_date'),
+      phonePrimary: formData.get('phone_primary'),
+      phoneSecondary: formData.get('phone_secondary'),
+      salaryDay: formData.get('salary_day'),
+      status: formData.get('status'),
+      createdBy: currentUser,
+      createdAt: new Date().toISOString(),
+    };
+    const employees = loadItems(EMPLOYEES_KEY);
+    employees.unshift(employee);
+    saveItems(EMPLOYEES_KEY, employees);
+    employeeForm.reset();
+    refreshEmployees();
+  });
+
+  salaryTabs.addEventListener('click', (event) => {
+    if (event.target.tagName !== 'BUTTON') {
+      return;
+    }
+    salaryTabs.querySelectorAll('button').forEach((button) => button.classList.remove('active'));
+    event.target.classList.add('active');
+    refreshSalaryList();
+  });
+
+  document.getElementById('report-start').addEventListener('change', refreshReport);
+  document.getElementById('report-end').addEventListener('change', refreshReport);
+
+  saveRate.addEventListener('click', () => {
+    const rateValue = Number(cashRate.value);
+    if (!rateValue) {
+      return;
+    }
+    cashStore.setState({ rate: rateValue });
+    rateUpdated.textContent = `обновлено ${formatDateTime(new Date())}`;
+  });
+
+  document.addEventListener('cash:updated', updateCashBalances);
+  document.addEventListener('cash:conversion', refreshConversionList);
+
+  updateCashBalances();
+  refreshConversionList();
+  refreshEmployees();
+  refreshExpenses();
+  expenseDate.value = formatDateTime(new Date());
+</script>
 {% endblock %}

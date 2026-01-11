@@ -21,12 +21,107 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 24px;
+    }
+    header .nav-group {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
     }
     header nav a {
       color: #fff;
       text-decoration: none;
       margin-left: 16px;
       font-weight: 500;
+    }
+    .cash-summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+    .cash-summary .amounts {
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+      line-height: 1.2;
+    }
+    .cash-summary .amounts strong {
+      font-size: 14px;
+    }
+    .icon-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: #fff;
+      border-radius: 999px;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.2);
+    }
+    .modal h3 {
+      margin-top: 0;
+    }
+    .modal form {
+      display: grid;
+      gap: 12px;
+    }
+    .modal label {
+      font-size: 13px;
+      color: #6b7280;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .modal input,
+    .modal select,
+    .modal textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      font-size: 14px;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .button {
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .button.secondary {
+      background: #e5e7eb;
+      color: #111827;
     }
     main {
       padding: 24px;
@@ -94,19 +189,27 @@
 </head>
 <body>
   <header>
-    <div>
+    <div class="nav-group">
       <strong>Major Motors CRM</strong>
+      <nav>
+        <a href="/">Главная</a>
+        <a href="/dashboard/">Дашборд</a>
+        <a href="/customers/">Клиенты</a>
+        <a href="/leads/">Лиды</a>
+        <a href="/inventory/">Склад</a>
+        <a href="/deals/">Сделки</a>
+        <a href="/cash/">Касса</a>
+        <a href="/roles/">Роли</a>
+      </nav>
     </div>
-    <nav>
-      <a href="/">Главная</a>
-      <a href="/dashboard/">Дашборд</a>
-      <a href="/customers/">Клиенты</a>
-      <a href="/leads/">Лиды</a>
-      <a href="/inventory/">Склад</a>
-      <a href="/deals/">Сделки</a>
-      <a href="/cash/">Касса</a>
-      <a href="/roles/">Роли</a>
-    </nav>
+    <div class="cash-summary">
+      <div class="amounts">
+        <span class="muted">Касса</span>
+        <strong id="navbar-uzs">-- UZS</strong>
+        <span id="navbar-usd">-- USD</span>
+      </div>
+      <button class="icon-button" id="open-conversion-modal" type="button" aria-label="Конвертация валюты">⇄</button>
+    </div>
   </header>
   <main>
     {% block content %}{% endblock %}
@@ -114,5 +217,172 @@
   <footer>
     CRM автосалона · версия демо интерфейса
   </footer>
+  <div class="modal-overlay" id="conversion-modal">
+    <div class="modal">
+      <h3>Конвертация кассы</h3>
+      <form id="conversion-form">
+        <div>
+          <label for="conversion-from">Из валюты</label>
+          <select id="conversion-from" name="from_currency">
+            <option value="uzs">Сум (UZS)</option>
+            <option value="usd">Доллар (USD)</option>
+          </select>
+        </div>
+        <div>
+          <label for="conversion-to">В валюту</label>
+          <select id="conversion-to" name="to_currency">
+            <option value="usd">Доллар (USD)</option>
+            <option value="uzs">Сум (UZS)</option>
+          </select>
+        </div>
+        <div>
+          <label for="conversion-amount">Сумма</label>
+          <input type="number" id="conversion-amount" name="amount" min="0" step="0.01" required>
+        </div>
+        <div>
+          <label for="conversion-rate">Курс</label>
+          <input type="number" id="conversion-rate" name="rate" min="0" step="0.0001" required>
+        </div>
+        <div>
+          <label for="conversion-note">Комментарий</label>
+          <textarea id="conversion-note" name="note" rows="2" placeholder="Например: обмен на рынке"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="button secondary" type="button" id="conversion-cancel">Отмена</button>
+          <button class="button" type="submit">Конвертировать</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    const cashStore = (() => {
+      const STORAGE_KEY = 'crm_cash_state_v1';
+      const CONVERSIONS_KEY = 'crm_cash_conversions_v1';
+      const defaultState = { uzs: 125000000, usd: 4200, rate: 12550 };
+      const load = () => {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        return saved ? JSON.parse(saved) : { ...defaultState };
+      };
+      const save = (state) => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      };
+      const notify = (state) => {
+        document.dispatchEvent(new CustomEvent('cash:updated', { detail: state }));
+      };
+      return {
+        getState() {
+          const state = load();
+          save(state);
+          return state;
+        },
+        setState(partial) {
+          const state = { ...load(), ...partial };
+          save(state);
+          notify(state);
+          return state;
+        },
+        addConversion(conversion) {
+          const list = JSON.parse(localStorage.getItem(CONVERSIONS_KEY) || '[]');
+          list.unshift(conversion);
+          localStorage.setItem(CONVERSIONS_KEY, JSON.stringify(list.slice(0, 20)));
+          document.dispatchEvent(new CustomEvent('cash:conversion', { detail: conversion }));
+        },
+        getConversions() {
+          return JSON.parse(localStorage.getItem(CONVERSIONS_KEY) || '[]');
+        }
+      };
+    })();
+
+    const formatCurrency = (amount, currency) => {
+      const formatter = new Intl.NumberFormat('ru-RU', {
+        maximumFractionDigits: currency === 'usd' ? 2 : 0,
+      });
+      const suffix = currency === 'usd' ? 'USD' : 'UZS';
+      return `${formatter.format(amount)} ${suffix}`;
+    };
+
+    const updateNavbarCash = () => {
+      const state = cashStore.getState();
+      const uzsEl = document.getElementById('navbar-uzs');
+      const usdEl = document.getElementById('navbar-usd');
+      if (uzsEl) {
+        uzsEl.textContent = formatCurrency(state.uzs, 'uzs');
+      }
+      if (usdEl) {
+        usdEl.textContent = formatCurrency(state.usd, 'usd');
+      }
+    };
+
+    const modal = document.getElementById('conversion-modal');
+    const openButton = document.getElementById('open-conversion-modal');
+    const cancelButton = document.getElementById('conversion-cancel');
+    const form = document.getElementById('conversion-form');
+    const rateInput = document.getElementById('conversion-rate');
+
+    const openModal = () => {
+      const state = cashStore.getState();
+      rateInput.value = state.rate;
+      modal.style.display = 'flex';
+    };
+    const closeModal = () => {
+      modal.style.display = 'none';
+      form.reset();
+    };
+
+    if (openButton) {
+      openButton.addEventListener('click', openModal);
+    }
+    if (cancelButton) {
+      cancelButton.addEventListener('click', closeModal);
+    }
+    if (modal) {
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+    }
+    if (form) {
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const fromCurrency = formData.get('from_currency');
+        const toCurrency = formData.get('to_currency');
+        if (fromCurrency === toCurrency) {
+          return;
+        }
+        const amount = Number(formData.get('amount'));
+        const rate = Number(formData.get('rate'));
+        if (!amount || !rate) {
+          return;
+        }
+        const state = cashStore.getState();
+        const amountTo = fromCurrency === 'usd' ? amount * rate : amount / rate;
+        const updated = {
+          uzs: state.uzs + (toCurrency === 'uzs' ? amountTo : -amount),
+          usd: state.usd + (toCurrency === 'usd' ? amountTo : -amount),
+          rate,
+        };
+        cashStore.setState(updated);
+        cashStore.addConversion({
+          id: crypto.randomUUID(),
+          fromCurrency,
+          toCurrency,
+          amountFrom: amount,
+          amountTo,
+          rate,
+          note: formData.get('note') || '',
+          createdAt: new Date().toISOString(),
+        });
+        closeModal();
+      });
+    }
+
+    updateNavbarCash();
+    document.addEventListener('cash:updated', updateNavbarCash);
+    window.cashStore = cashStore;
+    window.formatCurrency = formatCurrency;
+  </script>
+  {% block extra_scripts %}{% endblock %}
 </body>
 </html>
