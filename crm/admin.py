@@ -84,9 +84,14 @@ class LeadAdmin(admin.ModelAdmin):
 
 @admin.register(models.Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
-    list_display = ('vin', 'make', 'model', 'year', 'status', 'purchase_price', 'sale_price')
+    list_display = ('vin', 'name', 'make', 'model', 'status', 'purchase_price', 'sale_price', 'stock_count')
     list_filter = ('status', 'acquisition_type')
-    search_fields = ('vin', 'make', 'model')
+    search_fields = ('vin', 'name', 'make', 'model')
+
+
+@admin.register(models.VehicleOption)
+class VehicleOptionAdmin(admin.ModelAdmin):
+    list_display = ('name',)
 
 
 @admin.register(models.VehicleMedia)
