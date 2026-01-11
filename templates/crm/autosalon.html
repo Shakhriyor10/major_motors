@@ -125,6 +125,12 @@
       display: grid;
       gap: 10px;
       background: #fff;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .vehicle-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
     }
     .vehicle-meta {
       display: grid;
@@ -175,6 +181,10 @@
       justify-content: flex-end;
       gap: 12px;
       flex-wrap: wrap;
+    }
+    .autosalon-vehicle-list {
+      display: grid;
+      gap: 18px;
     }
     @media (max-width: 960px) {
       .autosalon-grid {
@@ -351,34 +361,11 @@
       </form>
     </div>
 
-    <div class="autosalon-summary">
-      <div>
-        <h3>Сводка автосалона</h3>
-        <p class="muted">Всего в списке: {{ vehicles|length }}</p>
-      </div>
-      <div class="summary-metrics">
-        <div class="summary-metric">
-          <span>В продаже</span>
-          <strong>{{ vehicles_for_sale }}</strong>
-        </div>
-        <div class="summary-metric">
-          <span>Опций доступно</span>
-          <strong>{{ options|length }}</strong>
-        </div>
-        <div class="summary-metric">
-          <span>Последнее обновление</span>
-          <strong>сегодня</strong>
-        </div>
-      </div>
-      <div class="muted">
-        Добавленные авто отображаются ниже. Для каждого авто доступны цены, статус и ключевые характеристики.
-      </div>
-    </div>
   </div>
 
   <div class="card">
     <h2>Автомобили в общем списке</h2>
-    <div class="grid">
+    <div class="autosalon-vehicle-list">
       {% for vehicle in vehicles %}
         <div class="vehicle-card">
           <div class="vehicle-header">
