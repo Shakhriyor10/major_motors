@@ -244,6 +244,10 @@ class Vehicle(TimeStampedModel):
         TRADE_IN = 'trade_in', 'Трейд-ин'
         CONSIGNMENT = 'consignment', 'Комиссия'
 
+    class Currency(models.TextChoices):
+        USD = 'usd', 'USD'
+        UZS = 'uzs', 'UZS'
+
     class EngineType(models.TextChoices):
         GASOLINE = 'gasoline', 'Бензин'
         DIESEL = 'diesel', 'Дизель'
@@ -274,7 +278,17 @@ class Vehicle(TimeStampedModel):
     color = models.CharField(max_length=64, blank=True)
     body_type = models.CharField(max_length=128, blank=True)
     purchase_price = models.DecimalField(max_digits=12, decimal_places=2)
+    purchase_currency = models.CharField(
+        max_length=8,
+        choices=Currency.choices,
+        default=Currency.UZS,
+    )
     sale_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    sale_currency = models.CharField(
+        max_length=8,
+        choices=Currency.choices,
+        default=Currency.UZS,
+    )
     stock_count = models.PositiveIntegerField(default=1)
     engine_type = models.CharField(max_length=32, choices=EngineType.choices, default=EngineType.GASOLINE)
     engine_volume = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
@@ -293,6 +307,7 @@ class Vehicle(TimeStampedModel):
         default=AcquisitionType.PURCHASE,
         blank=True,
     )
+    counterparty_name = models.CharField(max_length=255, blank=True)
     arrived_at = models.DateField(null=True, blank=True)
     location = models.CharField(max_length=128, blank=True)
     notes = models.TextField(blank=True)
@@ -475,6 +490,7 @@ class Payment(TimeStampedModel):
 
 class VehicleExpense(TimeStampedModel):
     class ExpenseCategory(models.TextChoices):
+        PURCHASE = 'purchase', 'Закуп авто'
         DELIVERY = 'delivery', 'Доставка'
         REPAIR = 'repair', 'Ремонт'
         DETAILING = 'detailing', 'Химчистка'
