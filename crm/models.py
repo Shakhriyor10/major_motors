@@ -218,31 +218,77 @@ class Lead(TimeStampedModel):
         return f'Лид #{self.pk} - {self.customer.full_name}'
 
 
+class VehicleOption(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class Vehicle(TimeStampedModel):
     class VehicleStatus(models.TextChoices):
-        IN_TRANSIT = 'in_transit', 'В пути'
-        IN_STOCK = 'in_stock', 'На складе'
-        ON_SHOW = 'on_show', 'На показе'
-        RESERVED = 'reserved', 'Забронировано'
+        FOR_SALE = 'for_sale', 'В продаже'
         SOLD = 'sold', 'Продано'
-        SERVICE = 'service', 'На сервисе'
+        RESERVED = 'reserved', 'Бронь'
+        INACTIVE = 'inactive', 'Неактивный'
 
     class AcquisitionType(models.TextChoices):
         PURCHASE = 'purchase', 'Закуп'
         TRADE_IN = 'trade_in', 'Трейд-ин'
         CONSIGNMENT = 'consignment', 'Комиссия'
 
+    class EngineType(models.TextChoices):
+        GASOLINE = 'gasoline', 'Бензин'
+        DIESEL = 'diesel', 'Дизель'
+        HYBRID = 'hybrid', 'Гибрид'
+        ELECTRIC = 'electric', 'Электро'
+
+    class Condition(models.TextChoices):
+        NEW = 'new', 'Новая'
+        USED = 'used', 'С пробегом'
+
+    class TrimLevel(models.TextChoices):
+        STANDARD = 'standard', 'Standard'
+        COMFORT = 'comfort', 'Comfort'
+        LUXURY = 'luxury', 'Luxury'
+
+    class Transmission(models.TextChoices):
+        AUTOMATIC = 'automatic', 'Автомат'
+        MANUAL = 'manual', 'Механика'
+        ROBOT = 'robot', 'Робот'
+        CVT = 'cvt', 'Вариатор'
+
     vin = models.CharField(max_length=32, unique=True)
+    name = models.CharField(max_length=255)
     make = models.CharField(max_length=128)
     model = models.CharField(max_length=128)
-    year = models.PositiveIntegerField()
-    mileage = models.PositiveIntegerField()
+    year = models.PositiveIntegerField(null=True, blank=True)
+    mileage = models.PositiveIntegerField(null=True, blank=True)
     color = models.CharField(max_length=64, blank=True)
-    trim = models.CharField(max_length=128, blank=True)
+    body_type = models.CharField(max_length=128, blank=True)
     purchase_price = models.DecimalField(max_digits=12, decimal_places=2)
     sale_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    status = models.CharField(max_length=32, choices=VehicleStatus.choices, default=VehicleStatus.IN_STOCK)
-    acquisition_type = models.CharField(max_length=32, choices=AcquisitionType.choices)
+    stock_count = models.PositiveIntegerField(default=1)
+    engine_type = models.CharField(max_length=32, choices=EngineType.choices, default=EngineType.GASOLINE)
+    engine_volume = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    horsepower = models.PositiveIntegerField(null=True, blank=True)
+    transmission = models.CharField(max_length=32, choices=Transmission.choices, blank=True)
+    fuel_consumption = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    condition = models.CharField(max_length=32, choices=Condition.choices, default=Condition.NEW)
+    country = models.CharField(max_length=128, blank=True)
+    trim_level = models.CharField(max_length=32, choices=TrimLevel.choices, default=TrimLevel.STANDARD)
+    description = models.TextField(blank=True)
+    options = models.ManyToManyField(VehicleOption, related_name='vehicles', blank=True)
+    status = models.CharField(max_length=32, choices=VehicleStatus.choices, default=VehicleStatus.FOR_SALE)
+    acquisition_type = models.CharField(
+        max_length=32,
+        choices=AcquisitionType.choices,
+        default=AcquisitionType.PURCHASE,
+        blank=True,
+    )
     arrived_at = models.DateField(null=True, blank=True)
     location = models.CharField(max_length=128, blank=True)
     notes = models.TextField(blank=True)
@@ -251,7 +297,7 @@ class Vehicle(TimeStampedModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.make} {self.model} ({self.vin})'
+        return f'{self.name} ({self.vin})'
 
 
 class VehicleMedia(TimeStampedModel):
