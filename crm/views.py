@@ -181,7 +181,10 @@ def autosalon(request):
             )
 
             vehicle.stock_count = max(vehicle.stock_count - 1, 0)
-            vehicle.status = Vehicle.VehicleStatus.SOLD
+            if vehicle.stock_count == 0:
+                vehicle.status = Vehicle.VehicleStatus.SOLD
+            elif vehicle.status != Vehicle.VehicleStatus.RESERVED:
+                vehicle.status = Vehicle.VehicleStatus.FOR_SALE
             vehicle.save(update_fields=['stock_count', 'status'])
 
             return redirect(f"{reverse('autosalon')}?receipt={deal.pk}")

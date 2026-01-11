@@ -22,17 +22,28 @@
       border: 1px solid #e5e7eb;
       overflow: hidden;
       display: grid;
+      grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+      gap: 0;
     }
     .showroom-photo {
       width: 100%;
-      height: 180px;
+      height: 100%;
+      min-height: 200px;
       object-fit: cover;
       background: #e5e7eb;
+    }
+    .showroom-photo.placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6b7280;
+      font-size: 12px;
     }
     .showroom-body {
       padding: 16px;
       display: grid;
       gap: 10px;
+      align-content: start;
     }
     .showroom-title {
       display: flex;
@@ -61,6 +72,10 @@
       justify-content: flex-end;
       gap: 10px;
       flex-wrap: wrap;
+    }
+    .showroom-description {
+      font-size: 13px;
+      color: #4b5563;
     }
     .receipt-card {
       border: 1px solid #e5e7eb;
@@ -105,6 +120,14 @@
     }
     .form-grid .full-width {
       grid-column: 1 / -1;
+    }
+    @media (max-width: 720px) {
+      .showroom-card {
+        grid-template-columns: 1fr;
+      }
+      .showroom-photo {
+        min-height: 180px;
+      }
     }
     @media print {
       body {
@@ -189,7 +212,7 @@
         {% if vehicle.primary_photo %}
           <img class="showroom-photo" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
         {% else %}
-          <div class="showroom-photo"></div>
+          <div class="showroom-photo placeholder">Фото отсутствует</div>
         {% endif %}
         <div class="showroom-body">
           <div class="showroom-title">
@@ -209,6 +232,9 @@
             <div><strong>Двигатель:</strong> {{ vehicle.engine_volume|default:"—" }} л</div>
             <div><strong>Кол-во:</strong> {{ vehicle.stock_count }}</div>
           </div>
+          {% if vehicle.description %}
+            <div class="showroom-description">{{ vehicle.description }}</div>
+          {% endif %}
           <div class="showroom-actions">
             <button
               class="button"
