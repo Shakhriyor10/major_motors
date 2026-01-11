@@ -182,6 +182,44 @@
     font-size: 13px;
     color: #475569;
   }
+  .comment-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .comment-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .comment-text {
+    display: inline-block;
+    max-width: 320px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .comment-button {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #1f2937;
+    border-radius: 8px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    line-height: 1;
+  }
+  #comment-modal .modal {
+    max-width: 520px;
+  }
+  #comment-modal .modal p {
+    margin: 0;
+    white-space: pre-wrap;
+  }
   .print-only {
     display: none;
   }
@@ -217,6 +255,9 @@
       font-size: 12px;
       padding: 8px 10px;
     }
+  }
+  .report-table .comment-text {
+    max-width: 240px;
   }
   @media (max-width: 640px) {
     .modal-form-grid {
@@ -554,6 +595,16 @@
       </form>
     </div>
   </div>
+
+  <div class="modal-overlay" id="comment-modal">
+    <div class="modal">
+      <div class="section-title">
+        <h3>Комментарий к расходу</h3>
+        <button type="button" class="button secondary" id="comment-modal-close">Закрыть</button>
+      </div>
+      <p id="comment-modal-text"></p>
+    </div>
+  </div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -582,6 +633,7 @@
   const expenseDate = document.getElementById('expense-date');
   const reportCategory = document.getElementById('report-category');
   const reportMeta = document.getElementById('report-meta');
+  const reportBody = document.getElementById('report-body');
   const reportTotal = document.getElementById('report-total');
   const reportPrintButton = document.getElementById('report-print');
   const cashUzs = document.getElementById('cash-uzs');
@@ -591,6 +643,11 @@
   const rateUpdated = document.getElementById('rate-updated');
   const conversionList = document.getElementById('conversion-list');
   const conversionEmpty = document.getElementById('conversion-empty');
+  const commentModal = document.getElementById('comment-modal');
+  const commentModalText = document.getElementById('comment-modal-text');
+  const commentModalClose = document.getElementById('comment-modal-close');
+
+  const COMMENT_PREVIEW_LIMIT = 60;
 
   const loadItems = (key) => JSON.parse(localStorage.getItem(key) || '[]');
   const saveItems = (key, items) => localStorage.setItem(key, JSON.stringify(items));
@@ -607,6 +664,72 @@
       dateStyle: 'short',
       timeStyle: 'short'
     }).format(date);
+  };
+
+  const getExpenseCategoryLabel = (expense) => {
+    if (expense.category !== 'salary') {
+      return expense.categoryLabel || '';
+    }
+    const baseLabel = 'Зарплата сотрудникам';
+    return expense.salaryType === 'advance' ? `${baseLabel} (Аванс)` : baseLabel;
+  };
+
+  const createCommentPreview = (comment, textClass) => {
+    const preview = document.createElement('div');
+    preview.className = 'comment-preview';
+    const textSpan = document.createElement('span');
+    textSpan.className = textClass || 'comment-text';
+    textSpan.textContent = comment;
+    preview.appendChild(textSpan);
+    if (comment && comment.length > COMMENT_PREVIEW_LIMIT) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'comment-button';
+      button.dataset.action = 'view-comment';
+      button.dataset.comment = comment;
+      button.setAttribute('aria-label', 'Открыть комментарий');
+      button.textContent = '👁';
+      preview.appendChild(button);
+    }
+    return preview;
+  };
+
+  const createCommentBlock = (comment, options = {}) => {
+    const container = document.createElement('div');
+    container.className = 'comment-block';
+    const textClass = options.textClass || 'comment-text';
+    container.appendChild(createCommentPreview(comment, textClass));
+    if (options.subText) {
+      const subLine = document.createElement('div');
+      subLine.className = 'muted';
+      subLine.textContent = options.subText;
+      container.appendChild(subLine);
+    }
+    return container;
+  };
+
+  const openCommentModal = (comment) => {
+    if (!commentModal) {
+      return;
+    }
+    commentModalText.textContent = comment;
+    commentModal.style.display = 'flex';
+  };
+
+  const closeCommentModal = () => {
+    if (!commentModal) {
+      return;
+    }
+    commentModal.style.display = 'none';
+    commentModalText.textContent = '';
+  };
+
+  const handleCommentClick = (event) => {
+    const button = event.target.closest('button[data-action="view-comment"]');
+    if (!button) {
+      return;
+    }
+    openCommentModal(button.dataset.comment || '');
   };
 
   const refreshConversionList = () => {
@@ -680,14 +803,21 @@
     expenses.forEach((expense) => {
       const item = document.createElement('li');
       item.className = 'list-item';
-      item.innerHTML = `
-        <div>
-          <strong>${expense.categoryLabel}</strong>
-          <span class="muted">${expense.comment || 'Без комментария'}</span>
-          <div class="muted">${expense.createdBy} · ${formatDateTime(new Date(expense.createdAt))}</div>
-        </div>
-        <span class="badge">-${formatCurrency(expense.amount, expense.currency)}</span>
-      `;
+      const details = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = getExpenseCategoryLabel(expense);
+      details.appendChild(title);
+      const commentText = expense.comment || 'Без комментария';
+      details.appendChild(createCommentBlock(commentText, { textClass: 'muted comment-text' }));
+      const meta = document.createElement('div');
+      meta.className = 'muted';
+      meta.textContent = `${expense.createdBy} · ${formatDateTime(new Date(expense.createdAt))}`;
+      details.appendChild(meta);
+      item.appendChild(details);
+      const amountBadge = document.createElement('span');
+      amountBadge.className = 'badge';
+      amountBadge.textContent = `-${formatCurrency(expense.amount, expense.currency)}`;
+      item.appendChild(amountBadge);
       expenseList.appendChild(item);
     });
     refreshReport();
@@ -789,7 +919,7 @@
         `${employee.lastName || ''} ${employee.firstName || ''}`.trim()
       ])
     );
-    const tbody = document.getElementById('report-body');
+    const tbody = reportBody;
     tbody.innerHTML = '';
     reportTotal.innerHTML = '';
     const filtered = expenses.filter((expense) => {
@@ -828,16 +958,24 @@
       totals[expense.currency] += expense.amount;
       const baseComment = expense.comment || '—';
       const employeeName = expense.employeeId ? employeeLookup.get(expense.employeeId) : '';
-      const comment =
-        categoryFilter === 'salary' && employeeName
-          ? `${baseComment}<br><span class="muted">Сотрудник: ${employeeName}</span>`
-          : baseComment;
-      row.innerHTML = `
-        <td>${formatDateTime(new Date(expense.createdAt))}</td>
-        <td>${expense.categoryLabel}</td>
-        <td>${comment}</td>
-        <td>${formatCurrency(expense.amount, expense.currency)}</td>
-      `;
+      const dateCell = document.createElement('td');
+      dateCell.textContent = formatDateTime(new Date(expense.createdAt));
+      const categoryCell = document.createElement('td');
+      categoryCell.textContent = getExpenseCategoryLabel(expense);
+      const commentCell = document.createElement('td');
+      const subText =
+        categoryFilter === 'salary' && employeeName ? `Сотрудник: ${employeeName}` : '';
+      const commentBlock = createCommentBlock(baseComment, {
+        textClass: 'comment-text',
+        subText: subText || null
+      });
+      commentCell.appendChild(commentBlock);
+      const amountCell = document.createElement('td');
+      amountCell.textContent = formatCurrency(expense.amount, expense.currency);
+      row.appendChild(dateCell);
+      row.appendChild(categoryCell);
+      row.appendChild(commentCell);
+      row.appendChild(amountCell);
       tbody.appendChild(row);
     });
     reportTotal.innerHTML = `
@@ -884,7 +1022,11 @@
     if (!category || !currency || !amount) {
       return;
     }
-    const categoryLabel = expenseCategory.selectedOptions[0].textContent;
+    const salaryType = formData.get('salary_type') || null;
+    const categoryLabel =
+      category === 'salary'
+        ? (salaryType === 'advance' ? 'Зарплата сотрудникам (Аванс)' : 'Зарплата сотрудникам')
+        : expenseCategory.selectedOptions[0].textContent;
     const expense = {
       id: crypto.randomUUID(),
       category,
@@ -895,7 +1037,7 @@
       createdBy: currentUser,
       createdAt: now.toISOString(),
       employeeId: formData.get('employee') || null,
-      salaryType: formData.get('salary_type') || null,
+      salaryType,
     };
     const expenses = loadItems(EXPENSES_KEY);
     expenses.unshift(expense);
@@ -944,6 +1086,18 @@
         closeEmployeeModal();
       }
     });
+  }
+
+  if (commentModal) {
+    commentModal.addEventListener('click', (event) => {
+      if (event.target === commentModal) {
+        closeCommentModal();
+      }
+    });
+  }
+
+  if (commentModalClose) {
+    commentModalClose.addEventListener('click', closeCommentModal);
   }
 
   employeeList.addEventListener('click', (event) => {
@@ -1052,6 +1206,9 @@
     event.target.classList.add('active');
     refreshSalaryList();
   });
+
+  expenseList.addEventListener('click', handleCommentClick);
+  reportBody.addEventListener('click', handleCommentClick);
 
   document.getElementById('report-start').addEventListener('change', refreshReport);
   document.getElementById('report-end').addEventListener('change', refreshReport);
