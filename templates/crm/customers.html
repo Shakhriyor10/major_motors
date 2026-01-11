@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Major Motors CRM · Клиенты{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h1>Клиенты</h1>
+    <p class="muted">CRM-карточки с контактами, источниками лидов и интересами клиентов.</p>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>ФИО</th>
+          <th>Телефон</th>
+          <th>Источник</th>
+          <th>Интерес</th>
+          <th>Менеджер</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in customers %}
+          <tr>
+            <td>{{ customer.full_name }}</td>
+            <td>{{ customer.phone }}</td>
+            <td>{{ customer.lead_source|default:"—" }}</td>
+            <td>{{ customer.preferred_make }} {{ customer.preferred_model }} {{ customer.preferred_year|default:"" }}</td>
+            <td>{{ customer.assigned_manager|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="muted">Клиенты пока не добавлены.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

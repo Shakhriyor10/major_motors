@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Major Motors CRM · Дашборд{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h1>Операционный дашборд</h1>
+    <p class="muted">Ключевые показатели по клиентам, лидам, складу и сделкам.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Клиенты</h3>
+      <p>{{ stats.customers }}</p>
+      <p class="muted">Всего CRM-карточек</p>
+    </div>
+    <div class="card">
+      <h3>Лиды</h3>
+      <p>{{ stats.leads }}</p>
+      <p class="muted">Активные обращения</p>
+    </div>
+    <div class="card">
+      <h3>Склад</h3>
+      <p>{{ stats.vehicles }}</p>
+      <p class="muted">Авто в системе</p>
+    </div>
+    <div class="card">
+      <h3>Сделки</h3>
+      <p>{{ stats.deals }}</p>
+      <p class="muted">Всего сделок</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Лиды по этапам</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Этап</th>
+            <th>Кол-во</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in leads_by_stage %}
+            <tr>
+              <td>{{ item.stage__name|default:"Без этапа" }}</td>
+              <td>{{ item.total }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="2" class="muted">Данных пока нет.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Склад по статусам</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Статус</th>
+            <th>Кол-во</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in vehicles_by_status %}
+            <tr>
+              <td>{{ item.status }}</td>
+              <td>{{ item.total }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="2" class="muted">Данных пока нет.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Курс валют</h3>
+    {% if exchange_rate %}
+      <p>1 {{ exchange_rate.base_currency|upper }} = {{ exchange_rate.rate }} {{ exchange_rate.quote_currency|upper }}</p>
+      <p class="muted">Дата актуальности: {{ exchange_rate.effective_date }}</p>
+    {% else %}
+      <p class="muted">Курс не задан. Добавьте запись в разделе курса валют.</p>
+    {% endif %}
+  </div>
+{% endblock %}
