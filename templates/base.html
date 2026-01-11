@@ -33,8 +33,47 @@
     header nav a {
       color: #fff;
       text-decoration: none;
-      margin-left: 16px;
       font-weight: 500;
+    }
+    header nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .nav-link {
+      color: #fff;
+      font-weight: 500;
+      cursor: default;
+    }
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      background: #fff;
+      border-radius: 12px;
+      padding: 8px;
+      min-width: 200px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2);
+      display: none;
+      z-index: 20;
+    }
+    .nav-dropdown-menu a {
+      color: #111827;
+      text-decoration: none;
+      display: block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .nav-dropdown-menu a:hover {
+      background: #f3f4f6;
+    }
+    .nav-dropdown:hover .nav-dropdown-menu {
+      display: block;
     }
     .cash-summary {
       display: flex;
@@ -200,7 +239,13 @@
         <a href="/dashboard/">Дашборд</a>
         <a href="/customers/">Клиенты</a>
         <a href="/leads/">Лиды</a>
-        <a href="/autosalon/">Автосалон</a>
+        <div class="nav-dropdown">
+          <span class="nav-link">Автосалон</span>
+          <div class="nav-dropdown-menu">
+            <a href="/autosalon/">Автосалон</a>
+            <a href="/inventory/">Общий список</a>
+          </div>
+        </div>
         <a href="/deals/">Сделки</a>
         <a href="/cash/">Касса</a>
         <a href="/roles/">Роли</a>

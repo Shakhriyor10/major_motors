@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Major Motors CRM · Автосалон{% endblock %}
+{% block title %}Major Motors CRM · Общий список{% endblock %}
 
 {% block extra_styles %}
   <style>
@@ -191,8 +191,8 @@
   <div class="card">
     <div class="autosalon-hero">
       <div>
-        <h1>Автосалон</h1>
-        <p class="muted">Добавляйте автомобили, фиксируйте характеристики, цены и статус продаж.</p>
+        <h1>Общий список</h1>
+        <p class="muted">Полный каталог автомобилей, статусов и клиентов. Отсюда можно вернуть авто в автосалон.</p>
       </div>
       <div class="autosalon-hero-actions">
         <span class="tag">VIN контроль</span>
@@ -206,6 +206,7 @@
     <div class="card">
       <form class="autosalon-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        <input type="hidden" name="action" value="create_vehicle">
         <div class="section-title">
           <div>
             <h2>Новый автомобиль</h2>
@@ -358,7 +359,7 @@
       <div class="summary-metrics">
         <div class="summary-metric">
           <span>В продаже</span>
-          <strong>{{ vehicles|length }}</strong>
+          <strong>{{ vehicles_for_sale }}</strong>
         </div>
         <div class="summary-metric">
           <span>Опций доступно</span>
@@ -376,7 +377,7 @@
   </div>
 
   <div class="card">
-    <h2>Автомобили в автосалоне</h2>
+    <h2>Автомобили в общем списке</h2>
     <div class="grid">
       {% for vehicle in vehicles %}
         <div class="vehicle-card">
@@ -420,6 +421,28 @@
           {% endif %}
           {% if vehicle.description %}
             <div class="muted">{{ vehicle.description }}</div>
+          {% endif %}
+          {% if vehicle.latest_deal %}
+            <div>
+              <strong>Покупатель:</strong>
+              <span class="muted">
+                {{ vehicle.latest_deal.customer.full_name }} · {{ vehicle.latest_deal.customer.phone }}
+              </span>
+            </div>
+            <div class="vehicle-meta">
+              <div><strong>Паспорт:</strong> {{ vehicle.latest_deal.customer.passport_series }} {{ vehicle.latest_deal.customer.passport_number }}</div>
+              <div><strong>Сумма сделки:</strong> {{ vehicle.latest_deal.sale_price }}</div>
+            </div>
+          {% endif %}
+          {% if vehicle.status == 'sold' or vehicle.status == 'inactive' %}
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="return_to_autosalon">
+              <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+              <div class="form-actions">
+                <button class="button secondary" type="submit">Вернуть в автосалон</button>
+              </div>
+            </form>
           {% endif %}
         </div>
       {% empty %}
