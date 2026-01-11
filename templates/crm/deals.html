@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Major Motors CRM · Сделки{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h1>Сделки</h1>
+    <p class="muted">Связка клиента, автомобиля и финальной цены продажи.</p>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Сделка</th>
+          <th>Клиент</th>
+          <th>Авто</th>
+          <th>Менеджер</th>
+          <th>Цена</th>
+          <th>Статус</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for deal in deals %}
+          <tr>
+            <td>#{{ deal.id }}</td>
+            <td>{{ deal.customer.full_name }}</td>
+            <td>{{ deal.vehicle.make }} {{ deal.vehicle.model }}</td>
+            <td>{{ deal.manager|default:"—" }}</td>
+            <td>{{ deal.sale_price }}</td>
+            <td><span class="status">{{ deal.get_status_display }}</span></td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="muted">Сделок пока нет.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Major Motors CRM · Лиды{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h1>Лиды и воронка</h1>
+    <p class="muted">Следите за этапами, SLA и ответственными менеджерами.</p>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Лид</th>
+          <th>Клиент</th>
+          <th>Этап</th>
+          <th>Менеджер</th>
+          <th>SLA (мин)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lead in leads %}
+          <tr>
+            <td>#{{ lead.id }}</td>
+            <td>{{ lead.customer.full_name }}</td>
+            <td><span class="status">{{ lead.stage.name }}</span></td>
+            <td>{{ lead.assigned_to|default:"—" }}</td>
+            <td>{{ lead.sla_minutes }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="muted">Лиды пока не зарегистрированы.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
