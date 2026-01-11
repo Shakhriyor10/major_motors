@@ -187,7 +187,10 @@
   </style>
   {% block extra_styles %}{% endblock %}
 </head>
-<body>
+<body data-cash-uzs="{{ cash_account.uzs_balance|default:0|unlocalize }}"
+      data-cash-usd="{{ cash_account.usd_balance|default:0|unlocalize }}"
+      data-cash-rate="{{ cash_rate|default:0|unlocalize }}"
+      data-cash-updated="{{ cash_account.updated_at|date:'c' }}">
   <header>
     <div class="nav-group">
       <strong>Major Motors CRM</strong>
@@ -255,10 +258,15 @@
     </div>
   </div>
   <script>
+    const initialUzs = Number(document.body.dataset.cashUzs || 0);
+    const initialUsd = Number(document.body.dataset.cashUsd || 0);
+    const initialRate = Number(document.body.dataset.cashRate || 0);
+    const serverUpdatedAt = document.body.dataset.cashUpdated || '';
+    const SERVER_UPDATED_KEY = 'crm_cash_server_updated_v1';
     const cashStore = (() => {
       const STORAGE_KEY = 'crm_cash_state_v1';
       const CONVERSIONS_KEY = 'crm_cash_conversions_v1';
-      const defaultState = { uzs: 125000000, usd: 4200, rate: 12550 };
+      const defaultState = { uzs: initialUzs, usd: initialUsd, rate: initialRate || 12550 };
       const load = () => {
         const saved = localStorage.getItem(STORAGE_KEY);
         return saved ? JSON.parse(saved) : { ...defaultState };
@@ -378,7 +386,33 @@
       });
     }
 
+    const syncWithServer = () => {
+      const cachedServerUpdatedAt = localStorage.getItem(SERVER_UPDATED_KEY) || '';
+      if (serverUpdatedAt && serverUpdatedAt !== cachedServerUpdatedAt) {
+        cashStore.setState({
+          uzs: initialUzs,
+          usd: initialUsd,
+          rate: initialRate || cashStore.getState().rate,
+        });
+        localStorage.setItem(SERVER_UPDATED_KEY, serverUpdatedAt);
+      } else if (serverUpdatedAt && !cachedServerUpdatedAt) {
+        localStorage.setItem(SERVER_UPDATED_KEY, serverUpdatedAt);
+      }
+    };
+
     updateNavbarCash();
+    syncWithServer();
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('reset_cash')) {
+      cashStore.setState({
+        uzs: initialUzs,
+        usd: initialUsd,
+        rate: initialRate || cashStore.getState().rate,
+      });
+      if (serverUpdatedAt) {
+        localStorage.setItem(SERVER_UPDATED_KEY, serverUpdatedAt);
+      }
+    }
     document.addEventListener('cash:updated', updateNavbarCash);
     window.cashStore = cashStore;
     window.formatCurrency = formatCurrency;
