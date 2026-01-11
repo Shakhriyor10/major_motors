@@ -13,17 +13,23 @@
     }
     .showroom-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 18px;
+      grid-template-columns: 1fr;
+      gap: 20px;
     }
     .showroom-card {
       background: #fff;
-      border-radius: 16px;
+      border-radius: 18px;
       border: 1px solid #e5e7eb;
       overflow: hidden;
       display: grid;
       grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
       gap: 0;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .showroom-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
     }
     .showroom-photo {
       width: 100%;
@@ -40,9 +46,9 @@
       font-size: 12px;
     }
     .showroom-body {
-      padding: 16px;
+      padding: 20px;
       display: grid;
-      gap: 10px;
+      gap: 12px;
       align-content: start;
     }
     .showroom-title {
@@ -111,13 +117,14 @@
       display: flex;
     }
     .modal-large {
-      max-width: 720px;
+      max-width: 760px;
     }
     .sale-modal {
-      width: min(92vw, 820px);
-      border-radius: 20px;
-      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      width: min(94vw, 880px);
+      border-radius: 22px;
+      background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
       border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 28px 60px rgba(15, 23, 42, 0.2);
     }
     .sale-modal .modal-title {
       display: flex;
@@ -132,10 +139,27 @@
     .sale-modal .modal-actions {
       flex-wrap: wrap;
     }
+    .sale-modal .form-field {
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    }
+    .sale-modal .form-field label {
+      margin-bottom: 8px;
+    }
+    .sale-modal input,
+    .sale-modal select,
+    .sale-modal textarea {
+      border: none;
+      padding: 0;
+      background: transparent;
+    }
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px 20px;
     }
     .form-grid .full-width {
       grid-column: 1 / -1;
