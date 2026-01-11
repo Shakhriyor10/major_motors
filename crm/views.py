@@ -1,7 +1,10 @@
+from decimal import Decimal, InvalidOperation
+
 from django.db.models import Count
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from .models import (
+    CashAccount,
     CashConversion,
     CurrencyRate,
     Customer,
@@ -72,12 +75,23 @@ def deals(request):
 
 
 def cash_dashboard(request):
+    cash_account = CashAccount.get_current()
+    if request.method == 'POST' and request.user.is_superuser:
+        try:
+            cash_account.uzs_balance = Decimal(request.POST.get('uzs_balance', cash_account.uzs_balance))
+            cash_account.usd_balance = Decimal(request.POST.get('usd_balance', cash_account.usd_balance))
+        except (InvalidOperation, TypeError):
+            return redirect('cash-dashboard')
+        cash_account.updated_by = request.user
+        cash_account.save(update_fields=['uzs_balance', 'usd_balance', 'updated_by', 'updated_at'])
+        return redirect('/cash/?reset_cash=1')
     exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
     conversions = CashConversion.objects.select_related('shift').order_by('-created_at')[:10]
     return render(
         request,
         'crm/cash.html',
         {
+            'cash_account': cash_account,
             'exchange_rate': exchange_rate,
             'conversions': conversions,
         },

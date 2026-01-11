@@ -443,6 +443,24 @@ class VehicleExpense(TimeStampedModel):
         return f'{self.get_category_display()} {self.amount}'
 
 
+class CashAccount(TimeStampedModel):
+    uzs_balance = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    usd_balance = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Касса'
+        verbose_name_plural = 'Касса'
+
+    def __str__(self):
+        return 'Касса'
+
+    @classmethod
+    def get_current(cls):
+        account, _ = cls.objects.get_or_create(pk=1, defaults={'uzs_balance': 0, 'usd_balance': 0})
+        return account
+
+
 class CashShift(TimeStampedModel):
     opened_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='opened_shifts')
     closed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='closed_shifts')
@@ -494,6 +512,7 @@ class CashConversion(TimeStampedModel):
 
     def __str__(self):
         return f'{self.amount_from} {self.from_currency.upper()} → {self.amount_to} {self.to_currency.upper()}'
+
 
 class CreditApplication(TimeStampedModel):
     class CreditStatus(models.TextChoices):

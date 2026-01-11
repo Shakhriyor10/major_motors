@@ -144,6 +144,11 @@ class VehicleExpenseAdmin(admin.ModelAdmin):
     list_filter = ('category',)
 
 
+@admin.register(models.CashAccount)
+class CashAccountAdmin(admin.ModelAdmin):
+    list_display = ('id', 'uzs_balance', 'usd_balance', 'updated_by', 'updated_at')
+
+
 @admin.register(models.CashShift)
 class CashShiftAdmin(admin.ModelAdmin):
     list_display = ('id', 'opened_by', 'opened_at', 'closed_at', 'opening_balance', 'closing_balance')
