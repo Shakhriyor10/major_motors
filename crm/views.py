@@ -120,6 +120,10 @@ def customers(request):
             address=request.POST.get('address', '').strip(),
             lead_source=lead_source,
             notes=request.POST.get('notes', '').strip(),
+            contract_number=request.POST.get('contract_number', '').strip(),
+            contract_file=request.FILES.get('contract_file'),
+            contract_file_second=request.FILES.get('contract_file_second'),
+            power_of_attorney_file=request.FILES.get('power_of_attorney_file'),
         )
         passport_front = request.FILES.get('passport_front')
         if passport_front:
