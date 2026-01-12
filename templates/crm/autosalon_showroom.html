@@ -108,9 +108,6 @@
               <div class="d-flex flex-wrap gap-2 align-items-center">
                 <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
                 <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
-                {% if vehicle.condition == 'used' %}
-                  <span class="badge rounded-pill text-bg-warning-subtle text-warning">Пробег: {{ vehicle.mileage|default:"—" }} км</span>
-                {% endif %}
               </div>
               <div class="row g-2 text-muted small">
                 <div class="col-12 col-md-6 col-lg-3">
@@ -135,6 +132,18 @@
                   <div class="p-2 bg-body-tertiary rounded-3 h-100">
                     <strong class="text-dark d-block">Кол-во</strong>
                     {{ vehicle.stock_count }}
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                  <div class="p-2 bg-body-tertiary rounded-3 h-100">
+                    <strong class="text-dark d-block">Посадочные места</strong>
+                    {{ vehicle.seat_count|default:"—" }}
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                  <div class="p-2 bg-body-tertiary rounded-3 h-100">
+                    <strong class="text-dark d-block">Пробег</strong>
+                    {{ vehicle.mileage|default:"—" }} км
                   </div>
                 </div>
               </div>

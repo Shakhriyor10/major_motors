@@ -97,6 +97,7 @@ def _create_vehicle_from_form(request, options_qs):
         sale_price=to_decimal(request.POST.get('sale_price')),
         sale_currency=purchase_currency,
         stock_count=to_int(request.POST.get('stock_count')) or 0,
+        seat_count=to_int(request.POST.get('seat_count')),
         engine_type=request.POST.get('engine_type') or Vehicle.EngineType.GASOLINE,
         engine_volume=to_decimal(request.POST.get('engine_volume')),
         horsepower=to_int(request.POST.get('horsepower')),
