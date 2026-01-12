@@ -49,20 +49,6 @@
               </select>
             </div>
             <div class="row g-2">
-              <div class="col-md-4">
-                <label class="form-label">Марка</label>
-                <input type="text" name="preferred_make" class="form-control" placeholder="Toyota" />
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Модель</label>
-                <input type="text" name="preferred_model" class="form-control" placeholder="Camry" />
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Год</label>
-                <input type="number" name="preferred_year" class="form-control" min="1990" max="2050" placeholder="2023" />
-              </div>
-            </div>
-            <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label">Серия паспорта</label>
                 <input type="text" name="passport_series" class="form-control" placeholder="AA" />
@@ -71,6 +57,10 @@
                 <label class="form-label">Номер паспорта</label>
                 <input type="text" name="passport_number" class="form-control" placeholder="1234567" />
               </div>
+            </div>
+            <div>
+              <label class="form-label">ПИНФЛ</label>
+              <input type="text" name="pinfl" class="form-control" placeholder="Необязательно" />
             </div>
             <div>
               <label class="form-label">Кем выдан</label>
@@ -127,20 +117,16 @@
                   <th>Телефон</th>
                   <th>ИНН</th>
                   <th>Источник</th>
-                  <th>Интерес</th>
-                  <th>Менеджер</th>
                   <th class="text-end">Карточка</th>
                 </tr>
               </thead>
               <tbody id="customersTableBody">
                 {% for customer in customers %}
-                  <tr data-search-text="{{ customer.full_name|lower }} {{ customer.phone|lower }} {{ customer.inn|default:''|lower }}">
+                  <tr data-search-text="{{ customer.full_name|lower }} {{ customer.phone|lower }} {{ customer.inn|default:''|lower }} {{ customer.pinfl|default:''|lower }}">
                     <td class="fw-semibold">{{ customer.full_name }}</td>
                     <td>{{ customer.phone }}</td>
                     <td>{{ customer.inn|default:"—" }}</td>
                     <td>{{ customer.lead_source|default:"—" }}</td>
-                    <td>{{ customer.preferred_make }} {{ customer.preferred_model }} {{ customer.preferred_year|default:"" }}</td>
-                    <td>{{ customer.assigned_manager|default:"—" }}</td>
                     <td class="text-end">
                       <button
                         type="button"
@@ -151,9 +137,9 @@
                         data-customer-phone="{{ customer.phone }}"
                         data-customer-inn="{{ customer.inn|default:'' }}"
                         data-customer-source="{{ customer.lead_source|default:'—' }}"
-                        data-customer-interest="{{ customer.preferred_make }} {{ customer.preferred_model }} {{ customer.preferred_year|default:'' }}"
                         data-customer-passport-series="{{ customer.passport_series|default:'' }}"
                         data-customer-passport-number="{{ customer.passport_number|default:'' }}"
+                        data-customer-pinfl="{{ customer.pinfl|default:'' }}"
                         data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
                         data-customer-address="{{ customer.address|default:'' }}"
                         data-customer-notes="{{ customer.notes|default:'' }}"
@@ -166,7 +152,7 @@
                   </tr>
                 {% empty %}
                   <tr>
-                    <td colspan="7" class="text-muted">Клиенты пока не добавлены.</td>
+                    <td colspan="5" class="text-muted">Клиенты пока не добавлены.</td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -203,10 +189,6 @@
               <div id="customerDetailsSource">—</div>
             </div>
             <div class="col-md-6">
-              <div class="small text-muted">Интерес</div>
-              <div id="customerDetailsInterest">—</div>
-            </div>
-            <div class="col-md-6">
               <div class="small text-muted">Адрес</div>
               <div id="customerDetailsAddress">—</div>
             </div>
@@ -217,6 +199,10 @@
             <div class="col-md-6">
               <div class="small text-muted">Номер паспорта</div>
               <div id="customerDetailsPassportNumber">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">ПИНФЛ</div>
+              <div id="customerDetailsPinfl">—</div>
             </div>
             <div class="col-12">
               <div class="small text-muted">Кем выдан</div>
@@ -279,10 +265,10 @@
         setText('customerDetailsPhone', button.dataset.customerPhone);
         setText('customerDetailsInn', button.dataset.customerInn);
         setText('customerDetailsSource', button.dataset.customerSource);
-        setText('customerDetailsInterest', button.dataset.customerInterest);
         setText('customerDetailsAddress', button.dataset.customerAddress);
         setText('customerDetailsPassportSeries', button.dataset.customerPassportSeries);
         setText('customerDetailsPassportNumber', button.dataset.customerPassportNumber);
+        setText('customerDetailsPinfl', button.dataset.customerPinfl);
         setText('customerDetailsPassportIssued', button.dataset.customerPassportIssued);
         setText('customerDetailsNotes', button.dataset.customerNotes);
 

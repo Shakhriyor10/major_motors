@@ -73,12 +73,10 @@ def customers(request):
             inn=request.POST.get('inn', '').strip(),
             passport_series=request.POST.get('passport_series', '').strip(),
             passport_number=request.POST.get('passport_number', '').strip(),
+            pinfl=request.POST.get('pinfl', '').strip(),
             passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
             address=request.POST.get('address', '').strip(),
             lead_source=lead_source,
-            preferred_make=request.POST.get('preferred_make', '').strip(),
-            preferred_model=request.POST.get('preferred_model', '').strip(),
-            preferred_year=request.POST.get('preferred_year') or None,
             notes=request.POST.get('notes', '').strip(),
         )
         passport_front = request.FILES.get('passport_front')
@@ -112,6 +110,7 @@ def customers(request):
             Q(full_name__icontains=search_query)
             | Q(phone__icontains=search_query)
             | Q(inn__icontains=search_query)
+            | Q(pinfl__icontains=search_query)
         )
     return render(
         request,
