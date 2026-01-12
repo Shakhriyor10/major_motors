@@ -42,6 +42,13 @@
             <div class="small" id="navbar-usd">-- USD</div>
           </div>
           <button class="btn btn-outline-light btn-sm" id="open-conversion-modal" type="button" aria-label="Конвертация валюты">⇄</button>
+          {% if request.user.is_authenticated %}
+            <div class="text-end">
+              <div class="small text-white-50">Пользователь</div>
+              <div class="fw-semibold">{{ request.user.get_username }}</div>
+            </div>
+            <a class="btn btn-outline-light btn-sm" href="{% url 'logout' %}">Выйти</a>
+          {% endif %}
         </div>
       </div>
     </div>
