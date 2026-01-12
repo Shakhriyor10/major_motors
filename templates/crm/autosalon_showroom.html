@@ -67,6 +67,11 @@
         background: #fff !important;
       }
 
+      @page {
+        size: A4;
+        margin: 12mm;
+      }
+
       main.container {
         max-width: none;
         padding: 0;
@@ -89,6 +94,37 @@
         border: none;
         box-shadow: none;
         border-radius: 0;
+      }
+
+      .receipt-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+      }
+
+      .receipt-title {
+        font-size: 1.1rem;
+      }
+
+      .receipt-subtitle {
+        font-size: 0.8rem;
+      }
+
+      .receipt-table {
+        font-size: 0.8rem;
+      }
+
+      .receipt-table th,
+      .receipt-table td {
+        padding: 0.4rem 0.5rem;
+      }
+
+      .receipt-signature {
+        margin-top: 1.25rem;
+        padding-top: 0.75rem;
+      }
+
+      .receipt-signature div {
+        min-width: 180px;
       }
 
       .receipt-table th {
