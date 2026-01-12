@@ -75,6 +75,11 @@
                     data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
                     data-customer-address="{{ customer.address|default:'' }}"
                     data-customer-notes="{{ customer.notes|default:'' }}"
+                    data-customer-contract-number="{{ customer.contract_number|default:'' }}"
+                    data-customer-created="{{ customer.created_at|date:'d.m.Y H:i' }}"
+                    data-customer-contract-file="{% if customer.contract_file %}{{ customer.contract_file.url }}{% endif %}"
+                    data-customer-contract-file-second="{% if customer.contract_file_second %}{{ customer.contract_file_second.url }}{% endif %}"
+                    data-customer-power-of-attorney-file="{% if customer.power_of_attorney_file %}{{ customer.power_of_attorney_file.url }}{% endif %}"
                     data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                     data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                   >
@@ -166,6 +171,14 @@
               <div class="small text-muted">Заметки</div>
               <div id="customerDetailsNotes" class="border rounded bg-light p-2">—</div>
             </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Номер договора</div>
+              <div id="customerDetailsContractNumber">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Создано</div>
+              <div id="customerDetailsCreatedAt">—</div>
+            </div>
           </div>
           <hr class="my-4" />
           <div class="row g-3">
@@ -178,6 +191,51 @@
               <div class="small text-muted mb-2">Паспорт (обратная сторона)</div>
               <img id="customerDetailsPassportBack" class="img-fluid rounded border d-none" alt="Паспорт обратная сторона" />
               <div id="customerDetailsPassportBackEmpty" class="text-muted small">Фото не загружено</div>
+            </div>
+          </div>
+          <hr class="my-4" />
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="small text-muted mb-2">Договор</div>
+              <a
+                id="customerDetailsContractFile"
+                class="btn btn-sm btn-outline-primary d-none"
+                href="#"
+                download
+                target="_blank"
+                rel="noopener"
+              >
+                Скачать
+              </a>
+              <div id="customerDetailsContractFileEmpty" class="text-muted small">Файл не загружен</div>
+            </div>
+            <div class="col-md-4">
+              <div class="small text-muted mb-2">Договор 2</div>
+              <a
+                id="customerDetailsContractFileSecond"
+                class="btn btn-sm btn-outline-primary d-none"
+                href="#"
+                download
+                target="_blank"
+                rel="noopener"
+              >
+                Скачать
+              </a>
+              <div id="customerDetailsContractFileSecondEmpty" class="text-muted small">Файл не загружен</div>
+            </div>
+            <div class="col-md-4">
+              <div class="small text-muted mb-2">Доверенность</div>
+              <a
+                id="customerDetailsPowerOfAttorneyFile"
+                class="btn btn-sm btn-outline-primary d-none"
+                href="#"
+                download
+                target="_blank"
+                rel="noopener"
+              >
+                Скачать
+              </a>
+              <div id="customerDetailsPowerOfAttorneyFileEmpty" class="text-muted small">Файл не загружен</div>
             </div>
           </div>
         </div>
@@ -300,12 +358,31 @@
               <input type="text" name="pinfl" class="form-control" placeholder="Необязательно" />
             </div>
             <div>
+              <label class="form-label">Номер договора</label>
+              <input type="text" name="contract_number" class="form-control" placeholder="Необязательно" />
+            </div>
+            <div>
               <label class="form-label">Кем выдан</label>
               <input type="text" name="passport_issued_by" class="form-control" placeholder="ОВД ... " />
             </div>
             <div>
               <label class="form-label">Адрес</label>
               <input type="text" name="address" class="form-control" placeholder="Город, улица, дом" />
+            </div>
+            <div>
+              <label class="form-label">Файл договора</label>
+              <input type="file" name="contract_file" class="form-control" />
+              <div class="form-text">Любой формат, загрузка необязательна.</div>
+            </div>
+            <div>
+              <label class="form-label">Файл договора 2</label>
+              <input type="file" name="contract_file_second" class="form-control" />
+              <div class="form-text">Любой формат, загрузка необязательна.</div>
+            </div>
+            <div>
+              <label class="form-label">Доверенность</label>
+              <input type="file" name="power_of_attorney_file" class="form-control" />
+              <div class="form-text">Любой формат, загрузка необязательна.</div>
             </div>
             <div>
               <label class="form-label">Фото паспорта (лицевая сторона)</label>
@@ -367,6 +444,8 @@
         setText('customerDetailsPinfl', button.dataset.customerPinfl);
         setText('customerDetailsPassportIssued', button.dataset.customerPassportIssued);
         setText('customerDetailsNotes', button.dataset.customerNotes);
+        setText('customerDetailsContractNumber', button.dataset.customerContractNumber);
+        setText('customerDetailsCreatedAt', button.dataset.customerCreated);
 
         const frontImg = document.getElementById('customerDetailsPassportFront');
         const frontEmpty = document.getElementById('customerDetailsPassportFrontEmpty');
@@ -374,6 +453,26 @@
         const backEmpty = document.getElementById('customerDetailsPassportBackEmpty');
         const frontSrc = button.dataset.customerPassportFront || '';
         const backSrc = button.dataset.customerPassportBack || '';
+        const contractFileSrc = button.dataset.customerContractFile || '';
+        const contractFileSecondSrc = button.dataset.customerContractFileSecond || '';
+        const powerOfAttorneyFileSrc = button.dataset.customerPowerOfAttorneyFile || '';
+
+        const toggleDownloadLink = (linkId, emptyId, href) => {
+          const link = document.getElementById(linkId);
+          const empty = document.getElementById(emptyId);
+          if (!link || !empty) {
+            return;
+          }
+          if (href) {
+            link.href = href;
+            link.classList.remove('d-none');
+            empty.classList.add('d-none');
+          } else {
+            link.href = '#';
+            link.classList.add('d-none');
+            empty.classList.remove('d-none');
+          }
+        };
 
         if (frontImg && frontEmpty) {
           if (frontSrc) {
@@ -395,6 +494,21 @@
             backEmpty.classList.remove('d-none');
           }
         }
+        toggleDownloadLink(
+          'customerDetailsContractFile',
+          'customerDetailsContractFileEmpty',
+          contractFileSrc,
+        );
+        toggleDownloadLink(
+          'customerDetailsContractFileSecond',
+          'customerDetailsContractFileSecondEmpty',
+          contractFileSecondSrc,
+        );
+        toggleDownloadLink(
+          'customerDetailsPowerOfAttorneyFile',
+          'customerDetailsPowerOfAttorneyFileEmpty',
+          powerOfAttorneyFileSrc,
+        );
       });
     }
 

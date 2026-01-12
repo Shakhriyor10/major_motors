@@ -138,6 +138,14 @@ class Customer(TimeStampedModel):
         related_name='customers',
     )
     notes = models.TextField(blank=True)
+    contract_number = models.CharField(max_length=64, blank=True)
+    contract_file = models.FileField(upload_to='customer_contracts/', blank=True, null=True)
+    contract_file_second = models.FileField(upload_to='customer_contracts/', blank=True, null=True)
+    power_of_attorney_file = models.FileField(
+        upload_to='customer_powers_of_attorney/',
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.full_name
