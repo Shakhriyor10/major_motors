@@ -1,6 +1,6 @@
 from decimal import Decimal, InvalidOperation
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -102,9 +102,17 @@ def customers(request):
         return redirect('customers')
 
     search_query = request.GET.get('q', '').strip()
-    customers_qs = Customer.objects.select_related('lead_source', 'assigned_manager').order_by('full_name')
+    customers_qs = (
+        Customer.objects.select_related('lead_source', 'assigned_manager')
+        .prefetch_related('documents')
+        .order_by('full_name')
+    )
     if search_query:
-        customers_qs = customers_qs.filter(full_name__icontains=search_query)
+        customers_qs = customers_qs.filter(
+            Q(full_name__icontains=search_query)
+            | Q(phone__icontains=search_query)
+            | Q(inn__icontains=search_query)
+        )
     return render(
         request,
         'crm/customers.html',
