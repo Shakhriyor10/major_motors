@@ -15,6 +15,7 @@ from .models import (
     Role,
     Vehicle,
     VehicleOption,
+    VehicleExpense,
     VehicleMedia,
 )
 
@@ -91,7 +92,9 @@ def _create_vehicle_from_form(request, options_qs):
         color=request.POST.get('color', '').strip(),
         body_type=request.POST.get('body_type', '').strip(),
         purchase_price=to_decimal(request.POST.get('purchase_price')) or Decimal('0'),
+        purchase_currency=request.POST.get('purchase_currency') or Vehicle.Currency.UZS,
         sale_price=to_decimal(request.POST.get('sale_price')),
+        sale_currency=request.POST.get('sale_currency') or Vehicle.Currency.UZS,
         stock_count=to_int(request.POST.get('stock_count')) or 0,
         engine_type=request.POST.get('engine_type') or Vehicle.EngineType.GASOLINE,
         engine_volume=to_decimal(request.POST.get('engine_volume')),
@@ -103,7 +106,12 @@ def _create_vehicle_from_form(request, options_qs):
         trim_level=request.POST.get('trim_level') or Vehicle.TrimLevel.STANDARD,
         description=request.POST.get('description', '').strip(),
         status=request.POST.get('status') or Vehicle.VehicleStatus.FOR_SALE,
+        acquisition_type=request.POST.get('acquisition_type') or Vehicle.AcquisitionType.PURCHASE,
+        counterparty_name=request.POST.get('counterparty_name', '').strip(),
     )
+    if vehicle.sale_currency != vehicle.purchase_currency:
+        vehicle.sale_currency = vehicle.purchase_currency
+        vehicle.save(update_fields=['sale_currency'])
     selected_options = request.POST.getlist('options')
     if selected_options:
         vehicle.options.set(options_qs.filter(id__in=selected_options))
@@ -112,6 +120,22 @@ def _create_vehicle_from_form(request, options_qs):
         vehicle.media.create(
             media_type=VehicleMedia.MediaType.PHOTO,
             file=photo,
+        )
+    if vehicle.acquisition_type == Vehicle.AcquisitionType.PURCHASE:
+        cash_account = CashAccount.get_current()
+        total_cost = (vehicle.purchase_price or Decimal('0')) * Decimal(vehicle.stock_count or 0)
+        if vehicle.purchase_currency == Vehicle.Currency.USD:
+            cash_account.usd_balance -= total_cost
+            cash_account.save(update_fields=['usd_balance', 'updated_at'])
+        else:
+            cash_account.uzs_balance -= total_cost
+            cash_account.save(update_fields=['uzs_balance', 'updated_at'])
+        VehicleExpense.objects.create(
+            vehicle=vehicle,
+            category=VehicleExpense.ExpenseCategory.PURCHASE,
+            amount=total_cost,
+            occurred_at=timezone.now().date(),
+            notes='Автоматический расход при закупе автомобиля',
         )
     return vehicle
 
@@ -179,6 +203,24 @@ def autosalon(request):
                 signed_at=timezone.now(),
                 notes=request.POST.get('deal_notes', '').strip(),
             )
+
+            cash_account = CashAccount.get_current()
+            sale_currency = vehicle.sale_currency or vehicle.purchase_currency or Vehicle.Currency.UZS
+            if vehicle.acquisition_type == Vehicle.AcquisitionType.CONSIGNMENT:
+                profit_amount = sale_price_value - (vehicle.purchase_price or Decimal('0'))
+                if sale_currency == Vehicle.Currency.USD:
+                    cash_account.usd_balance += profit_amount
+                    cash_account.save(update_fields=['usd_balance', 'updated_at'])
+                else:
+                    cash_account.uzs_balance += profit_amount
+                    cash_account.save(update_fields=['uzs_balance', 'updated_at'])
+            else:
+                if sale_currency == Vehicle.Currency.USD:
+                    cash_account.usd_balance += sale_price_value
+                    cash_account.save(update_fields=['usd_balance', 'updated_at'])
+                else:
+                    cash_account.uzs_balance += sale_price_value
+                    cash_account.save(update_fields=['uzs_balance', 'updated_at'])
 
             vehicle.stock_count = max(vehicle.stock_count - 1, 0)
             if vehicle.stock_count == 0:
@@ -276,6 +318,31 @@ def cash_dashboard(request):
         return redirect('/cash/?reset_cash=1')
     exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
     conversions = CashConversion.objects.select_related('shift').order_by('-created_at')[:10]
+    recent_deals = (
+        Deal.objects.select_related('vehicle', 'customer')
+        .filter(status=Deal.DealStatus.COMPLETED)
+        .order_by('-signed_at', '-created_at')[:10]
+    )
+    incomes = []
+    for deal in recent_deals:
+        vehicle = deal.vehicle
+        sale_currency = vehicle.sale_currency or vehicle.purchase_currency or Vehicle.Currency.UZS
+        if vehicle.acquisition_type == Vehicle.AcquisitionType.CONSIGNMENT:
+            amount = deal.sale_price - (vehicle.purchase_price or Decimal('0'))
+            income_type = 'Комиссия'
+        else:
+            amount = deal.sale_price
+            income_type = 'Продажа авто'
+        incomes.append(
+            {
+                'deal': deal,
+                'vehicle': vehicle,
+                'customer': deal.customer,
+                'amount': amount,
+                'currency': sale_currency,
+                'income_type': income_type,
+            },
+        )
     return render(
         request,
         'crm/cash.html',
@@ -283,5 +350,6 @@ def cash_dashboard(request):
             'cash_account': cash_account,
             'exchange_rate': exchange_rate,
             'conversions': conversions,
+            'incomes': incomes,
         },
     )
