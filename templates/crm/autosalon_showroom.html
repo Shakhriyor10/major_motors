@@ -42,6 +42,9 @@
               <div class="text-muted small">{{ receipt.vehicle.make }} · {{ receipt.vehicle.model }}</div>
               <div class="text-muted small">VIN {{ receipt.vehicle.vin }}</div>
               <div class="text-muted small">Состояние: {{ receipt.vehicle.get_condition_display }}</div>
+              {% if receipt.vehicle.condition == 'used' %}
+                <div class="text-muted small">Пробег: {{ receipt.vehicle.mileage|default:"—" }} км</div>
+              {% endif %}
             </div>
           </div>
           <div class="col-12 col-md-6 col-lg-3">
@@ -97,6 +100,9 @@
                 <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
                 <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
               </div>
+              {% if vehicle.condition == 'used' %}
+                <div class="text-muted small">Пробег: {{ vehicle.mileage|default:"—" }} км</div>
+              {% endif %}
               <div class="row g-2 text-muted small">
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Цвет:</strong> {{ vehicle.color|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">КПП:</strong> {{ vehicle.get_transmission_display|default:"—" }}</div>
