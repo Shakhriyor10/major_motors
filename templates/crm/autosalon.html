@@ -136,6 +136,10 @@
               <option value="used">С пробегом</option>
             </select>
           </div>
+          <div class="col-12 col-md-6 col-lg-4 d-none" id="mileage-field">
+            <label for="mileage" class="form-label">Пробег (км)</label>
+            <input id="mileage" name="mileage" type="number" min="0" step="1" class="form-control" placeholder="Например: 45000">
+          </div>
           <div class="col-12 col-md-6 col-lg-4">
             <label for="country" class="form-label">Страна производства</label>
             <input id="country" name="country" type="text" class="form-control">
@@ -280,4 +284,27 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script>
+    const conditionSelect = document.getElementById('condition');
+    const mileageField = document.getElementById('mileage-field');
+    const mileageInput = document.getElementById('mileage');
+
+    const toggleMileage = () => {
+      const isUsed = conditionSelect?.value === 'used';
+      if (mileageField) {
+        mileageField.classList.toggle('d-none', !isUsed);
+      }
+      if (!isUsed && mileageInput) {
+        mileageInput.value = '';
+      }
+    };
+
+    if (conditionSelect) {
+      conditionSelect.addEventListener('change', toggleMileage);
+      toggleMileage();
+    }
+  </script>
 {% endblock %}
