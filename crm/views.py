@@ -103,6 +103,7 @@ def _create_vehicle_from_form(request, options_qs):
         transmission=request.POST.get('transmission', ''),
         fuel_consumption=to_decimal(request.POST.get('fuel_consumption')),
         condition=request.POST.get('condition') or Vehicle.Condition.NEW,
+        mileage=to_int(request.POST.get('mileage')),
         country=request.POST.get('country', '').strip(),
         trim_level=request.POST.get('trim_level') or Vehicle.TrimLevel.STANDARD,
         description=request.POST.get('description', '').strip(),
