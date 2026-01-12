@@ -290,6 +290,7 @@ class Vehicle(TimeStampedModel):
         default=Currency.UZS,
     )
     stock_count = models.PositiveIntegerField(default=1)
+    seat_count = models.PositiveIntegerField(null=True, blank=True)
     engine_type = models.CharField(max_length=32, choices=EngineType.choices, default=EngineType.GASOLINE)
     engine_volume = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
     horsepower = models.PositiveIntegerField(null=True, blank=True)
