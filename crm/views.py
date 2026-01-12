@@ -63,6 +63,43 @@ def roles(request):
 
 def customers(request):
     if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'update_customer':
+            customer_id = request.POST.get('customer_id')
+            customer = Customer.objects.filter(pk=customer_id).first()
+            if customer:
+                customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
+                customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
+                customer.inn = request.POST.get('inn', customer.inn).strip()
+                customer.pinfl = request.POST.get('pinfl', customer.pinfl).strip()
+                customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
+                customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                customer.passport_issued_by = request.POST.get(
+                    'passport_issued_by',
+                    customer.passport_issued_by,
+                ).strip()
+                customer.address = request.POST.get('address', customer.address).strip()
+                customer.notes = request.POST.get('notes', customer.notes).strip()
+                customer.save(
+                    update_fields=[
+                        'full_name',
+                        'phone',
+                        'inn',
+                        'pinfl',
+                        'passport_series',
+                        'passport_number',
+                        'passport_issued_by',
+                        'address',
+                        'notes',
+                    ],
+                )
+            return redirect('customers')
+        if action == 'delete_customer':
+            customer_id = request.POST.get('customer_id')
+            customer = Customer.objects.filter(pk=customer_id).first()
+            if customer:
+                customer.delete()
+            return redirect('customers')
         lead_source = None
         lead_source_id = request.POST.get('lead_source')
         if lead_source_id:
