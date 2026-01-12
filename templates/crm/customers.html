@@ -32,6 +32,14 @@
             />
           </div>
         </div>
+        <div>
+          <label class="form-label">Дата добавления (с)</label>
+          <input type="date" id="customerDateFrom" class="form-control form-control-lg" />
+        </div>
+        <div>
+          <label class="form-label">Дата добавления (по)</label>
+          <input type="date" id="customerDateTo" class="form-control form-control-lg" />
+        </div>
         <button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#customerCreateModal">
           + Добавить клиента
         </button>
@@ -425,16 +433,37 @@
 
   <script>
     const searchInput = document.getElementById('customerSearch');
+    const dateFromInput = document.getElementById('customerDateFrom');
+    const dateToInput = document.getElementById('customerDateTo');
     const tableBody = document.getElementById('customersTableBody');
-    if (searchInput && tableBody) {
-      searchInput.addEventListener('input', () => {
-        const query = searchInput.value.trim().toLowerCase();
-        const rows = tableBody.querySelectorAll('tr[data-search-text]');
-        rows.forEach((row) => {
-          const haystack = row.dataset.searchText || '';
-          row.classList.toggle('d-none', query && !haystack.includes(query));
-        });
+    const applyFilters = () => {
+      if (!tableBody) {
+        return;
+      }
+      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      const fromValue = dateFromInput ? dateFromInput.value : '';
+      const toValue = dateToInput ? dateToInput.value : '';
+      const fromDate = fromValue ? new Date(`${fromValue}T00:00:00`) : null;
+      const toDate = toValue ? new Date(`${toValue}T23:59:59`) : null;
+      const rows = tableBody.querySelectorAll('tr[data-search-text]');
+      rows.forEach((row) => {
+        const haystack = row.dataset.searchText || '';
+        const createdAt = row.dataset.sortCreated ? new Date(row.dataset.sortCreated) : null;
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesFrom = !fromDate || (createdAt && createdAt >= fromDate);
+        const matchesTo = !toDate || (createdAt && createdAt <= toDate);
+        row.classList.toggle('d-none', !(matchesQuery && matchesFrom && matchesTo));
       });
+    };
+
+    if (searchInput) {
+      searchInput.addEventListener('input', applyFilters);
+    }
+    if (dateFromInput) {
+      dateFromInput.addEventListener('change', applyFilters);
+    }
+    if (dateToInput) {
+      dateToInput.addEventListener('change', applyFilters);
     }
 
     const sortButtons = document.querySelectorAll('[data-sort-key]');
