@@ -53,8 +53,8 @@ class LossReasonAdmin(admin.ModelAdmin):
 
 @admin.register(models.Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'phone', 'lead_source', 'assigned_manager')
-    search_fields = ('full_name', 'phone', 'telegram', 'instagram')
+    list_display = ('full_name', 'phone', 'inn', 'lead_source', 'assigned_manager')
+    search_fields = ('full_name', 'phone', 'inn', 'telegram', 'instagram')
     list_filter = ('lead_source', 'purchase_type')
 
 

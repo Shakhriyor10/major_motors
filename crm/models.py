@@ -116,6 +116,7 @@ class Customer(TimeStampedModel):
 
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=32)
+    inn = models.CharField(max_length=16, blank=True)
     passport_series = models.CharField(max_length=16, blank=True)
     passport_number = models.CharField(max_length=32, blank=True)
     passport_issued_by = models.CharField(max_length=255, blank=True)

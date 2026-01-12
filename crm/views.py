@@ -10,8 +10,10 @@ from .models import (
     CashConversion,
     CurrencyRate,
     Customer,
+    CustomerDocument,
     Deal,
     Lead,
+    LeadSource,
     Role,
     Vehicle,
     VehicleOption,
@@ -60,8 +62,58 @@ def roles(request):
 
 
 def customers(request):
-    customers_qs = Customer.objects.select_related('lead_source', 'assigned_manager').order_by('-created_at')[:50]
-    return render(request, 'crm/customers.html', {'customers': customers_qs})
+    if request.method == 'POST':
+        lead_source = None
+        lead_source_id = request.POST.get('lead_source')
+        if lead_source_id:
+            lead_source = LeadSource.objects.filter(pk=lead_source_id).first()
+        customer = Customer.objects.create(
+            full_name=request.POST.get('full_name', '').strip(),
+            phone=request.POST.get('phone', '').strip(),
+            inn=request.POST.get('inn', '').strip(),
+            passport_series=request.POST.get('passport_series', '').strip(),
+            passport_number=request.POST.get('passport_number', '').strip(),
+            passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
+            address=request.POST.get('address', '').strip(),
+            lead_source=lead_source,
+            preferred_make=request.POST.get('preferred_make', '').strip(),
+            preferred_model=request.POST.get('preferred_model', '').strip(),
+            preferred_year=request.POST.get('preferred_year') or None,
+            notes=request.POST.get('notes', '').strip(),
+        )
+        passport_front = request.FILES.get('passport_front')
+        if passport_front:
+            CustomerDocument.objects.create(
+                customer=customer,
+                document_type=CustomerDocument.DocumentType.PASSPORT,
+                file=passport_front,
+                uploaded_by=request.user if request.user.is_authenticated else None,
+                description='Паспорт (лицевая сторона)',
+            )
+        passport_back = request.FILES.get('passport_back')
+        if passport_back:
+            CustomerDocument.objects.create(
+                customer=customer,
+                document_type=CustomerDocument.DocumentType.PASSPORT,
+                file=passport_back,
+                uploaded_by=request.user if request.user.is_authenticated else None,
+                description='Паспорт (обратная сторона)',
+            )
+        return redirect('customers')
+
+    search_query = request.GET.get('q', '').strip()
+    customers_qs = Customer.objects.select_related('lead_source', 'assigned_manager').order_by('full_name')
+    if search_query:
+        customers_qs = customers_qs.filter(full_name__icontains=search_query)
+    return render(
+        request,
+        'crm/customers.html',
+        {
+            'customers': customers_qs,
+            'lead_sources': LeadSource.objects.order_by('name'),
+            'search_query': search_query,
+        },
+    )
 
 
 def leads(request):
