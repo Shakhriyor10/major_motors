@@ -345,8 +345,22 @@
           <form id="customerCreateForm" method="post" enctype="multipart/form-data" class="vstack gap-3">
             {% csrf_token %}
             <div>
-              <label class="form-label">ФИО</label>
-              <input type="text" name="full_name" class="form-control" required placeholder="Например, Алиев Джамшид" />
+              <label class="form-label">Тип клиента</label>
+              <select name="customer_type" id="customerType" class="form-select">
+                <option value="individual" selected>Физ. лицо</option>
+                <option value="legal">Юр. лицо</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" id="customerNameLabel">ФИО</label>
+              <input
+                type="text"
+                name="full_name"
+                id="customerNameInput"
+                class="form-control"
+                required
+                placeholder="Например, Алиев Джамшид"
+              />
             </div>
             <div class="row g-2">
               <div class="col-md-6">
@@ -367,7 +381,7 @@
                 {% endfor %}
               </select>
             </div>
-            <div class="row g-2">
+            <div class="row g-2" id="customerPassportRow">
               <div class="col-md-6">
                 <label class="form-label">Серия паспорта</label>
                 <input type="text" name="passport_series" class="form-control" placeholder="AA" />
@@ -377,7 +391,7 @@
                 <input type="text" name="passport_number" class="form-control" placeholder="1234567" />
               </div>
             </div>
-            <div>
+            <div id="customerPinflGroup">
               <label class="form-label">ПИНФЛ</label>
               <input type="text" name="pinfl" class="form-control" placeholder="Необязательно" />
             </div>
@@ -385,7 +399,7 @@
               <label class="form-label">Номер договора</label>
               <input type="text" name="contract_number" class="form-control" placeholder="Необязательно" />
             </div>
-            <div>
+            <div id="customerPassportIssuedGroup">
               <label class="form-label">Кем выдан</label>
               <input type="text" name="passport_issued_by" class="form-control" placeholder="ОВД ... " />
             </div>
@@ -470,6 +484,37 @@
     const sortIndicators = document.querySelectorAll('[data-sort-indicator]');
     let currentSort = { key: 'name', direction: 'asc' };
 
+    const customerTypeSelect = document.getElementById('customerType');
+    const customerNameLabel = document.getElementById('customerNameLabel');
+    const customerNameInput = document.getElementById('customerNameInput');
+    const customerPassportRow = document.getElementById('customerPassportRow');
+    const customerPinflGroup = document.getElementById('customerPinflGroup');
+    const customerPassportIssuedGroup = document.getElementById('customerPassportIssuedGroup');
+
+    const applyCustomerType = () => {
+      if (!customerTypeSelect) {
+        return;
+      }
+      const isLegal = customerTypeSelect.value === 'legal';
+      if (customerNameLabel) {
+        customerNameLabel.textContent = isLegal ? 'Название юр. лица' : 'ФИО';
+      }
+      if (customerNameInput) {
+        customerNameInput.placeholder = isLegal
+          ? 'Например, ООО «Major Motors»'
+          : 'Например, Алиев Джамшид';
+      }
+      if (customerPassportRow) {
+        customerPassportRow.classList.toggle('d-none', isLegal);
+      }
+      if (customerPinflGroup) {
+        customerPinflGroup.classList.toggle('d-none', isLegal);
+      }
+      if (customerPassportIssuedGroup) {
+        customerPassportIssuedGroup.classList.toggle('d-none', isLegal);
+      }
+    };
+
     const updateSortIndicators = () => {
       sortIndicators.forEach((indicator) => {
         const key = indicator.dataset.sortIndicator;
@@ -517,6 +562,11 @@
         });
       });
       updateSortIndicators();
+    }
+
+    if (customerTypeSelect) {
+      customerTypeSelect.addEventListener('change', applyCustomerType);
+      applyCustomerType();
     }
 
     const detailsModal = document.getElementById('customerDetailsModal');
