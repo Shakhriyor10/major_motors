@@ -41,6 +41,7 @@
               <div>{{ receipt.vehicle.name }}</div>
               <div class="text-muted small">{{ receipt.vehicle.make }} · {{ receipt.vehicle.model }}</div>
               <div class="text-muted small">VIN {{ receipt.vehicle.vin }}</div>
+              <div class="text-muted small">Состояние: {{ receipt.vehicle.get_condition_display }}</div>
             </div>
           </div>
           <div class="col-12 col-md-6 col-lg-3">
