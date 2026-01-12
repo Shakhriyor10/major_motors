@@ -1,6 +1,6 @@
 from decimal import Decimal, InvalidOperation
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -10,8 +10,10 @@ from .models import (
     CashConversion,
     CurrencyRate,
     Customer,
+    CustomerDocument,
     Deal,
     Lead,
+    LeadSource,
     Role,
     Vehicle,
     VehicleOption,
@@ -60,8 +62,102 @@ def roles(request):
 
 
 def customers(request):
-    customers_qs = Customer.objects.select_related('lead_source', 'assigned_manager').order_by('-created_at')[:50]
-    return render(request, 'crm/customers.html', {'customers': customers_qs})
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'update_customer':
+            customer_id = request.POST.get('customer_id')
+            customer = Customer.objects.filter(pk=customer_id).first()
+            if customer:
+                customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
+                customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
+                customer.inn = request.POST.get('inn', customer.inn).strip()
+                customer.pinfl = request.POST.get('pinfl', customer.pinfl).strip()
+                customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
+                customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                customer.passport_issued_by = request.POST.get(
+                    'passport_issued_by',
+                    customer.passport_issued_by,
+                ).strip()
+                customer.address = request.POST.get('address', customer.address).strip()
+                customer.notes = request.POST.get('notes', customer.notes).strip()
+                customer.save(
+                    update_fields=[
+                        'full_name',
+                        'phone',
+                        'inn',
+                        'pinfl',
+                        'passport_series',
+                        'passport_number',
+                        'passport_issued_by',
+                        'address',
+                        'notes',
+                    ],
+                )
+            return redirect('customers')
+        if action == 'delete_customer':
+            customer_id = request.POST.get('customer_id')
+            customer = Customer.objects.filter(pk=customer_id).first()
+            if customer:
+                customer.delete()
+            return redirect('customers')
+        lead_source = None
+        lead_source_id = request.POST.get('lead_source')
+        if lead_source_id:
+            lead_source = LeadSource.objects.filter(pk=lead_source_id).first()
+        customer = Customer.objects.create(
+            full_name=request.POST.get('full_name', '').strip(),
+            phone=request.POST.get('phone', '').strip(),
+            inn=request.POST.get('inn', '').strip(),
+            passport_series=request.POST.get('passport_series', '').strip(),
+            passport_number=request.POST.get('passport_number', '').strip(),
+            pinfl=request.POST.get('pinfl', '').strip(),
+            passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
+            address=request.POST.get('address', '').strip(),
+            lead_source=lead_source,
+            notes=request.POST.get('notes', '').strip(),
+        )
+        passport_front = request.FILES.get('passport_front')
+        if passport_front:
+            CustomerDocument.objects.create(
+                customer=customer,
+                document_type=CustomerDocument.DocumentType.PASSPORT,
+                file=passport_front,
+                uploaded_by=request.user if request.user.is_authenticated else None,
+                description='Паспорт (лицевая сторона)',
+            )
+        passport_back = request.FILES.get('passport_back')
+        if passport_back:
+            CustomerDocument.objects.create(
+                customer=customer,
+                document_type=CustomerDocument.DocumentType.PASSPORT,
+                file=passport_back,
+                uploaded_by=request.user if request.user.is_authenticated else None,
+                description='Паспорт (обратная сторона)',
+            )
+        return redirect('customers')
+
+    search_query = request.GET.get('q', '').strip()
+    customers_qs = (
+        Customer.objects.select_related('lead_source', 'assigned_manager')
+        .prefetch_related('documents')
+        .order_by('full_name')
+    )
+    if search_query:
+        customers_qs = customers_qs.filter(
+            Q(full_name__icontains=search_query)
+            | Q(phone__icontains=search_query)
+            | Q(inn__icontains=search_query)
+            | Q(pinfl__icontains=search_query)
+        )
+    return render(
+        request,
+        'crm/customers.html',
+        {
+            'customers': customers_qs,
+            'lead_sources': LeadSource.objects.order_by('name'),
+            'search_query': search_query,
+        },
+    )
 
 
 def leads(request):

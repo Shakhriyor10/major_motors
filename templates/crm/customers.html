@@ -3,10 +3,39 @@
 {% block title %}Major Motors CRM · Клиенты{% endblock %}
 
 {% block content %}
+  <div class="card shadow-sm mb-4 border-0">
+    <div class="card-body">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <h1 class="h3 mb-1">Клиенты</h1>
+          <p class="text-muted mb-0">Быстро добавляйте новые карточки клиентов и находите их за секунды.</p>
+        </div>
+        <span class="badge text-bg-primary px-3 py-2">Алфавитная сортировка по умолчанию</span>
+      </div>
+    </div>
+  </div>
+
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <h1 class="h3">Клиенты</h1>
-      <p class="text-muted mb-0">CRM-карточки с контактами, источниками лидов и интересами клиентов.</p>
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="flex-grow-1">
+          <label class="form-label">Быстрый поиск по имени</label>
+          <div class="input-group input-group-lg">
+            <span class="input-group-text">🔍</span>
+            <input
+              type="text"
+              id="customerSearch"
+              class="form-control"
+              placeholder="Введите имя клиента"
+              value="{{ search_query }}"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerCreateModal">
+          + Добавить клиента
+        </button>
+      </div>
     </div>
   </div>
 
@@ -18,19 +47,64 @@
             <tr>
               <th>ФИО</th>
               <th>Телефон</th>
-              <th>Источник</th>
-              <th>Интерес</th>
-              <th>Менеджер</th>
+              <th>ИНН</th>
+              <th>ПИНФЛ</th>
+              <th class="text-end">Карточка</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="customersTableBody">
             {% for customer in customers %}
-              <tr>
-                <td>{{ customer.full_name }}</td>
+              <tr data-search-text="{{ customer.full_name|lower }} {{ customer.phone|lower }} {{ customer.inn|default:''|lower }} {{ customer.pinfl|default:''|lower }}">
+                <td class="fw-semibold">{{ customer.full_name }}</td>
                 <td>{{ customer.phone }}</td>
-                <td>{{ customer.lead_source|default:"—" }}</td>
-                <td>{{ customer.preferred_make }} {{ customer.preferred_model }} {{ customer.preferred_year|default:"" }}</td>
-                <td>{{ customer.assigned_manager|default:"—" }}</td>
+                <td>{{ customer.inn|default:"—" }}</td>
+                <td>{{ customer.pinfl|default:"—" }}</td>
+                <td class="text-end">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#customerDetailsModal"
+                    data-customer-name="{{ customer.full_name }}"
+                    data-customer-phone="{{ customer.phone }}"
+                    data-customer-inn="{{ customer.inn|default:'' }}"
+                    data-customer-source="{{ customer.lead_source|default:'—' }}"
+                    data-customer-passport-series="{{ customer.passport_series|default:'' }}"
+                    data-customer-passport-number="{{ customer.passport_number|default:'' }}"
+                    data-customer-pinfl="{{ customer.pinfl|default:'' }}"
+                    data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
+                    data-customer-address="{{ customer.address|default:'' }}"
+                    data-customer-notes="{{ customer.notes|default:'' }}"
+                    data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
+                    data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
+                  >
+                    👁️
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm ms-1"
+                    data-bs-toggle="modal"
+                    data-bs-target="#customerEditModal"
+                    data-customer-id="{{ customer.id }}"
+                    data-customer-name="{{ customer.full_name }}"
+                    data-customer-phone="{{ customer.phone }}"
+                    data-customer-inn="{{ customer.inn|default:'' }}"
+                    data-customer-pinfl="{{ customer.pinfl|default:'' }}"
+                    data-customer-passport-series="{{ customer.passport_series|default:'' }}"
+                    data-customer-passport-number="{{ customer.passport_number|default:'' }}"
+                    data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
+                    data-customer-address="{{ customer.address|default:'' }}"
+                    data-customer-notes="{{ customer.notes|default:'' }}"
+                  >
+                    ✏️
+                  </button>
+                  <form method="post" class="d-inline" onsubmit="return confirm('Вы действительно хотите удалить клиента?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_customer" />
+                    <input type="hidden" name="customer_id" value="{{ customer.id }}" />
+                    <button type="submit" class="btn btn-outline-danger btn-sm ms-1">🗑️</button>
+                  </form>
+                </td>
               </tr>
             {% empty %}
               <tr>
@@ -42,4 +116,312 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="customerDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="customerDetailsTitle">Карточка клиента</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="small text-muted">ФИО</div>
+              <div class="fw-semibold" id="customerDetailsName">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Телефон</div>
+              <div id="customerDetailsPhone">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">ИНН</div>
+              <div id="customerDetailsInn">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Источник</div>
+              <div id="customerDetailsSource">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Адрес</div>
+              <div id="customerDetailsAddress">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Серия паспорта</div>
+              <div id="customerDetailsPassportSeries">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Номер паспорта</div>
+              <div id="customerDetailsPassportNumber">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">ПИНФЛ</div>
+              <div id="customerDetailsPinfl">—</div>
+            </div>
+            <div class="col-12">
+              <div class="small text-muted">Кем выдан</div>
+              <div id="customerDetailsPassportIssued">—</div>
+            </div>
+            <div class="col-12">
+              <div class="small text-muted">Заметки</div>
+              <div id="customerDetailsNotes" class="border rounded bg-light p-2">—</div>
+            </div>
+          </div>
+          <hr class="my-4" />
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="small text-muted mb-2">Паспорт (лицевая сторона)</div>
+              <img id="customerDetailsPassportFront" class="img-fluid rounded border d-none" alt="Паспорт лицевая сторона" />
+              <div id="customerDetailsPassportFrontEmpty" class="text-muted small">Фото не загружено</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted mb-2">Паспорт (обратная сторона)</div>
+              <img id="customerDetailsPassportBack" class="img-fluid rounded border d-none" alt="Паспорт обратная сторона" />
+              <div id="customerDetailsPassportBackEmpty" class="text-muted small">Фото не загружено</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="customerEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Редактировать клиента</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <form id="customerEditForm" method="post" class="vstack gap-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_customer" />
+            <input type="hidden" name="customer_id" id="customerEditId" />
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">ФИО</label>
+                <input type="text" name="full_name" id="customerEditName" class="form-control" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Телефон</label>
+                <input type="tel" name="phone" id="customerEditPhone" class="form-control" required />
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">ИНН</label>
+                <input type="text" name="inn" id="customerEditInn" class="form-control" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">ПИНФЛ</label>
+                <input type="text" name="pinfl" id="customerEditPinfl" class="form-control" />
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">Серия паспорта</label>
+                <input type="text" name="passport_series" id="customerEditPassportSeries" class="form-control" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Номер паспорта</label>
+                <input type="text" name="passport_number" id="customerEditPassportNumber" class="form-control" />
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Кем выдан</label>
+              <input type="text" name="passport_issued_by" id="customerEditPassportIssued" class="form-control" />
+            </div>
+            <div>
+              <label class="form-label">Адрес</label>
+              <input type="text" name="address" id="customerEditAddress" class="form-control" />
+            </div>
+            <div>
+              <label class="form-label">Заметки</label>
+              <textarea name="notes" id="customerEditNotes" class="form-control" rows="2"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" form="customerEditForm" class="btn btn-primary">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="customerCreateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Добавить клиента</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <form id="customerCreateForm" method="post" enctype="multipart/form-data" class="vstack gap-3">
+            {% csrf_token %}
+            <div>
+              <label class="form-label">ФИО</label>
+              <input type="text" name="full_name" class="form-control" required placeholder="Например, Алиев Джамшид" />
+            </div>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">Телефон</label>
+                <input type="tel" name="phone" class="form-control" required placeholder="+998 90 123 45 67" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">ИНН</label>
+                <input type="text" name="inn" class="form-control" placeholder="Необязательно" />
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Источник лида</label>
+              <select name="lead_source" class="form-select">
+                <option value="">Не выбран</option>
+                {% for source in lead_sources %}
+                  <option value="{{ source.id }}">{{ source.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">Серия паспорта</label>
+                <input type="text" name="passport_series" class="form-control" placeholder="AA" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Номер паспорта</label>
+                <input type="text" name="passport_number" class="form-control" placeholder="1234567" />
+              </div>
+            </div>
+            <div>
+              <label class="form-label">ПИНФЛ</label>
+              <input type="text" name="pinfl" class="form-control" placeholder="Необязательно" />
+            </div>
+            <div>
+              <label class="form-label">Кем выдан</label>
+              <input type="text" name="passport_issued_by" class="form-control" placeholder="ОВД ... " />
+            </div>
+            <div>
+              <label class="form-label">Адрес</label>
+              <input type="text" name="address" class="form-control" placeholder="Город, улица, дом" />
+            </div>
+            <div>
+              <label class="form-label">Фото паспорта (лицевая сторона)</label>
+              <input type="file" name="passport_front" class="form-control" accept="image/*" />
+            </div>
+            <div>
+              <label class="form-label">Фото паспорта (обратная сторона)</label>
+              <input type="file" name="passport_back" class="form-control" accept="image/*" />
+              <div class="form-text">Загрузка фото необязательна.</div>
+            </div>
+            <div>
+              <label class="form-label">Заметки</label>
+              <textarea name="notes" class="form-control" rows="2" placeholder="Что важно помнить о клиенте"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" form="customerCreateForm" class="btn btn-primary">Сохранить клиента</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('customerSearch');
+    const tableBody = document.getElementById('customersTableBody');
+    if (searchInput && tableBody) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        const rows = tableBody.querySelectorAll('tr[data-search-text]');
+        rows.forEach((row) => {
+          const haystack = row.dataset.searchText || '';
+          row.classList.toggle('d-none', query && !haystack.includes(query));
+        });
+      });
+    }
+
+    const detailsModal = document.getElementById('customerDetailsModal');
+    if (detailsModal) {
+      detailsModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        if (!button) {
+          return;
+        }
+        const setText = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.textContent = value || '—';
+          }
+        };
+        setText('customerDetailsName', button.dataset.customerName);
+        setText('customerDetailsPhone', button.dataset.customerPhone);
+        setText('customerDetailsInn', button.dataset.customerInn);
+        setText('customerDetailsSource', button.dataset.customerSource);
+        setText('customerDetailsAddress', button.dataset.customerAddress);
+        setText('customerDetailsPassportSeries', button.dataset.customerPassportSeries);
+        setText('customerDetailsPassportNumber', button.dataset.customerPassportNumber);
+        setText('customerDetailsPinfl', button.dataset.customerPinfl);
+        setText('customerDetailsPassportIssued', button.dataset.customerPassportIssued);
+        setText('customerDetailsNotes', button.dataset.customerNotes);
+
+        const frontImg = document.getElementById('customerDetailsPassportFront');
+        const frontEmpty = document.getElementById('customerDetailsPassportFrontEmpty');
+        const backImg = document.getElementById('customerDetailsPassportBack');
+        const backEmpty = document.getElementById('customerDetailsPassportBackEmpty');
+        const frontSrc = button.dataset.customerPassportFront || '';
+        const backSrc = button.dataset.customerPassportBack || '';
+
+        if (frontImg && frontEmpty) {
+          if (frontSrc) {
+            frontImg.src = frontSrc;
+            frontImg.classList.remove('d-none');
+            frontEmpty.classList.add('d-none');
+          } else {
+            frontImg.classList.add('d-none');
+            frontEmpty.classList.remove('d-none');
+          }
+        }
+        if (backImg && backEmpty) {
+          if (backSrc) {
+            backImg.src = backSrc;
+            backImg.classList.remove('d-none');
+            backEmpty.classList.add('d-none');
+          } else {
+            backImg.classList.add('d-none');
+            backEmpty.classList.remove('d-none');
+          }
+        }
+      });
+    }
+
+    const editModal = document.getElementById('customerEditModal');
+    if (editModal) {
+      editModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        if (!button) {
+          return;
+        }
+        const setValue = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.value = value || '';
+          }
+        };
+        setValue('customerEditId', button.dataset.customerId);
+        setValue('customerEditName', button.dataset.customerName);
+        setValue('customerEditPhone', button.dataset.customerPhone);
+        setValue('customerEditInn', button.dataset.customerInn);
+        setValue('customerEditPinfl', button.dataset.customerPinfl);
+        setValue('customerEditPassportSeries', button.dataset.customerPassportSeries);
+        setValue('customerEditPassportNumber', button.dataset.customerPassportNumber);
+        setValue('customerEditPassportIssued', button.dataset.customerPassportIssued);
+        setValue('customerEditAddress', button.dataset.customerAddress);
+        setValue('customerEditNotes', button.dataset.customerNotes);
+      });
+    }
+  </script>
 {% endblock %}
