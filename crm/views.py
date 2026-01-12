@@ -84,6 +84,7 @@ def _create_vehicle_from_form(request, options_qs):
         except (TypeError, ValueError):
             return None
 
+    purchase_currency = request.POST.get('purchase_currency') or Vehicle.Currency.UZS
     vehicle = Vehicle.objects.create(
         vin=request.POST.get('vin', '').strip(),
         name=request.POST.get('name', '').strip(),
@@ -92,9 +93,9 @@ def _create_vehicle_from_form(request, options_qs):
         color=request.POST.get('color', '').strip(),
         body_type=request.POST.get('body_type', '').strip(),
         purchase_price=to_decimal(request.POST.get('purchase_price')) or Decimal('0'),
-        purchase_currency=request.POST.get('purchase_currency') or Vehicle.Currency.UZS,
+        purchase_currency=purchase_currency,
         sale_price=to_decimal(request.POST.get('sale_price')),
-        sale_currency=request.POST.get('sale_currency') or Vehicle.Currency.UZS,
+        sale_currency=purchase_currency,
         stock_count=to_int(request.POST.get('stock_count')) or 0,
         engine_type=request.POST.get('engine_type') or Vehicle.EngineType.GASOLINE,
         engine_volume=to_decimal(request.POST.get('engine_volume')),
@@ -109,9 +110,6 @@ def _create_vehicle_from_form(request, options_qs):
         acquisition_type=request.POST.get('acquisition_type') or Vehicle.AcquisitionType.PURCHASE,
         counterparty_name=request.POST.get('counterparty_name', '').strip(),
     )
-    if vehicle.sale_currency != vehicle.purchase_currency:
-        vehicle.sale_currency = vehicle.purchase_currency
-        vehicle.save(update_fields=['sale_currency'])
     selected_options = request.POST.getlist('options')
     if selected_options:
         vehicle.options.set(options_qs.filter(id__in=selected_options))

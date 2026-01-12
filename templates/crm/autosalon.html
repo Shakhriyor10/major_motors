@@ -72,7 +72,7 @@
             <input id="purchase_price" name="purchase_price" type="number" min="0" step="0.01" class="form-control" required>
           </div>
           <div class="col-12 col-md-6 col-lg-4">
-            <label for="purchase_currency" class="form-label">Валюта себестоимости</label>
+            <label for="purchase_currency" class="form-label">Валюта себестоимости и продажи</label>
             <select id="purchase_currency" name="purchase_currency" class="form-select">
               <option value="uzs">Сум (UZS)</option>
               <option value="usd">Доллар (USD)</option>
@@ -81,14 +81,6 @@
           <div class="col-12 col-md-6 col-lg-4">
             <label for="sale_price" class="form-label">Продаваемая цена</label>
             <input id="sale_price" name="sale_price" type="number" min="0" step="0.01" class="form-control">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="sale_currency" class="form-label">Валюта продажи</label>
-            <select id="sale_currency" name="sale_currency" class="form-select">
-              <option value="uzs">Сум (UZS)</option>
-              <option value="usd">Доллар (USD)</option>
-            </select>
-            <div class="form-text">Валюта продажи должна совпадать с себестоимостью.</div>
           </div>
           <div class="col-12 col-md-6 col-lg-4">
             <label for="stock_count" class="form-label">Количество в автосалоне</label>
@@ -288,22 +280,4 @@
       </div>
     </div>
   </div>
-{% endblock %}
-
-{% block extra_scripts %}
-  <script>
-    const purchaseCurrency = document.getElementById('purchase_currency');
-    const saleCurrency = document.getElementById('sale_currency');
-
-    const syncCurrencies = () => {
-      if (purchaseCurrency && saleCurrency) {
-        saleCurrency.value = purchaseCurrency.value;
-      }
-    };
-
-    if (purchaseCurrency && saleCurrency) {
-      purchaseCurrency.addEventListener('change', syncCurrencies);
-      syncCurrencies();
-    }
-  </script>
 {% endblock %}
