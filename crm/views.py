@@ -1,5 +1,6 @@
 from decimal import Decimal, InvalidOperation
 
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -22,11 +23,13 @@ from .models import (
 )
 
 
+@login_required
 def home(request):
     exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
     return render(request, 'crm/home.html', {'exchange_rate': exchange_rate})
 
 
+@login_required
 def dashboard(request):
     exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
     stats = {
@@ -56,11 +59,13 @@ def dashboard(request):
     )
 
 
+@login_required
 def roles(request):
     roles_qs = Role.objects.select_related('permissions').order_by('name')
     return render(request, 'crm/roles.html', {'roles': roles_qs})
 
 
+@login_required
 def customers(request):
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -160,6 +165,7 @@ def customers(request):
     )
 
 
+@login_required
 def leads(request):
     leads_qs = Lead.objects.select_related('customer', 'stage', 'assigned_to').order_by('-created_at')[:50]
     return render(request, 'crm/leads.html', {'leads': leads_qs})
@@ -236,6 +242,7 @@ def _create_vehicle_from_form(request, options_qs):
     return vehicle
 
 
+@login_required
 def autosalon(request):
     default_options = [
         'Кондиционер',
@@ -354,6 +361,7 @@ def autosalon(request):
     )
 
 
+@login_required
 def inventory(request):
     default_options = [
         'Кондиционер',
@@ -396,11 +404,13 @@ def inventory(request):
     )
 
 
+@login_required
 def deals(request):
     deals_qs = Deal.objects.select_related('customer', 'vehicle', 'manager').order_by('-created_at')[:50]
     return render(request, 'crm/deals.html', {'deals': deals_qs})
 
 
+@login_required
 def cash_dashboard(request):
     cash_account = CashAccount.get_current()
     if request.method == 'POST' and request.user.is_superuser:
