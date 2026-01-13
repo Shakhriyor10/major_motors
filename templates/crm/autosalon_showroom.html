@@ -2,6 +2,106 @@
 
 {% block title %}Major Motors CRM · Автосалон{% endblock %}
 
+{% block extra_styles %}
+  <style>
+    .receipt-card {
+      border: 1px solid rgba(33, 37, 41, 0.12);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .receipt-header {
+      border-bottom: 1px solid rgba(33, 37, 41, 0.1);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .receipt-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .receipt-subtitle {
+      color: #6c757d;
+      margin-bottom: 0;
+    }
+
+    .receipt-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    .receipt-table th,
+    .receipt-table td {
+      border: 1px solid rgba(33, 37, 41, 0.15);
+      padding: 0.6rem 0.75rem;
+      vertical-align: top;
+    }
+
+    .receipt-table th {
+      background: #f5f7fb;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      color: #6c757d;
+      width: 26%;
+    }
+
+    .receipt-signature {
+      border-top: 1px dashed rgba(33, 37, 41, 0.2);
+      padding-top: 1.25rem;
+      margin-top: 2rem;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .receipt-signature div {
+      min-width: 220px;
+    }
+
+    @media print {
+      body {
+        background: #fff !important;
+      }
+
+      main.container {
+        max-width: none;
+        padding: 0;
+      }
+
+      body * {
+        visibility: hidden;
+      }
+
+      #sale-receipt,
+      #sale-receipt * {
+        visibility: visible;
+      }
+
+      #sale-receipt {
+        margin: 0;
+      }
+
+      .receipt-card {
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .receipt-table th {
+        background: #eef1f7 !important;
+      }
+
+      #sale-receipt {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+{% endblock %}
+
 {% block content %}
   <div class="card shadow-sm border-0 mb-4 d-print-none bg-primary-subtle">
     <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-4 p-4">
@@ -22,55 +122,95 @@
   </div>
 
   {% if receipt %}
-    <div class="card shadow-sm mb-4 border-0" id="sale-receipt">
+    <div class="card shadow-sm mb-4 border-0 receipt-card" id="sale-receipt">
       <div class="card-body p-4">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 receipt-header">
           <div>
             <span class="badge rounded-pill text-bg-success-subtle text-success mb-2">Сделка подтверждена</span>
-            <h2 class="h4 mb-1">Квитанция о покупке</h2>
-            <p class="text-muted mb-0">Распечатайте документ для клиента (формат A4).</p>
+            <h2 class="receipt-title">Договор купли-продажи автомобиля</h2>
+            <p class="receipt-subtitle">Печать для клиента · Формат A4 · Major Motors</p>
           </div>
           <button class="btn btn-primary d-print-none" type="button" id="print-receipt">Печать</button>
         </div>
-        <div class="row g-3 mt-2">
-          <div class="col-12 col-md-6 col-lg-3">
-            <div class="border rounded-4 p-3 bg-body-tertiary h-100">
-              <strong class="d-block mb-1">Клиент</strong>
-              <div>{{ receipt.customer.full_name }}</div>
-              <div class="text-muted small">Телефон: {{ receipt.customer.phone }}</div>
-              <div class="text-muted small">Паспорт: {{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}</div>
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-4">
+            <div class="bg-body-tertiary rounded-4 p-3 h-100">
+              <strong class="d-block mb-1">Дата сделки</strong>
+              <div class="fs-5 fw-semibold">{{ receipt.signed_at|date:"d.m.Y" }}</div>
+              <div class="text-muted small">Время: {{ receipt.signed_at|date:"H:i" }}</div>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-3">
-            <div class="border rounded-4 p-3 bg-body-tertiary h-100">
-              <strong class="d-block mb-1">Автомобиль</strong>
-              <div>{{ receipt.vehicle.name }}</div>
-              <div class="text-muted small">{{ receipt.vehicle.make }} · {{ receipt.vehicle.model }}</div>
-              <div class="text-muted small">VIN {{ receipt.vehicle.vin }}</div>
-              <div class="text-muted small">Состояние: {{ receipt.vehicle.get_condition_display }}</div>
-              {% if receipt.vehicle.condition == 'used' %}
-                <div class="text-muted small">Пробег: {{ receipt.vehicle.mileage|default:"—" }} км</div>
-              {% endif %}
-            </div>
-          </div>
-          <div class="col-12 col-md-6 col-lg-3">
-            <div class="border rounded-4 p-3 bg-body-tertiary h-100">
-              <strong class="d-block mb-1">Сумма сделки</strong>
-              <div>
+          <div class="col-12 col-md-4">
+            <div class="bg-body-tertiary rounded-4 p-3 h-100">
+              <strong class="d-block mb-1">Сумма покупки</strong>
+              <div class="fs-5 fw-semibold">
                 {{ receipt.sale_price }}
                 {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}
               </div>
               <div class="text-muted small">Тип оплаты: {{ receipt.get_financing_type_display }}</div>
-              <div class="text-muted small">Дата: {{ receipt.signed_at|date:"d.m.Y" }}</div>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-3">
-            <div class="border rounded-4 p-3 bg-body-tertiary h-100">
+          <div class="col-12 col-md-4">
+            <div class="bg-body-tertiary rounded-4 p-3 h-100">
               <strong class="d-block mb-1">Автосалон</strong>
-              <div>Major Motors</div>
-              <div class="text-muted small">Контакт: +998 (00) 000-00-00</div>
+              <div class="fw-semibold">Major Motors</div>
+              <div class="text-muted small">Телефон: +998 (00) 000-00-00</div>
               <div class="text-muted small">Адрес: ул. Демонстрационная, 10</div>
             </div>
+          </div>
+        </div>
+        <table class="receipt-table">
+          <tbody>
+            <tr>
+              <th>Покупатель</th>
+              <td>
+                {{ receipt.customer.full_name }}<br>
+                Телефон: {{ receipt.customer.phone }}<br>
+                Паспорт: {{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}<br>
+                Кем выдан: {{ receipt.customer.passport_issued_by|default:"—" }}<br>
+                Адрес: {{ receipt.customer.address|default:"—" }}
+              </td>
+            </tr>
+            <tr>
+              <th>Автомобиль</th>
+              <td>
+                {{ receipt.vehicle.name }}<br>
+                Марка/модель: {{ receipt.vehicle.make }} · {{ receipt.vehicle.model }}<br>
+                VIN: {{ receipt.vehicle.vin }}<br>
+                Состояние: {{ receipt.vehicle.get_condition_display }}{% if receipt.vehicle.condition == 'used' %}<br>Пробег: {{ receipt.vehicle.mileage|default:"—" }} км{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th>Технические данные</th>
+              <td>
+                Цвет: {{ receipt.vehicle.color|default:"—" }}<br>
+                КПП: {{ receipt.vehicle.get_transmission_display|default:"—" }}<br>
+                Двигатель: {{ receipt.vehicle.engine_volume|default:"—" }} л<br>
+                Посадочные места: {{ receipt.vehicle.seat_count|default:"—" }}
+              </td>
+            </tr>
+            <tr>
+              <th>Финансовые условия</th>
+              <td>
+                Сумма сделки: {{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}<br>
+                Тип оплаты: {{ receipt.get_financing_type_display }}<br>
+                Дата продажи: {{ receipt.signed_at|date:"d.m.Y" }}
+              </td>
+            </tr>
+            <tr>
+              <th>Комментарий</th>
+              <td>{{ receipt.notes|default:"—" }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="receipt-signature">
+          <div>
+            <div class="text-muted small">Подпись клиента</div>
+            <div>______________________________</div>
+          </div>
+          <div>
+            <div class="text-muted small">Менеджер Major Motors</div>
+            <div>______________________________</div>
           </div>
         </div>
       </div>
