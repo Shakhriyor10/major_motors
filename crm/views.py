@@ -415,6 +415,24 @@ def autosalon(request):
                 vehicle.status = Vehicle.VehicleStatus.RESERVED
                 vehicle.save(update_fields=['status'])
             return redirect('autosalon')
+        if action == 'cancel_reservation':
+            reservation_id = request.POST.get('reservation_id')
+            if reservation_id:
+                reservation = Reservation.objects.select_related('vehicle').filter(
+                    pk=reservation_id,
+                    status=Reservation.ReservationStatus.ACTIVE,
+                ).first()
+                if reservation:
+                    reservation.status = Reservation.ReservationStatus.CANCELED
+                    reservation.save(update_fields=['status', 'updated_at'])
+                    has_active = Reservation.objects.filter(
+                        vehicle=reservation.vehicle,
+                        status=Reservation.ReservationStatus.ACTIVE,
+                    ).exists()
+                    if not has_active:
+                        reservation.vehicle.status = Vehicle.VehicleStatus.FOR_SALE
+                        reservation.vehicle.save(update_fields=['status'])
+            return redirect('autosalon')
 
     active_reservations = Reservation.objects.select_related('customer').filter(
         status=Reservation.ReservationStatus.ACTIVE,

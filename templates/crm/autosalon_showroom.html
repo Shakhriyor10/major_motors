@@ -113,6 +113,7 @@
                     class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
                     type="button"
                     data-open-reservation-details
+                    data-reservation-id="{{ vehicle.active_reservation.id }}"
                     data-reservation-customer="{{ vehicle.active_reservation.customer.full_name }}"
                     data-reservation-phone="{{ vehicle.active_reservation.customer.phone }}"
                     data-reservation-passport="{{ vehicle.active_reservation.customer.passport_series }} {{ vehicle.active_reservation.customer.passport_number }}"
@@ -177,7 +178,7 @@
                     data-open-reserve
                     data-vehicle-id="{{ vehicle.id }}"
                     data-vehicle-name="{{ vehicle.name }}"
-                    {% if vehicle.status == 'reserved' %}disabled{% endif %}
+                    {% if vehicle.status == 'reserved' or vehicle.active_reservation %}disabled{% endif %}
                   >
                     Забронировать
                   </button>
@@ -411,6 +412,12 @@
           </div>
         </div>
         <div class="modal-footer">
+          <form method="post" class="me-auto" id="cancel-reservation-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="cancel_reservation">
+            <input type="hidden" name="reservation_id" id="reservation-id-input">
+            <button class="btn btn-outline-danger" type="submit">Отменить бронирование</button>
+          </form>
           <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Закрыть</button>
         </div>
       </div>
@@ -448,6 +455,8 @@
     const reservationDetailsModalInstance = reservationDetailsModal
       ? bootstrap.Modal.getOrCreateInstance(reservationDetailsModal)
       : null;
+    const reservationIdInput = document.getElementById('reservation-id-input');
+    const cancelReservationForm = document.getElementById('cancel-reservation-form');
 
     const toggleCustomerFields = (disabled) => {
       customerFields.forEach((fieldId) => {
@@ -509,6 +518,12 @@
         const reservationDeposit = document.getElementById('reservation-deposit');
         const reservationTerms = document.getElementById('reservation-terms');
 
+        if (reservationIdInput) {
+          reservationIdInput.value = button.dataset.reservationId || '';
+        }
+        if (cancelReservationForm) {
+          cancelReservationForm.classList.toggle('d-none', !button.dataset.reservationId);
+        }
         if (customerName) customerName.textContent = getValue('reservationCustomer');
         if (customerPhone) customerPhone.textContent = getValue('reservationPhone');
         if (customerPassport) customerPassport.textContent = getValue('reservationPassport');
