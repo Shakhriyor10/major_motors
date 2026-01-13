@@ -610,6 +610,36 @@ def cash_dashboard(request):
                 bank_account.updated_by = request.user
                 bank_account.save(update_fields=['uzs_balance', 'usd_balance', 'updated_by', 'updated_at'])
                 return redirect('/cash/?reset_cash=1')
+            if action == 'transfer_bank_cash':
+                direction = request.POST.get('transfer_direction')
+                currency = request.POST.get('transfer_currency')
+                amount = Decimal(request.POST.get('transfer_amount', '0'))
+                if amount <= 0:
+                    return redirect('/cash/?reset_cash=1')
+                if direction == 'bank_to_cash':
+                    source_account = bank_account
+                    target_account = cash_account
+                elif direction == 'cash_to_bank':
+                    source_account = cash_account
+                    target_account = bank_account
+                else:
+                    return redirect('/cash/?reset_cash=1')
+
+                if currency == 'usd':
+                    if source_account.usd_balance < amount:
+                        return redirect('/cash/?reset_cash=1')
+                    source_account.usd_balance -= amount
+                    target_account.usd_balance += amount
+                else:
+                    if source_account.uzs_balance < amount:
+                        return redirect('/cash/?reset_cash=1')
+                    source_account.uzs_balance -= amount
+                    target_account.uzs_balance += amount
+                source_account.updated_by = request.user
+                target_account.updated_by = request.user
+                source_account.save(update_fields=['uzs_balance', 'usd_balance', 'updated_by', 'updated_at'])
+                target_account.save(update_fields=['uzs_balance', 'usd_balance', 'updated_by', 'updated_at'])
+                return redirect('/cash/?reset_cash=1')
             cash_account.uzs_balance = Decimal(request.POST.get('uzs_balance', cash_account.uzs_balance))
             cash_account.usd_balance = Decimal(request.POST.get('usd_balance', cash_account.usd_balance))
         except (InvalidOperation, TypeError):
