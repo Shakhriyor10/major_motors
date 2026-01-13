@@ -635,7 +635,12 @@
                 Рассчитайте ежемесячный платеж и график погашения без перезагрузки страницы.
               </p>
             </div>
-            <span class="badge text-bg-success px-3 py-2" id="credit-selected-vehicle">Автомобиль не выбран</span>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <span class="badge text-bg-success px-3 py-2" id="credit-selected-vehicle">Автомобиль не выбран</span>
+              <button class="btn btn-outline-primary btn-sm" type="button" id="print-credit-schedule">
+                Печать графика
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -685,59 +690,61 @@
           </div>
         </div>
         <div class="col-12 col-lg-8">
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              <h3 class="h6 mb-3">Итоги расчета</h3>
-              <div class="row g-3">
-                <div class="col-12 col-md-6">
-                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
-                    <div class="small text-muted">Сумма кредита</div>
-                    <div class="fw-semibold fs-5" id="credit-summary-amount">—</div>
+          <div id="credit-print-area">
+            <div class="card shadow-sm mb-4">
+              <div class="card-body">
+                <h3 class="h6 mb-3">Итоги расчета</h3>
+                <div class="row g-3">
+                  <div class="col-12 col-md-6">
+                    <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                      <div class="small text-muted">Сумма кредита</div>
+                      <div class="fw-semibold fs-5" id="credit-summary-amount">—</div>
+                    </div>
                   </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
-                    <div class="small text-muted">Ежемесячный платеж</div>
-                    <div class="fw-semibold fs-5" id="credit-summary-monthly">—</div>
+                  <div class="col-12 col-md-6">
+                    <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                      <div class="small text-muted">Ежемесячный платеж</div>
+                      <div class="fw-semibold fs-5" id="credit-summary-monthly">—</div>
+                    </div>
                   </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
-                    <div class="small text-muted">Общая сумма выплат</div>
-                    <div class="fw-semibold" id="credit-summary-total">—</div>
+                  <div class="col-12 col-md-6">
+                    <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                      <div class="small text-muted">Общая сумма выплат</div>
+                      <div class="fw-semibold" id="credit-summary-total">—</div>
+                    </div>
                   </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
-                    <div class="small text-muted">Переплата по кредиту</div>
-                    <div class="fw-semibold" id="credit-summary-overpay">—</div>
+                  <div class="col-12 col-md-6">
+                    <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                      <div class="small text-muted">Переплата по кредиту</div>
+                      <div class="fw-semibold" id="credit-summary-overpay">—</div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h3 class="h6 mb-3">График платежей</h3>
-              <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th>№</th>
-                      <th>Дата платежа</th>
-                      <th class="text-end">Платеж</th>
-                      <th class="text-end">Проценты</th>
-                      <th class="text-end">Основной долг</th>
-                      <th class="text-end">Остаток</th>
-                    </tr>
-                  </thead>
-                  <tbody id="credit-schedule-body">
-                    <tr>
-                      <td colspan="6" class="text-muted">Заполните параметры кредита для расчета графика.</td>
-                    </tr>
-                  </tbody>
-                </table>
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h3 class="h6 mb-3">График платежей</h3>
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>№</th>
+                        <th>Дата платежа</th>
+                        <th class="text-end">Платеж</th>
+                        <th class="text-end">Проценты</th>
+                        <th class="text-end">Основной долг</th>
+                        <th class="text-end">Остаток</th>
+                      </tr>
+                    </thead>
+                    <tbody id="credit-schedule-body">
+                      <tr>
+                        <td colspan="6" class="text-muted">Заполните параметры кредита для расчета графика.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -1529,6 +1536,8 @@
     const employeeSelects = document.querySelectorAll('[data-employee-select]');
     const saleReceiptArea = document.getElementById('sale-receipt');
     const soldReceiptArea = document.getElementById('soldReceiptPrintArea');
+    const creditPrintButton = document.getElementById('print-credit-schedule');
+    const creditPrintArea = document.getElementById('credit-print-area');
     const creditTabButton = document.getElementById('autosalon-credit-tab');
     const creditVehicleBadge = document.getElementById('credit-selected-vehicle');
     const creditVehiclePriceInput = document.getElementById('credit-vehicle-price');
@@ -1978,6 +1987,18 @@
         currentPrintTarget = saleReceiptArea;
         document.body.classList.add('print-receipt-active');
         saleReceiptArea.classList.add('is-print-target');
+        window.print();
+      });
+    }
+
+    if (creditPrintButton) {
+      creditPrintButton.addEventListener('click', () => {
+        if (!creditPrintArea) {
+          return;
+        }
+        currentPrintTarget = creditPrintArea;
+        document.body.classList.add('print-receipt-active');
+        creditPrintArea.classList.add('is-print-target');
         window.print();
       });
     }
