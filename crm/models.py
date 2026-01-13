@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -440,6 +441,39 @@ class Deal(TimeStampedModel):
 
     def __str__(self):
         return f'Сделка #{self.pk} - {self.customer.full_name}'
+
+
+class CashEmployee(TimeStampedModel):
+    external_id = models.CharField(max_length=64, unique=True)
+    first_name = models.CharField(max_length=128)
+    last_name = models.CharField(max_length=128)
+    position = models.CharField(max_length=128, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    phone_primary = models.CharField(max_length=32, blank=True)
+    phone_secondary = models.CharField(max_length=32, blank=True)
+    salary_day = models.PositiveSmallIntegerField(null=True, blank=True)
+    salary_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=16, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='cash_employees_created',
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='cash_employees_updated',
+    )
+
+    class Meta:
+        ordering = ['last_name', 'first_name']
+
+    def __str__(self):
+        return f'{self.last_name} {self.first_name}'.strip()
 
 
 class DealExtra(TimeStampedModel):

@@ -127,6 +127,13 @@ class DealAdmin(admin.ModelAdmin):
     list_filter = ('status', 'financing_type')
 
 
+@admin.register(models.CashEmployee)
+class CashEmployeeAdmin(admin.ModelAdmin):
+    list_display = ('last_name', 'first_name', 'position', 'phone_primary', 'status', 'start_date')
+    list_filter = ('status',)
+    search_fields = ('last_name', 'first_name', 'phone_primary')
+
+
 @admin.register(models.DealExtra)
 class DealExtraAdmin(admin.ModelAdmin):
     list_display = ('deal', 'name', 'price')
