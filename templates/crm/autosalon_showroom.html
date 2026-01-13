@@ -127,7 +127,16 @@
               <div class="col-12 col-md-4">
                 <div class="ratio ratio-4x3 h-100 bg-body-tertiary">
                   {% if vehicle.primary_photo %}
-                    <img class="w-100 h-100 object-fit-contain" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
+                    <button
+                      class="btn p-0 w-100 h-100"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#vehiclePhotoModal"
+                      data-image-src="{{ vehicle.primary_photo.file.url }}"
+                      data-image-alt="{{ vehicle.name }}"
+                    >
+                      <img class="w-100 h-100 object-fit-contain" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
+                    </button>
                   {% else %}
                     <div class="d-flex align-items-center justify-content-center bg-secondary-subtle text-muted">Фото отсутствует</div>
                   {% endif %}
@@ -678,6 +687,22 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="vehiclePhotoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header">
+          <h5 class="modal-title" id="vehiclePhotoModalLabel">Фото автомобиля</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="bg-body-tertiary rounded-4 p-3">
+            <img class="img-fluid w-100 rounded-4" id="vehiclePhotoModalImage" src="" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -940,6 +965,7 @@
     const soldSortButtons = document.querySelectorAll('[data-sold-sort-key]');
     const soldSortIndicators = document.querySelectorAll('[data-sold-sort-indicator]');
     let currentSoldSort = { key: 'vehicle', direction: 'asc' };
+    const vehiclePhotoModal = document.getElementById('vehiclePhotoModal');
 
     const updateSoldSortIndicators = () => {
       soldSortIndicators.forEach((indicator) => {
@@ -1012,6 +1038,33 @@
         setText('soldCustomerPassportNumber', button.dataset.customerPassportNumber);
         setText('soldCustomerPassportIssued', button.dataset.customerPassportIssued);
         setText('soldCustomerAddress', button.dataset.customerAddress);
+      });
+    }
+
+    if (vehiclePhotoModal) {
+      const modalImage = document.getElementById('vehiclePhotoModalImage');
+      const modalTitle = document.getElementById('vehiclePhotoModalLabel');
+
+      vehiclePhotoModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        if (!button) {
+          return;
+        }
+        const imageSrc = button.dataset.imageSrc || '';
+        const imageAlt = button.dataset.imageAlt || 'Фото автомобиля';
+        if (modalImage) {
+          modalImage.src = imageSrc;
+          modalImage.alt = imageAlt;
+        }
+        if (modalTitle) {
+          modalTitle.textContent = imageAlt;
+        }
+      });
+
+      vehiclePhotoModal.addEventListener('hidden.bs.modal', () => {
+        if (modalImage) {
+          modalImage.src = '';
+        }
       });
     }
   </script>
