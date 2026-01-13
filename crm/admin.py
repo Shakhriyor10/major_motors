@@ -111,7 +111,7 @@ class TradeInRecordAdmin(admin.ModelAdmin):
 
 @admin.register(models.Reservation)
 class ReservationAdmin(admin.ModelAdmin):
-    list_display = ('vehicle', 'customer', 'start_at', 'end_at', 'status')
+    list_display = ('vehicle', 'customer', 'reserved_by', 'reserved_by_name', 'start_at', 'end_at', 'status')
     list_filter = ('status',)
 
 
@@ -125,6 +125,13 @@ class TestDriveAdmin(admin.ModelAdmin):
 class DealAdmin(admin.ModelAdmin):
     list_display = ('id', 'customer', 'vehicle', 'manager', 'status', 'sale_price')
     list_filter = ('status', 'financing_type')
+
+
+@admin.register(models.CashEmployee)
+class CashEmployeeAdmin(admin.ModelAdmin):
+    list_display = ('last_name', 'first_name', 'position', 'phone_primary', 'status', 'start_date')
+    list_filter = ('status',)
+    search_fields = ('last_name', 'first_name', 'phone_primary')
 
 
 @admin.register(models.DealExtra)

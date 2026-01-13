@@ -1,16 +1,20 @@
-from datetime import timedelta
+import json
+from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Prefetch, Q
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from django.views.decorators.http import require_POST
 
 from .models import (
     CashAccount,
     CashConversion,
+    CashEmployee,
     CurrencyRate,
     Customer,
     CustomerDocument,
@@ -323,9 +327,20 @@ def autosalon(request):
                 if sale_price_value is None:
                     sale_price_value = vehicle.sale_price or vehicle.purchase_price
 
+                manager = None
+                manager_name = request.POST.get('manager_name', '').strip()
+                if request.user.is_authenticated:
+                    current_user_name = request.user.get_full_name() or request.user.get_username()
+                    if not manager_name:
+                        manager_name = current_user_name
+                    if manager_name == current_user_name:
+                        manager = request.user
+
                 deal = Deal.objects.create(
                     customer=customer,
                     vehicle=vehicle,
+                    manager=manager,
+                    sold_by_name=manager_name,
                     sale_price=sale_price_value,
                     financing_type=request.POST.get('financing_type') or Deal.FinancingType.CASH,
                     status=Deal.DealStatus.COMPLETED,
@@ -408,10 +423,20 @@ def autosalon(request):
                 except InvalidOperation:
                     deposit_value = None
 
+                reserved_by = None
+                reserved_by_name = request.POST.get('reserved_by_name', '').strip()
+                if request.user.is_authenticated:
+                    current_user_name = request.user.get_full_name() or request.user.get_username()
+                    if not reserved_by_name:
+                        reserved_by_name = current_user_name
+                    if reserved_by_name == current_user_name:
+                        reserved_by = request.user
+
                 Reservation.objects.create(
                     vehicle=vehicle,
                     customer=customer,
-                    reserved_by=request.user,
+                    reserved_by=reserved_by,
+                    reserved_by_name=reserved_by_name,
                     start_at=start_at,
                     end_at=end_at,
                     deposit_amount=deposit_value,
@@ -441,7 +466,7 @@ def autosalon(request):
                         reservation.vehicle.save(update_fields=['status'])
             return redirect('autosalon')
 
-    active_reservations = Reservation.objects.select_related('customer').filter(
+    active_reservations = Reservation.objects.select_related('customer', 'reserved_by').filter(
         status=Reservation.ReservationStatus.ACTIVE,
     )
     vehicles_qs = (
@@ -458,12 +483,12 @@ def autosalon(request):
     receipt_id = request.GET.get('receipt')
     if receipt_id:
         receipt_deal = (
-            Deal.objects.select_related('customer', 'vehicle')
+            Deal.objects.select_related('customer', 'vehicle', 'manager')
             .filter(pk=receipt_id)
             .first()
         )
     sold_deals = (
-        Deal.objects.select_related('customer', 'vehicle')
+        Deal.objects.select_related('customer', 'vehicle', 'manager')
         .filter(status=Deal.DealStatus.COMPLETED)
         .order_by('-signed_at', '-created_at')
     )
@@ -580,3 +605,79 @@ def cash_dashboard(request):
             'incomes': incomes,
         },
     )
+
+
+@login_required
+@require_POST
+def cash_employee_save(request):
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid_json'}, status=400)
+
+    external_id = str(payload.get('id') or '').strip()
+    if not external_id:
+        return JsonResponse({'error': 'missing_id'}, status=400)
+
+    start_date_value = payload.get('startDate')
+    start_date = None
+    if start_date_value:
+        try:
+            start_date = date.fromisoformat(start_date_value)
+        except ValueError:
+            start_date = None
+
+    salary_day_value = payload.get('salaryDay')
+    salary_day = None
+    if salary_day_value not in (None, ''):
+        try:
+            salary_day = int(salary_day_value)
+        except (TypeError, ValueError):
+            salary_day = None
+
+    salary_amount_value = payload.get('salaryAmount')
+    salary_amount = None
+    if salary_amount_value not in (None, ''):
+        try:
+            salary_amount = Decimal(str(salary_amount_value))
+        except (InvalidOperation, TypeError, ValueError):
+            salary_amount = None
+
+    defaults = {
+        'first_name': (payload.get('firstName') or '').strip(),
+        'last_name': (payload.get('lastName') or '').strip(),
+        'position': (payload.get('position') or '').strip(),
+        'start_date': start_date,
+        'phone_primary': (payload.get('phonePrimary') or '').strip(),
+        'phone_secondary': (payload.get('phoneSecondary') or '').strip(),
+        'salary_day': salary_day,
+        'salary_amount': salary_amount,
+        'status': (payload.get('status') or '').strip(),
+        'updated_by': request.user,
+    }
+
+    employee, created = CashEmployee.objects.update_or_create(
+        external_id=external_id,
+        defaults=defaults,
+    )
+    if created and not employee.created_by:
+        employee.created_by = request.user
+        employee.save(update_fields=['created_by'])
+
+    return JsonResponse({'status': 'ok'})
+
+
+@login_required
+@require_POST
+def cash_employee_delete(request):
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid_json'}, status=400)
+
+    external_id = str(payload.get('id') or '').strip()
+    if not external_id:
+        return JsonResponse({'error': 'missing_id'}, status=400)
+
+    CashEmployee.objects.filter(external_id=external_id).delete()
+    return JsonResponse({'status': 'ok'})
