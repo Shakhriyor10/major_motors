@@ -190,6 +190,9 @@
                     data-vehicle-name="{{ vehicle.name }}"
                     data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                     data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency }}"
+                    data-reservation-customer-id="{{ vehicle.active_reservation.customer.id|default:'' }}"
+                    data-reservation-customer-name="{{ vehicle.active_reservation.customer.full_name|default:'' }}"
+                    data-reservation-customer-phone="{{ vehicle.active_reservation.customer.phone|default:'' }}"
                   >
                     Продать
                   </button>
@@ -468,6 +471,31 @@
       });
     };
 
+    const lockSaleCustomer = (button) => {
+      const reservedCustomerId = button.dataset.reservationCustomerId;
+      const reservedCustomerName = button.dataset.reservationCustomerName;
+      const reservedCustomerPhone = button.dataset.reservationCustomerPhone;
+      if (reservedCustomerId) {
+        if (customerSelect) {
+          customerSelect.value = reservedCustomerId;
+          customerSelect.disabled = true;
+        }
+        const nameField = document.getElementById('full_name');
+        const phoneField = document.getElementById('phone');
+        if (nameField && reservedCustomerName) nameField.value = reservedCustomerName;
+        if (phoneField && reservedCustomerPhone) phoneField.value = reservedCustomerPhone;
+        toggleCustomerFields(true);
+        saleModalTitle.textContent = `Оформление продажи: ${button.dataset.vehicleName} (клиент по брони)`;
+        return;
+      }
+      if (customerSelect) {
+        customerSelect.disabled = false;
+        customerSelect.value = '';
+      }
+      toggleCustomerFields(false);
+      saleModalTitle.textContent = `Оформление продажи: ${button.dataset.vehicleName}`;
+    };
+
     const toggleReserveCustomerFields = (disabled) => {
       reserveCustomerFields.forEach((fieldId) => {
         const field = document.getElementById(fieldId);
@@ -482,14 +510,12 @@
       button.addEventListener('click', () => {
         saleModalInstance?.show();
         saleVehicleId.value = button.dataset.vehicleId;
-        saleModalTitle.textContent = `Оформление продажи: ${button.dataset.vehicleName}`;
         salePriceInput.value = button.dataset.vehiclePrice || '';
         if (saleCurrencyHint) {
           const currencyLabel = button.dataset.vehicleCurrency?.toUpperCase() || '';
           saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
         }
-        customerSelect.value = '';
-        toggleCustomerFields(false);
+        lockSaleCustomer(button);
       });
     });
 

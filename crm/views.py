@@ -279,34 +279,41 @@ def autosalon(request):
             vehicle_id = request.POST.get('vehicle_id')
             if vehicle_id:
                 vehicle = Vehicle.objects.get(pk=vehicle_id)
-                customer_id = request.POST.get('customer_id')
-                if customer_id:
-                    customer = Customer.objects.get(pk=customer_id)
-                    customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
-                    customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
-                    customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
-                    customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
-                    customer.passport_issued_by = request.POST.get('passport_issued_by', customer.passport_issued_by).strip()
-                    customer.address = request.POST.get('address', customer.address).strip()
-                    customer.save(
-                        update_fields=[
-                            'full_name',
-                            'phone',
-                            'passport_series',
-                            'passport_number',
-                            'passport_issued_by',
-                            'address',
-                        ],
-                    )
+                active_reservation = Reservation.objects.select_related('customer').filter(
+                    vehicle=vehicle,
+                    status=Reservation.ReservationStatus.ACTIVE,
+                ).first()
+                if active_reservation:
+                    customer = active_reservation.customer
                 else:
-                    customer = Customer.objects.create(
-                        full_name=request.POST.get('full_name', '').strip(),
-                        phone=request.POST.get('phone', '').strip(),
-                        passport_series=request.POST.get('passport_series', '').strip(),
-                        passport_number=request.POST.get('passport_number', '').strip(),
-                        passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
-                        address=request.POST.get('address', '').strip(),
-                    )
+                    customer_id = request.POST.get('customer_id')
+                    if customer_id:
+                        customer = Customer.objects.get(pk=customer_id)
+                        customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
+                        customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
+                        customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
+                        customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                        customer.passport_issued_by = request.POST.get('passport_issued_by', customer.passport_issued_by).strip()
+                        customer.address = request.POST.get('address', customer.address).strip()
+                        customer.save(
+                            update_fields=[
+                                'full_name',
+                                'phone',
+                                'passport_series',
+                                'passport_number',
+                                'passport_issued_by',
+                                'address',
+                            ],
+                        )
+                    else:
+                        customer = Customer.objects.create(
+                            full_name=request.POST.get('full_name', '').strip(),
+                            phone=request.POST.get('phone', '').strip(),
+                            passport_series=request.POST.get('passport_series', '').strip(),
+                            passport_number=request.POST.get('passport_number', '').strip(),
+                            passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
+                            address=request.POST.get('address', '').strip(),
+                        )
 
                 sale_price = request.POST.get('sale_price')
                 try:
