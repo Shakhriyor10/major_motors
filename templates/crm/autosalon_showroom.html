@@ -219,48 +219,6 @@
       font-size: 11.5px;
     }
 
-    .credit-header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .credit-top-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .credit-table-card .table {
-      font-size: 0.85rem;
-      margin-bottom: 0;
-    }
-
-    .credit-table-card .table th {
-      width: 42%;
-      font-weight: 600;
-      color: var(--muted);
-    }
-
-    .credit-table-card .table td {
-      font-weight: 600;
-    }
-
-    .credit-table-card .input-group-text,
-    .credit-table-card .form-control,
-    .credit-table-card .form-select {
-      font-size: 0.85rem;
-    }
-
-    .credit-table-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-
     @page {
       size: A4;
       margin: 0;
@@ -314,11 +272,100 @@
         flex: 0 0 auto;
         max-width: none;
       }
-    }
 
-    @media (max-width: 991.98px) {
-      .credit-top-grid {
-        grid-template-columns: 1fr;
+      #credit-print-area .credit-print-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8mm;
+        align-items: start;
+      }
+
+      #credit-print-area .credit-print-col {
+        display: contents;
+      }
+
+      #credit-print-area .credit-params-card {
+        grid-column: 1;
+      }
+
+      #credit-print-area .credit-summary-card {
+        grid-column: 2;
+      }
+
+      #credit-print-area .credit-schedule-card {
+        grid-column: 1 / -1;
+      }
+
+      #credit-print-area .credit-params-card .vstack {
+        display: table;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+
+      #credit-print-area .credit-params-card .vstack > div {
+        display: table-row;
+      }
+
+      #credit-print-area .credit-params-card .form-label,
+      #credit-print-area .credit-params-card .input-group {
+        display: table-cell;
+        padding: 6px 8px;
+        border: 1px solid var(--border);
+        vertical-align: middle;
+      }
+
+      #credit-print-area .credit-params-card .form-label {
+        width: 42%;
+        font-weight: 600;
+        color: var(--muted);
+        margin-bottom: 0;
+      }
+
+      #credit-print-area .credit-params-card .input-group {
+        border-left: 0;
+      }
+
+      #credit-print-area .credit-params-card .vstack > div > .form-control {
+        display: table-cell;
+        padding: 6px 8px;
+        border: 1px solid var(--border);
+        border-left: 0;
+      }
+
+      #credit-print-area .credit-params-card .form-text {
+        display: table-caption;
+        caption-side: bottom;
+        padding: 4px 8px 0;
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      #credit-print-area .credit-summary-grid {
+        display: table;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+
+      #credit-print-area .credit-summary-item {
+        display: table-row;
+      }
+
+      #credit-print-area .credit-summary-item .p-3 {
+        display: table-cell;
+        padding: 6px 8px;
+        border: 1px solid var(--border);
+        background: #fff;
+      }
+
+      #credit-print-area .credit-summary-item .small {
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      #credit-print-area .credit-summary-item .fw-semibold {
+        font-size: 11px;
       }
     }
   </style>
@@ -688,121 +735,115 @@
 
     <div class="tab-pane fade" id="autosalon-credit" role="tabpanel" aria-labelledby="autosalon-credit-tab">
       <div id="credit-print-area">
-        <div class="credit-header d-print-none">
-          <span class="badge text-bg-success px-3 py-2" id="credit-selected-vehicle">Автомобиль не выбран</span>
-          <button class="btn btn-primary btn-sm shadow-sm" type="button" id="print-credit-schedule">
-            Печать графика
-          </button>
-        </div>
-        <div class="credit-top-grid mb-4">
-          <div class="card shadow-sm credit-table-card">
+        <div class="row g-4 credit-print-row">
+        <div class="col-12 col-lg-4 credit-print-col">
+          <div class="card shadow-sm h-100 credit-params-card">
             <div class="card-body">
-              <div class="credit-table-title">Параметры кредита</div>
-              <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                  <tbody>
-                    <tr>
-                      <th scope="row">Стоимость автомобиля</th>
-                      <td>
-                        <div class="input-group input-group-sm">
-                          <input type="number" min="0" step="0.01" class="form-control" id="credit-vehicle-price" placeholder="Например, 250000000">
-                          <span class="input-group-text" id="credit-currency-label">UZS</span>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">Первоначальный взнос</th>
-                      <td>
-                        <div class="input-group input-group-sm">
-                          <select class="form-select" id="credit-down-payment-type">
-                            <option value="percent">В процентах</option>
-                            <option value="amount">В сумме</option>
-                          </select>
-                          <input type="number" min="0" step="0.01" class="form-control" id="credit-down-payment-value" placeholder="Например, 20">
-                          <span class="input-group-text" id="credit-down-payment-suffix">%</span>
-                        </div>
-                        <div class="form-text" id="credit-down-payment-hint">Введите процент от стоимости автомобиля.</div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">Годовая процентная ставка</th>
-                      <td>
-                        <div class="input-group input-group-sm">
-                          <input type="number" min="0" step="0.01" class="form-control" id="credit-annual-rate" placeholder="Например, 24">
-                          <span class="input-group-text">%</span>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">Срок кредита (в месяцах)</th>
-                      <td>
-                        <input type="number" min="1" step="1" class="form-control form-control-sm" id="credit-months" placeholder="Например, 36">
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">Дата первого платежа</th>
-                      <td>
-                        <input type="date" class="form-control form-control-sm" id="credit-start-date">
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 d-print-none">
+                <span class="badge text-bg-success px-3 py-2" id="credit-selected-vehicle">Автомобиль не выбран</span>
+                <button class="btn btn-outline-primary btn-sm" type="button" id="print-credit-schedule">
+                  Печать графика
+                </button>
               </div>
-            </div>
-          </div>
-          <div class="card shadow-sm credit-table-card">
-            <div class="card-body">
-              <div class="credit-table-title">Итоги расчета</div>
-              <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                  <tbody>
-                    <tr>
-                      <th scope="row">Сумма кредита</th>
-                      <td class="text-end fw-semibold" id="credit-summary-amount">—</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">Ежемесячный платеж</th>
-                      <td class="text-end fw-semibold" id="credit-summary-monthly">—</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">Общая сумма выплат</th>
-                      <td class="text-end fw-semibold" id="credit-summary-total">—</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">Переплата по кредиту</th>
-                      <td class="text-end fw-semibold" id="credit-summary-overpay">—</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <h3 class="h6 mb-3">Параметры кредита</h3>
+              <div class="vstack gap-3">
+                <div>
+                  <label class="form-label" for="credit-vehicle-price">Стоимость автомобиля</label>
+                  <div class="input-group">
+                    <input type="number" min="0" step="0.01" class="form-control" id="credit-vehicle-price" placeholder="Например, 250000000">
+                    <span class="input-group-text" id="credit-currency-label">UZS</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label" for="credit-down-payment-type">Первоначальный взнос</label>
+                  <div class="input-group">
+                    <select class="form-select" id="credit-down-payment-type">
+                      <option value="percent">В процентах</option>
+                      <option value="amount">В сумме</option>
+                    </select>
+                    <input type="number" min="0" step="0.01" class="form-control" id="credit-down-payment-value" placeholder="Например, 20">
+                    <span class="input-group-text" id="credit-down-payment-suffix">%</span>
+                  </div>
+                  <div class="form-text" id="credit-down-payment-hint">Введите процент от стоимости автомобиля.</div>
+                </div>
+                <div>
+                  <label class="form-label" for="credit-annual-rate">Годовая процентная ставка</label>
+                  <div class="input-group">
+                    <input type="number" min="0" step="0.01" class="form-control" id="credit-annual-rate" placeholder="Например, 24">
+                    <span class="input-group-text">%</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label" for="credit-months">Срок кредита (в месяцах)</label>
+                  <input type="number" min="1" step="1" class="form-control" id="credit-months" placeholder="Например, 36">
+                </div>
+                <div>
+                  <label class="form-label" for="credit-start-date">Дата первого платежа</label>
+                  <input type="date" class="form-control" id="credit-start-date">
+                </div>
               </div>
             </div>
           </div>
         </div>
+        <div class="col-12 col-lg-8 credit-print-col">
+          <div class="card shadow-sm mb-4 credit-summary-card">
+            <div class="card-body">
+              <h3 class="h6 mb-3">Итоги расчета</h3>
+              <div class="row g-3 credit-summary-grid">
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Сумма кредита</div>
+                    <div class="fw-semibold fs-5" id="credit-summary-amount">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Ежемесячный платеж</div>
+                    <div class="fw-semibold fs-5" id="credit-summary-monthly">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Общая сумма выплат</div>
+                    <div class="fw-semibold" id="credit-summary-total">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Переплата по кредиту</div>
+                    <div class="fw-semibold" id="credit-summary-overpay">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h3 class="h6 mb-3">График платежей</h3>
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>№</th>
-                    <th>Дата платежа</th>
-                    <th class="text-end">Платеж</th>
-                    <th class="text-end">Проценты</th>
-                    <th class="text-end">Основной долг</th>
-                    <th class="text-end">Остаток</th>
-                  </tr>
-                </thead>
-                <tbody id="credit-schedule-body">
-                  <tr>
-                    <td colspan="6" class="text-muted">Заполните параметры кредита для расчета графика.</td>
-                  </tr>
-                </tbody>
-              </table>
+          <div class="card shadow-sm credit-schedule-card">
+            <div class="card-body">
+              <h3 class="h6 mb-3">График платежей</h3>
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>№</th>
+                      <th>Дата платежа</th>
+                      <th class="text-end">Платеж</th>
+                      <th class="text-end">Проценты</th>
+                      <th class="text-end">Основной долг</th>
+                      <th class="text-end">Остаток</th>
+                    </tr>
+                  </thead>
+                  <tbody id="credit-schedule-body">
+                    <tr>
+                      <td colspan="6" class="text-muted">Заполните параметры кредита для расчета графика.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
