@@ -66,6 +66,8 @@
                 Менеджер:
                 {% if receipt.manager %}
                   {{ receipt.manager.get_full_name|default:receipt.manager.username }}
+                {% elif receipt.sold_by_name %}
+                  {{ receipt.sold_by_name }}
                 {% else %}
                   —
                 {% endif %}
@@ -164,7 +166,7 @@
                         data-reservation-end="{{ vehicle.active_reservation.end_at|date:'d.m.Y H:i' }}"
                         data-reservation-deposit="{{ vehicle.active_reservation.deposit_amount|default:'—' }}"
                         data-reservation-terms="{{ vehicle.active_reservation.deposit_terms|default:'—' }}"
-                        data-reservation-staff="{% if vehicle.active_reservation.reserved_by %}{{ vehicle.active_reservation.reserved_by.get_full_name|default:vehicle.active_reservation.reserved_by.username }}{% else %}—{% endif %}"
+                        data-reservation-staff="{% if vehicle.active_reservation.reserved_by %}{{ vehicle.active_reservation.reserved_by.get_full_name|default:vehicle.active_reservation.reserved_by.username }}{% elif vehicle.active_reservation.reserved_by_name %}{{ vehicle.active_reservation.reserved_by_name }}{% else %}—{% endif %}"
                         aria-label="Детали брони"
                       >
                         👁 <span class="small">Детали брони</span>
@@ -323,7 +325,7 @@
               <tbody id="soldTableBody">
                 {% for deal in sold_deals %}
                   <tr
-                    data-search-text="{{ deal.vehicle.name|lower }} {{ deal.customer.full_name|lower }} {{ deal.vehicle.vin|lower }} {% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username|lower }}{% endif %}"
+                    data-search-text="{{ deal.vehicle.name|lower }} {{ deal.customer.full_name|lower }} {{ deal.vehicle.vin|lower }} {% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username|lower }}{% elif deal.sold_by_name %}{{ deal.sold_by_name|lower }}{% endif %}"
                     data-sort-vehicle="{{ deal.vehicle.name|lower }}"
                     data-sort-date="{{ deal.signed_at|date:'c' }}"
                   >
@@ -358,6 +360,8 @@
                     <td>
                       {% if deal.manager %}
                         {{ deal.manager.get_full_name|default:deal.manager.username }}
+                      {% elif deal.sold_by_name %}
+                        {{ deal.sold_by_name }}
                       {% else %}
                         —
                       {% endif %}
@@ -469,13 +473,15 @@
               </div>
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="sale-manager" class="form-label">Сотрудник (кем продано)</label>
-                <select id="sale-manager" name="manager_id" class="form-select" required>
+                <select
+                  id="sale-manager"
+                  name="manager_name"
+                  class="form-select"
+                  data-employee-select
+                  data-employee-fallback="{{ request.user.get_full_name|default:request.user.username }}"
+                  required
+                >
                   <option value="">Выберите сотрудника</option>
-                  {% for employee in employees %}
-                    <option value="{{ employee.id }}" {% if employee.id == request.user.id %}selected{% endif %}>
-                      {{ employee.get_full_name|default:employee.username }}
-                    </option>
-                  {% endfor %}
                 </select>
               </div>
               <div class="col-12 col-md-6">
@@ -553,13 +559,15 @@
               </div>
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="reserve-employee" class="form-label">Сотрудник (кем забронировано)</label>
-                <select id="reserve-employee" name="reserved_by_id" class="form-select" required>
+                <select
+                  id="reserve-employee"
+                  name="reserved_by_name"
+                  class="form-select"
+                  data-employee-select
+                  data-employee-fallback="{{ request.user.get_full_name|default:request.user.username }}"
+                  required
+                >
                   <option value="">Выберите сотрудника</option>
-                  {% for employee in employees %}
-                    <option value="{{ employee.id }}" {% if employee.id == request.user.id %}selected{% endif %}>
-                      {{ employee.get_full_name|default:employee.username }}
-                    </option>
-                  {% endfor %}
                 </select>
               </div>
               <div class="col-12 col-md-6">
@@ -704,6 +712,61 @@
       : null;
     const reservationIdInput = document.getElementById('reservation-id-input');
     const cancelReservationForm = document.getElementById('cancel-reservation-form');
+    const EMPLOYEES_KEY = 'crm_employees_v1';
+    const employeeSelects = document.querySelectorAll('[data-employee-select]');
+
+    const loadItems = (key) => {
+      try {
+        return JSON.parse(localStorage.getItem(key) || '[]');
+      } catch (error) {
+        return [];
+      }
+    };
+
+    const getEmployeeDisplayName = (employee) => {
+      const lastName = employee.lastName || '';
+      const firstName = employee.firstName || '';
+      return `${lastName} ${firstName}`.trim() || employee.position || employee.id;
+    };
+
+    const populateEmployeeSelects = () => {
+      if (!employeeSelects.length) {
+        return;
+      }
+      const employees = loadItems(EMPLOYEES_KEY);
+      const options = employees
+        .map((employee) => ({
+          id: employee.id,
+          name: getEmployeeDisplayName(employee),
+        }))
+        .filter((employee) => employee.name);
+      employeeSelects.forEach((select) => {
+        const fallbackName = select.dataset.employeeFallback || '';
+        const existingValues = new Set(
+          Array.from(select.options).map((option) => option.value),
+        );
+        if (fallbackName && !existingValues.has(fallbackName)) {
+          const fallbackOption = document.createElement('option');
+          fallbackOption.value = fallbackName;
+          fallbackOption.textContent = `${fallbackName} (текущий пользователь)`;
+          select.appendChild(fallbackOption);
+        }
+        options.forEach((employee) => {
+          if (existingValues.has(employee.name)) {
+            return;
+          }
+          const option = document.createElement('option');
+          option.value = employee.name;
+          option.textContent = employee.name;
+          select.appendChild(option);
+        });
+        if (fallbackName && select.value === '') {
+          select.value = fallbackName;
+        }
+      });
+    };
+
+    populateEmployeeSelects();
 
     const toggleCustomerFields = (disabled) => {
       customerFields.forEach((fieldId) => {
