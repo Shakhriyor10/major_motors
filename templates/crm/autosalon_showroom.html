@@ -2,6 +2,47 @@
 
 {% block title %}Major Motors CRM · Автосалон{% endblock %}
 
+{% block extra_styles %}
+  <style>
+    .receipt-sheet {
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .receipt-sheet .table > :not(caption) > * > * {
+      padding: 0.45rem 0.6rem;
+    }
+
+    .receipt-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6c757d;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      main.container {
+        max-width: 100%;
+        padding: 0;
+      }
+
+      .receipt-sheet {
+        border: 0;
+        box-shadow: none;
+      }
+
+      .print-receipt-area {
+        display: block !important;
+      }
+    }
+  </style>
+{% endblock %}
+
 {% block content %}
   <div class="card shadow-sm border-0 mb-4 d-print-none bg-primary-subtle">
     <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-4 p-4">
@@ -22,66 +63,147 @@
   </div>
 
   {% if receipt %}
-    <div class="card shadow-sm mb-4 border-0" id="sale-receipt">
+    <div class="card shadow-sm mb-4 border-0 receipt-sheet print-receipt-area" id="sale-receipt">
       <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
           <div>
             <span class="badge rounded-pill text-bg-success-subtle text-success mb-2">Сделка подтверждена</span>
-            <h2 class="h4 mb-1">Квитанция о покупке</h2>
+            <div class="receipt-label">Квитанция о покупке автомобиля</div>
+            <h2 class="h4 mb-1">№ {{ receipt.id|default:"—" }}</h2>
             <p class="text-muted mb-0">Распечатайте документ для клиента (формат A4).</p>
+          </div>
+          <div class="text-end">
+            <div class="fw-semibold">Major Motors</div>
+            <div class="text-muted small">Контакт: +998 (00) 000-00-00</div>
+            <div class="text-muted small">Адрес: ул. Демонстрационная, 10</div>
+            <div class="text-muted small">Дата: {{ receipt.signed_at|date:"d.m.Y" }}</div>
           </div>
           <button class="btn btn-primary d-print-none" type="button" id="print-receipt">Печать</button>
         </div>
-        <div class="row g-3 mt-2">
-          <div class="col-12 col-md-6 col-lg-3">
-            <div class="border rounded-4 p-3 bg-body-tertiary h-100">
-              <strong class="d-block mb-1">Клиент</strong>
-              <div>{{ receipt.customer.full_name }}</div>
-              <div class="text-muted small">Телефон: {{ receipt.customer.phone }}</div>
-              <div class="text-muted small">Паспорт: {{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}</div>
+
+        <div class="row g-3 mt-3">
+          <div class="col-12 col-lg-6">
+            <div class="border rounded-4 p-3 h-100">
+              <div class="receipt-label mb-2">Покупатель</div>
+              <table class="table table-sm table-borderless mb-0">
+                <tbody>
+                  <tr>
+                    <th class="text-muted fw-normal">ФИО</th>
+                    <td class="text-end">{{ receipt.customer.full_name }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted fw-normal">Телефон</th>
+                    <td class="text-end">{{ receipt.customer.phone }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted fw-normal">Паспорт</th>
+                    <td class="text-end">{{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted fw-normal">Адрес</th>
+                    <td class="text-end">{{ receipt.customer.address|default:"—" }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-3">
-            <div class="border rounded-4 p-3 bg-body-tertiary h-100">
-              <strong class="d-block mb-1">Автомобиль</strong>
-              <div>{{ receipt.vehicle.name }}</div>
-              <div class="text-muted small">{{ receipt.vehicle.make }} · {{ receipt.vehicle.model }}</div>
-              <div class="text-muted small">VIN {{ receipt.vehicle.vin }}</div>
-              <div class="text-muted small">Состояние: {{ receipt.vehicle.get_condition_display }}</div>
-              {% if receipt.vehicle.condition == 'used' %}
-                <div class="text-muted small">Пробег: {{ receipt.vehicle.mileage|default:"—" }} км</div>
-              {% endif %}
+          <div class="col-12 col-lg-6">
+            <div class="border rounded-4 p-3 h-100">
+              <div class="receipt-label mb-2">Детали автомобиля</div>
+              <table class="table table-sm table-borderless mb-0">
+                <tbody>
+                  <tr>
+                    <th class="text-muted fw-normal">Модель</th>
+                    <td class="text-end">{{ receipt.vehicle.make }} · {{ receipt.vehicle.model }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted fw-normal">Название</th>
+                    <td class="text-end">{{ receipt.vehicle.name }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted fw-normal">VIN</th>
+                    <td class="text-end">{{ receipt.vehicle.vin }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted fw-normal">Состояние</th>
+                    <td class="text-end">{{ receipt.vehicle.get_condition_display }}</td>
+                  </tr>
+                  {% if receipt.vehicle.condition == 'used' %}
+                    <tr>
+                      <th class="text-muted fw-normal">Пробег</th>
+                      <td class="text-end">{{ receipt.vehicle.mileage|default:"—" }} км</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-3">
-            <div class="border rounded-4 p-3 bg-body-tertiary h-100">
-              <strong class="d-block mb-1">Сумма сделки</strong>
-              <div>
-                {{ receipt.sale_price }}
-                {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}
-              </div>
-              <div class="text-muted small">Тип оплаты: {{ receipt.get_financing_type_display }}</div>
-              <div class="text-muted small">Дата: {{ receipt.signed_at|date:"d.m.Y" }}</div>
-              <div class="text-muted small">
-                Менеджер:
-                {% if receipt.manager %}
-                  {{ receipt.manager.get_full_name|default:receipt.manager.username }}
-                {% elif receipt.sold_by_name %}
-                  {{ receipt.sold_by_name }}
-                {% else %}
-                  —
-                {% endif %}
-              </div>
+          <div class="col-12 col-lg-6">
+            <div class="border rounded-4 p-3 h-100">
+              <div class="receipt-label mb-2">Условия сделки</div>
+              <table class="table table-sm table-borderless mb-0">
+                <tbody>
+                  <tr>
+                    <th class="text-muted fw-normal">Сумма</th>
+                    <td class="text-end fw-semibold">
+                      {{ receipt.sale_price }}
+                      {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted fw-normal">Тип оплаты</th>
+                    <td class="text-end">{{ receipt.get_financing_type_display }}</td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted fw-normal">Менеджер</th>
+                    <td class="text-end">
+                      {% if receipt.manager %}
+                        {{ receipt.manager.get_full_name|default:receipt.manager.username }}
+                      {% elif receipt.sold_by_name %}
+                        {{ receipt.sold_by_name }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th class="text-muted fw-normal">Дата сделки</th>
+                    <td class="text-end">{{ receipt.signed_at|date:"d.m.Y H:i" }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-3">
-            <div class="border rounded-4 p-3 bg-body-tertiary h-100">
-              <strong class="d-block mb-1">Автосалон</strong>
-              <div>Major Motors</div>
-              <div class="text-muted small">Контакт: +998 (00) 000-00-00</div>
-              <div class="text-muted small">Адрес: ул. Демонстрационная, 10</div>
+          <div class="col-12 col-lg-6">
+            <div class="border rounded-4 p-3 h-100">
+              <div class="receipt-label mb-2">Комплектация и опции</div>
+              <table class="table table-sm table-bordered mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Опция</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if receipt.vehicle.options.exists %}
+                    {% for option in receipt.vehicle.options.all %}
+                      <tr>
+                        <td>{{ option.name }}</td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td class="text-muted">Опции не указаны.</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
             </div>
           </div>
+        </div>
+
+        <div class="d-flex justify-content-between flex-wrap gap-3 mt-4">
+          <div class="text-muted small">Подпись клиента ______________________</div>
+          <div class="text-muted small">Подпись менеджера ______________________</div>
         </div>
       </div>
     </div>
@@ -329,6 +451,7 @@
                       <span class="text-muted ms-1" data-sold-sort-indicator="date">↕</span>
                     </button>
                   </th>
+                  <th>Квитанция</th>
                 </tr>
               </thead>
               <tbody id="soldTableBody">
@@ -376,10 +499,42 @@
                       {% endif %}
                     </td>
                     <td>{{ deal.signed_at|date:'d.m.Y H:i' }}</td>
+                    <td>
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary btn-sm"
+                        data-open-sold-receipt
+                        data-bs-toggle="modal"
+                        data-bs-target="#soldReceiptModal"
+                        data-receipt-number="{{ deal.id|default:'—' }}"
+                        data-receipt-date="{{ deal.signed_at|date:'d.m.Y H:i' }}"
+                        data-customer-name="{{ deal.customer.full_name }}"
+                        data-customer-phone="{{ deal.customer.phone }}"
+                        data-customer-passport="{{ deal.customer.passport_series }} {{ deal.customer.passport_number }}"
+                        data-customer-address="{{ deal.customer.address|default:'—' }}"
+                        data-vehicle-name="{{ deal.vehicle.name }}"
+                        data-vehicle-make="{{ deal.vehicle.make }}"
+                        data-vehicle-model="{{ deal.vehicle.model }}"
+                        data-vehicle-vin="{{ deal.vehicle.vin }}"
+                        data-vehicle-condition="{{ deal.vehicle.get_condition_display }}"
+                        data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
+                        data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
+                        data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
+                        data-vehicle-engine="{{ deal.vehicle.engine_volume|default:'—' }}"
+                        data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
+                        data-sale-price="{{ deal.sale_price }}"
+                        data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
+                        data-financing="{{ deal.get_financing_type_display }}"
+                        data-manager="{% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username }}{% elif deal.sold_by_name %}{{ deal.sold_by_name }}{% else %}—{% endif %}"
+                        data-options="{% if deal.vehicle.options.exists %}{% for option in deal.vehicle.options.all %}{{ option.name }}{% if not forloop.last %}||{% endif %}{% endfor %}{% endif %}"
+                      >
+                        Печать
+                      </button>
+                    </td>
                   </tr>
                 {% empty %}
                   <tr>
-                    <td colspan="7" class="text-muted">Проданных автомобилей пока нет.</td>
+                    <td colspan="8" class="text-muted">Проданных автомобилей пока нет.</td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -435,6 +590,159 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="soldReceiptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <div class="receipt-label">Квитанция о покупке автомобиля</div>
+            <h5 class="modal-title mb-0">№ <span id="soldReceiptNumber">—</span></h5>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="receipt-sheet p-4 print-receipt-area" id="soldReceiptPrintArea">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+              <div>
+                <div class="text-muted small">Дата: <span id="soldReceiptDate">—</span></div>
+              </div>
+              <div class="text-end">
+                <div class="fw-semibold">Major Motors</div>
+                <div class="text-muted small">Контакт: +998 (00) 000-00-00</div>
+                <div class="text-muted small">Адрес: ул. Демонстрационная, 10</div>
+              </div>
+            </div>
+
+            <div class="row g-3 mt-3">
+              <div class="col-12 col-lg-6">
+                <div class="border rounded-4 p-3 h-100">
+                  <div class="receipt-label mb-2">Покупатель</div>
+                  <table class="table table-sm table-borderless mb-0">
+                    <tbody>
+                      <tr>
+                        <th class="text-muted fw-normal">ФИО</th>
+                        <td class="text-end" id="soldReceiptCustomerName">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Телефон</th>
+                        <td class="text-end" id="soldReceiptCustomerPhone">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Паспорт</th>
+                        <td class="text-end" id="soldReceiptCustomerPassport">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Адрес</th>
+                        <td class="text-end" id="soldReceiptCustomerAddress">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="col-12 col-lg-6">
+                <div class="border rounded-4 p-3 h-100">
+                  <div class="receipt-label mb-2">Детали автомобиля</div>
+                  <table class="table table-sm table-borderless mb-0">
+                    <tbody>
+                      <tr>
+                        <th class="text-muted fw-normal">Модель</th>
+                        <td class="text-end" id="soldReceiptVehicleModel">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Название</th>
+                        <td class="text-end" id="soldReceiptVehicleName">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">VIN</th>
+                        <td class="text-end" id="soldReceiptVehicleVin">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Состояние</th>
+                        <td class="text-end" id="soldReceiptVehicleCondition">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Пробег</th>
+                        <td class="text-end" id="soldReceiptVehicleMileage">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Цвет</th>
+                        <td class="text-end" id="soldReceiptVehicleColor">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">КПП</th>
+                        <td class="text-end" id="soldReceiptVehicleTransmission">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Двигатель</th>
+                        <td class="text-end" id="soldReceiptVehicleEngine">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Посадочные места</th>
+                        <td class="text-end" id="soldReceiptVehicleSeats">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="col-12 col-lg-6">
+                <div class="border rounded-4 p-3 h-100">
+                  <div class="receipt-label mb-2">Условия сделки</div>
+                  <table class="table table-sm table-borderless mb-0">
+                    <tbody>
+                      <tr>
+                        <th class="text-muted fw-normal">Сумма</th>
+                        <td class="text-end fw-semibold">
+                          <span id="soldReceiptSalePrice">—</span> <span id="soldReceiptSaleCurrency"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Тип оплаты</th>
+                        <td class="text-end" id="soldReceiptFinancing">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Менеджер</th>
+                        <td class="text-end" id="soldReceiptManager">—</td>
+                      </tr>
+                      <tr>
+                        <th class="text-muted fw-normal">Дата сделки</th>
+                        <td class="text-end" id="soldReceiptDealDate">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="col-12 col-lg-6">
+                <div class="border rounded-4 p-3 h-100">
+                  <div class="receipt-label mb-2">Комплектация и опции</div>
+                  <table class="table table-sm table-bordered mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Опция</th>
+                      </tr>
+                    </thead>
+                    <tbody id="soldReceiptOptions">
+                      <tr>
+                        <td class="text-muted">Опции не указаны.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between flex-wrap gap-3 mt-4">
+              <div class="text-muted small">Подпись клиента ______________________</div>
+              <div class="text-muted small">Подпись менеджера ______________________</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" type="button" id="print-sold-receipt">Печать</button>
         </div>
       </div>
     </div>
@@ -966,6 +1274,8 @@
     const soldSortIndicators = document.querySelectorAll('[data-sold-sort-indicator]');
     let currentSoldSort = { key: 'vehicle', direction: 'asc' };
     const vehiclePhotoModal = document.getElementById('vehiclePhotoModal');
+    const soldReceiptModal = document.getElementById('soldReceiptModal');
+    const soldReceiptPrintButton = document.getElementById('print-sold-receipt');
 
     const updateSoldSortIndicators = () => {
       soldSortIndicators.forEach((indicator) => {
@@ -1038,6 +1348,73 @@
         setText('soldCustomerPassportNumber', button.dataset.customerPassportNumber);
         setText('soldCustomerPassportIssued', button.dataset.customerPassportIssued);
         setText('soldCustomerAddress', button.dataset.customerAddress);
+      });
+    }
+
+    if (soldReceiptModal) {
+      soldReceiptModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        if (!button) {
+          return;
+        }
+        const setText = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.textContent = value || '—';
+          }
+        };
+        setText('soldReceiptNumber', button.dataset.receiptNumber);
+        setText('soldReceiptDate', button.dataset.receiptDate);
+        setText('soldReceiptDealDate', button.dataset.receiptDate);
+        setText('soldReceiptCustomerName', button.dataset.customerName);
+        setText('soldReceiptCustomerPhone', button.dataset.customerPhone);
+        setText('soldReceiptCustomerPassport', button.dataset.customerPassport);
+        setText('soldReceiptCustomerAddress', button.dataset.customerAddress);
+        setText(
+          'soldReceiptVehicleModel',
+          `${button.dataset.vehicleMake || ''} · ${button.dataset.vehicleModel || ''}`.trim(),
+        );
+        setText('soldReceiptVehicleName', button.dataset.vehicleName);
+        setText('soldReceiptVehicleVin', button.dataset.vehicleVin);
+        setText('soldReceiptVehicleCondition', button.dataset.vehicleCondition);
+        setText('soldReceiptVehicleMileage', button.dataset.vehicleMileage);
+        setText('soldReceiptVehicleColor', button.dataset.vehicleColor);
+        setText('soldReceiptVehicleTransmission', button.dataset.vehicleTransmission);
+        setText('soldReceiptVehicleEngine', button.dataset.vehicleEngine);
+        setText('soldReceiptVehicleSeats', button.dataset.vehicleSeats);
+        setText('soldReceiptSalePrice', button.dataset.salePrice);
+        setText('soldReceiptSaleCurrency', button.dataset.saleCurrency);
+        setText('soldReceiptFinancing', button.dataset.financing);
+        setText('soldReceiptManager', button.dataset.manager);
+
+        const optionsBody = document.getElementById('soldReceiptOptions');
+        if (optionsBody) {
+          optionsBody.innerHTML = '';
+          const optionsRaw = button.dataset.options || '';
+          const optionsList = optionsRaw ? optionsRaw.split('||').filter((item) => item.trim()) : [];
+          if (optionsList.length) {
+            optionsList.forEach((option) => {
+              const row = document.createElement('tr');
+              const cell = document.createElement('td');
+              cell.textContent = option;
+              row.appendChild(cell);
+              optionsBody.appendChild(row);
+            });
+          } else {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.classList.add('text-muted');
+            cell.textContent = 'Опции не указаны.';
+            row.appendChild(cell);
+            optionsBody.appendChild(row);
+          }
+        }
+      });
+    }
+
+    if (soldReceiptPrintButton) {
+      soldReceiptPrintButton.addEventListener('click', () => {
+        window.print();
       });
     }
 
