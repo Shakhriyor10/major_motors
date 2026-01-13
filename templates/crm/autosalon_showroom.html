@@ -714,36 +714,70 @@
                     </td>
                     <td>{{ deal.signed_at|date:'d.m.Y H:i' }}</td>
                     <td>
-                      <button
-                        type="button"
-                        class="btn btn-outline-primary btn-sm"
-                        data-open-sold-receipt
-                        data-bs-toggle="modal"
-                        data-bs-target="#soldReceiptModal"
-                        data-receipt-number="{{ deal.id|default:'—' }}"
-                        data-receipt-date="{{ deal.signed_at|date:'d.m.Y H:i' }}"
-                        data-customer-name="{{ deal.customer.full_name }}"
-                        data-customer-phone="{{ deal.customer.phone }}"
-                        data-customer-passport="{{ deal.customer.passport_series }} {{ deal.customer.passport_number }}"
-                        data-customer-address="{{ deal.customer.address|default:'—' }}"
-                        data-vehicle-name="{{ deal.vehicle.name }}"
-                        data-vehicle-make="{{ deal.vehicle.make }}"
-                        data-vehicle-model="{{ deal.vehicle.model }}"
-                        data-vehicle-vin="{{ deal.vehicle.vin }}"
-                        data-vehicle-condition="{{ deal.vehicle.get_condition_display }}"
-                        data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
-                        data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
-                        data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
-                        data-vehicle-engine="{{ deal.vehicle.engine_volume|default:'—' }}"
-                        data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
-                        data-sale-price="{{ deal.sale_price }}"
-                        data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
-                        data-financing="{{ deal.get_financing_type_display }}"
-                        data-manager="{% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username }}{% elif deal.sold_by_name %}{{ deal.sold_by_name }}{% else %}—{% endif %}"
-                        data-options="{% if deal.vehicle.options.exists %}{% for option in deal.vehicle.options.all %}{{ option.name }}{% if not forloop.last %}||{% endif %}{% endfor %}{% endif %}"
-                      >
-                        Печать
-                      </button>
+                      <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <button
+                          type="button"
+                          class="btn btn-outline-secondary btn-sm"
+                          data-bs-toggle="modal"
+                          data-bs-target="#soldDealDetailsModal"
+                          data-customer-name="{{ deal.customer.full_name }}"
+                          data-customer-phone="{{ deal.customer.phone }}"
+                          data-customer-inn="{{ deal.customer.inn|default:'' }}"
+                          data-customer-pinfl="{{ deal.customer.pinfl|default:'' }}"
+                          data-customer-passport-series="{{ deal.customer.passport_series|default:'' }}"
+                          data-customer-passport-number="{{ deal.customer.passport_number|default:'' }}"
+                          data-customer-passport-issued="{{ deal.customer.passport_issued_by|default:'' }}"
+                          data-customer-address="{{ deal.customer.address|default:'' }}"
+                          data-vehicle-name="{{ deal.vehicle.name }}"
+                          data-vehicle-make="{{ deal.vehicle.make }}"
+                          data-vehicle-model="{{ deal.vehicle.model }}"
+                          data-vehicle-vin="{{ deal.vehicle.vin }}"
+                          data-vehicle-condition="{{ deal.vehicle.get_condition_display }}"
+                          data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
+                          data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
+                          data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
+                          data-vehicle-engine="{{ deal.vehicle.engine_volume|default:'—' }}"
+                          data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
+                          data-sale-price="{{ deal.sale_price }}"
+                          data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
+                          data-financing-type="{{ deal.financing_type }}"
+                          data-financing-label="{{ deal.get_financing_type_display }}"
+                          data-down-payment="{{ deal.down_payment_amount|default:'0' }}"
+                          data-manager="{% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username }}{% elif deal.sold_by_name %}{{ deal.sold_by_name }}{% else %}—{% endif %}"
+                        >
+                          👁️
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-outline-primary btn-sm"
+                          data-open-sold-receipt
+                          data-bs-toggle="modal"
+                          data-bs-target="#soldReceiptModal"
+                          data-receipt-number="{{ deal.id|default:'—' }}"
+                          data-receipt-date="{{ deal.signed_at|date:'d.m.Y H:i' }}"
+                          data-customer-name="{{ deal.customer.full_name }}"
+                          data-customer-phone="{{ deal.customer.phone }}"
+                          data-customer-passport="{{ deal.customer.passport_series }} {{ deal.customer.passport_number }}"
+                          data-customer-address="{{ deal.customer.address|default:'—' }}"
+                          data-vehicle-name="{{ deal.vehicle.name }}"
+                          data-vehicle-make="{{ deal.vehicle.make }}"
+                          data-vehicle-model="{{ deal.vehicle.model }}"
+                          data-vehicle-vin="{{ deal.vehicle.vin }}"
+                          data-vehicle-condition="{{ deal.vehicle.get_condition_display }}"
+                          data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
+                          data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
+                          data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
+                          data-vehicle-engine="{{ deal.vehicle.engine_volume|default:'—' }}"
+                          data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
+                          data-sale-price="{{ deal.sale_price }}"
+                          data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
+                          data-financing="{{ deal.get_financing_type_display }}"
+                          data-manager="{% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username }}{% elif deal.sold_by_name %}{{ deal.sold_by_name }}{% else %}—{% endif %}"
+                          data-options="{% if deal.vehicle.options.exists %}{% for option in deal.vehicle.options.all %}{{ option.name }}{% if not forloop.last %}||{% endif %}{% endfor %}{% endif %}"
+                        >
+                          Печать
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 {% empty %}
@@ -905,6 +939,127 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-primary" type="button" id="print-sold-receipt">Печать</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="soldDealDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title mb-0">Полные данные по сделке</h5>
+            <p class="text-muted mb-0">Клиент, автомобиль и условия финансирования.</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-4">
+            <div class="col-12 col-lg-6">
+              <div class="border rounded-4 p-3 bg-body-tertiary h-100">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <strong class="fs-6">Клиент</strong>
+                  <span class="badge rounded-pill text-bg-primary-subtle text-primary" id="soldDealFinancingLabel">—</span>
+                </div>
+                <div class="small text-muted">ФИО</div>
+                <div class="fw-semibold mb-2" id="soldDealCustomerName">—</div>
+                <div class="small text-muted">Телефон</div>
+                <div class="mb-2" id="soldDealCustomerPhone">—</div>
+                <div class="row g-2">
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">ИНН</div>
+                    <div id="soldDealCustomerInn">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">ПИНФЛ</div>
+                    <div id="soldDealCustomerPinfl">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">Серия паспорта</div>
+                    <div id="soldDealCustomerPassportSeries">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">Номер паспорта</div>
+                    <div id="soldDealCustomerPassportNumber">—</div>
+                  </div>
+                  <div class="col-12">
+                    <div class="small text-muted">Кем выдан</div>
+                    <div id="soldDealCustomerPassportIssued">—</div>
+                  </div>
+                  <div class="col-12">
+                    <div class="small text-muted">Адрес</div>
+                    <div id="soldDealCustomerAddress">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-6">
+              <div class="border rounded-4 p-3 bg-body-tertiary h-100">
+                <strong class="fs-6 d-block mb-2">Автомобиль</strong>
+                <div class="fw-semibold mb-2" id="soldDealVehicleName">—</div>
+                <div class="row g-2">
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">Марка / модель</div>
+                    <div id="soldDealVehicleMakeModel">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">VIN</div>
+                    <div id="soldDealVehicleVin">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">Состояние</div>
+                    <div id="soldDealVehicleCondition">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">Пробег</div>
+                    <div id="soldDealVehicleMileage">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">Цвет</div>
+                    <div id="soldDealVehicleColor">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">КПП</div>
+                    <div id="soldDealVehicleTransmission">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">Двигатель</div>
+                    <div id="soldDealVehicleEngine">—</div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="small text-muted">Посадочные места</div>
+                    <div id="soldDealVehicleSeats">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="border rounded-4 p-3 bg-white shadow-sm">
+                <div class="row g-3 align-items-center">
+                  <div class="col-12 col-md-4">
+                    <div class="small text-muted">Сумма продажи</div>
+                    <div class="fw-semibold" id="soldDealSalePrice">—</div>
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <div class="small text-muted">Первоначальный взнос</div>
+                    <div class="fw-semibold" id="soldDealDownPayment">—</div>
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <div class="small text-muted">Сумма в кредит</div>
+                    <div class="fw-semibold" id="soldDealCreditAmount">—</div>
+                  </div>
+                  <div class="col-12">
+                    <div class="small text-muted">Сотрудник</div>
+                    <div id="soldDealManager">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
         </div>
       </div>
     </div>
@@ -1231,6 +1386,7 @@
     const saleReceiptArea = document.getElementById('sale-receipt');
     const soldReceiptArea = document.getElementById('soldReceiptPrintArea');
     let currentPrintTarget = null;
+    const formatNumber = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
     const updateDownPaymentVisibility = () => {
       if (!financingTypeSelect || !downPaymentField) {
@@ -1588,7 +1744,6 @@
         if (!button) {
           return;
         }
-        const formatNumber = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
         const setText = (id, value) => {
           const el = document.getElementById(id);
           if (el) {
@@ -1692,6 +1847,73 @@
         setText('soldReceiptShipping', `0 ${currency}`);
         setText('soldReceiptTax', `0 ${currency}`);
         setText('soldReceiptGrandTotal', totalText);
+      });
+    }
+
+    const soldDealDetailsModal = document.getElementById('soldDealDetailsModal');
+    if (soldDealDetailsModal) {
+      soldDealDetailsModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        if (!button) {
+          return;
+        }
+        const setText = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.textContent = value || '—';
+          }
+        };
+        const salePriceRaw = button.dataset.salePrice || '0';
+        const downPaymentRaw = button.dataset.downPayment || '0';
+        const salePrice = Number(salePriceRaw) || 0;
+        const downPayment = Number(downPaymentRaw) || 0;
+        const creditAmount = Math.max(salePrice - downPayment, 0);
+        const currency = button.dataset.saleCurrency || '';
+        const financingType = button.dataset.financingType || '';
+
+        setText('soldDealCustomerName', button.dataset.customerName);
+        setText('soldDealCustomerPhone', button.dataset.customerPhone);
+        setText('soldDealCustomerInn', button.dataset.customerInn);
+        setText('soldDealCustomerPinfl', button.dataset.customerPinfl);
+        setText('soldDealCustomerPassportSeries', button.dataset.customerPassportSeries);
+        setText('soldDealCustomerPassportNumber', button.dataset.customerPassportNumber);
+        setText('soldDealCustomerPassportIssued', button.dataset.customerPassportIssued);
+        setText('soldDealCustomerAddress', button.dataset.customerAddress);
+        setText('soldDealVehicleName', button.dataset.vehicleName);
+        setText(
+          'soldDealVehicleMakeModel',
+          [button.dataset.vehicleMake, button.dataset.vehicleModel].filter(Boolean).join(' · ') || '—',
+        );
+        setText('soldDealVehicleVin', button.dataset.vehicleVin);
+        setText('soldDealVehicleCondition', button.dataset.vehicleCondition);
+        const vehicleMileage = button.dataset.vehicleMileage;
+        const vehicleEngine = button.dataset.vehicleEngine;
+        setText(
+          'soldDealVehicleMileage',
+          vehicleMileage && vehicleMileage !== '—' ? `${vehicleMileage} км` : '—',
+        );
+        setText('soldDealVehicleColor', button.dataset.vehicleColor);
+        setText('soldDealVehicleTransmission', button.dataset.vehicleTransmission);
+        setText(
+          'soldDealVehicleEngine',
+          vehicleEngine && vehicleEngine !== '—' ? `${vehicleEngine} л` : '—',
+        );
+        setText('soldDealVehicleSeats', button.dataset.vehicleSeats);
+        setText(
+          'soldDealSalePrice',
+          `${formatNumber(salePrice)} ${currency}`.trim() || '—',
+        );
+        setText(
+          'soldDealDownPayment',
+          `${formatNumber(downPayment)} ${currency}`.trim() || '—',
+        );
+        const creditDisplay = financingType === 'credit' ? creditAmount : 0;
+        setText(
+          'soldDealCreditAmount',
+          `${formatNumber(creditDisplay)} ${currency}`.trim() || '—',
+        );
+        setText('soldDealManager', button.dataset.manager);
+        setText('soldDealFinancingLabel', button.dataset.financingLabel);
       });
     }
 
