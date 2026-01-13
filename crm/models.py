@@ -435,6 +435,9 @@ class Deal(TimeStampedModel):
     discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     commission_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     financing_type = models.CharField(max_length=16, choices=FinancingType.choices)
+    down_payment_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    bank_transfer_amount_uzs = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    bank_rate_used = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
     trade_in_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     signed_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
@@ -567,6 +570,24 @@ class CashAccount(TimeStampedModel):
 
     def __str__(self):
         return 'Касса'
+
+    @classmethod
+    def get_current(cls):
+        account, _ = cls.objects.get_or_create(pk=1, defaults={'uzs_balance': 0, 'usd_balance': 0})
+        return account
+
+
+class BankAccount(TimeStampedModel):
+    uzs_balance = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    usd_balance = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Банковский счет'
+        verbose_name_plural = 'Банковские счета'
+
+    def __str__(self):
+        return 'Банковский счет'
 
     @classmethod
     def get_current(cls):
