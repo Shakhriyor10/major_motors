@@ -1,10 +1,12 @@
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from .models import (
     CashAccount,
@@ -15,6 +17,7 @@ from .models import (
     Deal,
     Lead,
     LeadSource,
+    Reservation,
     Role,
     Vehicle,
     VehicleOption,
@@ -248,6 +251,16 @@ def _create_vehicle_from_form(request, options_qs):
 
 @login_required
 def autosalon(request):
+    def parse_datetime_value(value, default_value=None):
+        if not value:
+            return default_value
+        parsed = parse_datetime(value)
+        if not parsed:
+            return default_value
+        if timezone.is_naive(parsed):
+            return timezone.make_aware(parsed, timezone.get_current_timezone())
+        return parsed
+
     default_options = [
         'Кондиционер',
         'Климат-контроль',
@@ -260,86 +273,183 @@ def autosalon(request):
         VehicleOption.objects.get_or_create(name=option_name)
     options_qs = VehicleOption.objects.order_by('name')
 
-    if request.method == 'POST' and request.POST.get('action') == 'sell_vehicle':
-        vehicle_id = request.POST.get('vehicle_id')
-        if vehicle_id:
-            vehicle = Vehicle.objects.get(pk=vehicle_id)
-            customer_id = request.POST.get('customer_id')
-            if customer_id:
-                customer = Customer.objects.get(pk=customer_id)
-                customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
-                customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
-                customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
-                customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
-                customer.passport_issued_by = request.POST.get('passport_issued_by', customer.passport_issued_by).strip()
-                customer.address = request.POST.get('address', customer.address).strip()
-                customer.save(
-                    update_fields=[
-                        'full_name',
-                        'phone',
-                        'passport_series',
-                        'passport_number',
-                        'passport_issued_by',
-                        'address',
-                    ],
-                )
-            else:
-                customer = Customer.objects.create(
-                    full_name=request.POST.get('full_name', '').strip(),
-                    phone=request.POST.get('phone', '').strip(),
-                    passport_series=request.POST.get('passport_series', '').strip(),
-                    passport_number=request.POST.get('passport_number', '').strip(),
-                    passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
-                    address=request.POST.get('address', '').strip(),
-                )
-
-            sale_price = request.POST.get('sale_price')
-            try:
-                sale_price_value = Decimal(sale_price) if sale_price not in (None, '') else None
-            except InvalidOperation:
-                sale_price_value = None
-            if sale_price_value is None:
-                sale_price_value = vehicle.sale_price or vehicle.purchase_price
-
-            deal = Deal.objects.create(
-                customer=customer,
-                vehicle=vehicle,
-                sale_price=sale_price_value,
-                financing_type=request.POST.get('financing_type') or Deal.FinancingType.CASH,
-                status=Deal.DealStatus.COMPLETED,
-                signed_at=timezone.now(),
-                notes=request.POST.get('deal_notes', '').strip(),
-            )
-
-            cash_account = CashAccount.get_current()
-            sale_currency = vehicle.sale_currency or vehicle.purchase_currency or Vehicle.Currency.UZS
-            if vehicle.acquisition_type == Vehicle.AcquisitionType.CONSIGNMENT:
-                profit_amount = sale_price_value - (vehicle.purchase_price or Decimal('0'))
-                if sale_currency == Vehicle.Currency.USD:
-                    cash_account.usd_balance += profit_amount
-                    cash_account.save(update_fields=['usd_balance', 'updated_at'])
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'sell_vehicle':
+            vehicle_id = request.POST.get('vehicle_id')
+            if vehicle_id:
+                vehicle = Vehicle.objects.get(pk=vehicle_id)
+                active_reservation = Reservation.objects.select_related('customer').filter(
+                    vehicle=vehicle,
+                    status=Reservation.ReservationStatus.ACTIVE,
+                ).first()
+                if active_reservation:
+                    customer = active_reservation.customer
                 else:
-                    cash_account.uzs_balance += profit_amount
-                    cash_account.save(update_fields=['uzs_balance', 'updated_at'])
-            else:
-                if sale_currency == Vehicle.Currency.USD:
-                    cash_account.usd_balance += sale_price_value
-                    cash_account.save(update_fields=['usd_balance', 'updated_at'])
+                    customer_id = request.POST.get('customer_id')
+                    if customer_id:
+                        customer = Customer.objects.get(pk=customer_id)
+                        customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
+                        customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
+                        customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
+                        customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                        customer.passport_issued_by = request.POST.get('passport_issued_by', customer.passport_issued_by).strip()
+                        customer.address = request.POST.get('address', customer.address).strip()
+                        customer.save(
+                            update_fields=[
+                                'full_name',
+                                'phone',
+                                'passport_series',
+                                'passport_number',
+                                'passport_issued_by',
+                                'address',
+                            ],
+                        )
+                    else:
+                        customer = Customer.objects.create(
+                            full_name=request.POST.get('full_name', '').strip(),
+                            phone=request.POST.get('phone', '').strip(),
+                            passport_series=request.POST.get('passport_series', '').strip(),
+                            passport_number=request.POST.get('passport_number', '').strip(),
+                            passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
+                            address=request.POST.get('address', '').strip(),
+                        )
+
+                sale_price = request.POST.get('sale_price')
+                try:
+                    sale_price_value = Decimal(sale_price) if sale_price not in (None, '') else None
+                except InvalidOperation:
+                    sale_price_value = None
+                if sale_price_value is None:
+                    sale_price_value = vehicle.sale_price or vehicle.purchase_price
+
+                deal = Deal.objects.create(
+                    customer=customer,
+                    vehicle=vehicle,
+                    sale_price=sale_price_value,
+                    financing_type=request.POST.get('financing_type') or Deal.FinancingType.CASH,
+                    status=Deal.DealStatus.COMPLETED,
+                    signed_at=timezone.now(),
+                    notes=request.POST.get('deal_notes', '').strip(),
+                )
+
+                cash_account = CashAccount.get_current()
+                sale_currency = vehicle.sale_currency or vehicle.purchase_currency or Vehicle.Currency.UZS
+                if vehicle.acquisition_type == Vehicle.AcquisitionType.CONSIGNMENT:
+                    profit_amount = sale_price_value - (vehicle.purchase_price or Decimal('0'))
+                    if sale_currency == Vehicle.Currency.USD:
+                        cash_account.usd_balance += profit_amount
+                        cash_account.save(update_fields=['usd_balance', 'updated_at'])
+                    else:
+                        cash_account.uzs_balance += profit_amount
+                        cash_account.save(update_fields=['uzs_balance', 'updated_at'])
                 else:
-                    cash_account.uzs_balance += sale_price_value
-                    cash_account.save(update_fields=['uzs_balance', 'updated_at'])
+                    if sale_currency == Vehicle.Currency.USD:
+                        cash_account.usd_balance += sale_price_value
+                        cash_account.save(update_fields=['usd_balance', 'updated_at'])
+                    else:
+                        cash_account.uzs_balance += sale_price_value
+                        cash_account.save(update_fields=['uzs_balance', 'updated_at'])
 
-            vehicle.stock_count = max(vehicle.stock_count - 1, 0)
-            if vehicle.stock_count == 0:
-                vehicle.status = Vehicle.VehicleStatus.SOLD
-            elif vehicle.status != Vehicle.VehicleStatus.RESERVED:
-                vehicle.status = Vehicle.VehicleStatus.FOR_SALE
-            vehicle.save(update_fields=['stock_count', 'status'])
+                vehicle.stock_count = max(vehicle.stock_count - 1, 0)
+                if vehicle.stock_count == 0:
+                    vehicle.status = Vehicle.VehicleStatus.SOLD
+                elif vehicle.status != Vehicle.VehicleStatus.RESERVED:
+                    vehicle.status = Vehicle.VehicleStatus.FOR_SALE
+                vehicle.save(update_fields=['stock_count', 'status'])
+                Reservation.objects.filter(
+                    vehicle=vehicle,
+                    status=Reservation.ReservationStatus.ACTIVE,
+                ).update(status=Reservation.ReservationStatus.COMPLETED)
 
-            return redirect(f"{reverse('autosalon')}?receipt={deal.pk}")
+                return redirect(f"{reverse('autosalon')}?receipt={deal.pk}")
+        if action == 'reserve_vehicle':
+            vehicle_id = request.POST.get('vehicle_id')
+            if vehicle_id:
+                vehicle = Vehicle.objects.get(pk=vehicle_id)
+                customer_id = request.POST.get('customer_id')
+                if customer_id:
+                    customer = Customer.objects.get(pk=customer_id)
+                    customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
+                    customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
+                    customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
+                    customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                    customer.passport_issued_by = request.POST.get('passport_issued_by', customer.passport_issued_by).strip()
+                    customer.address = request.POST.get('address', customer.address).strip()
+                    customer.save(
+                        update_fields=[
+                            'full_name',
+                            'phone',
+                            'passport_series',
+                            'passport_number',
+                            'passport_issued_by',
+                            'address',
+                        ],
+                    )
+                else:
+                    customer = Customer.objects.create(
+                        full_name=request.POST.get('full_name', '').strip(),
+                        phone=request.POST.get('phone', '').strip(),
+                        passport_series=request.POST.get('passport_series', '').strip(),
+                        passport_number=request.POST.get('passport_number', '').strip(),
+                        passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
+                        address=request.POST.get('address', '').strip(),
+                    )
 
+                now = timezone.now()
+                start_at = parse_datetime_value(request.POST.get('start_at'), now)
+                end_at = parse_datetime_value(request.POST.get('end_at'), start_at + timedelta(days=3))
+                if end_at and start_at and end_at < start_at:
+                    end_at = start_at + timedelta(days=3)
+
+                deposit_amount = request.POST.get('deposit_amount')
+                try:
+                    deposit_value = Decimal(deposit_amount) if deposit_amount not in (None, '') else None
+                except InvalidOperation:
+                    deposit_value = None
+
+                Reservation.objects.create(
+                    vehicle=vehicle,
+                    customer=customer,
+                    reserved_by=request.user,
+                    start_at=start_at,
+                    end_at=end_at,
+                    deposit_amount=deposit_value,
+                    deposit_terms=request.POST.get('deposit_terms', '').strip(),
+                    status=Reservation.ReservationStatus.ACTIVE,
+                )
+
+                vehicle.status = Vehicle.VehicleStatus.RESERVED
+                vehicle.save(update_fields=['status'])
+            return redirect('autosalon')
+        if action == 'cancel_reservation':
+            reservation_id = request.POST.get('reservation_id')
+            if reservation_id:
+                reservation = Reservation.objects.select_related('vehicle').filter(
+                    pk=reservation_id,
+                    status=Reservation.ReservationStatus.ACTIVE,
+                ).first()
+                if reservation:
+                    reservation.status = Reservation.ReservationStatus.CANCELED
+                    reservation.save(update_fields=['status', 'updated_at'])
+                    has_active = Reservation.objects.filter(
+                        vehicle=reservation.vehicle,
+                        status=Reservation.ReservationStatus.ACTIVE,
+                    ).exists()
+                    if not has_active:
+                        reservation.vehicle.status = Vehicle.VehicleStatus.FOR_SALE
+                        reservation.vehicle.save(update_fields=['status'])
+            return redirect('autosalon')
+
+    active_reservations = Reservation.objects.select_related('customer').filter(
+        status=Reservation.ReservationStatus.ACTIVE,
+    )
     vehicles_qs = (
-        Vehicle.objects.prefetch_related('options', 'media')
+        Vehicle.objects.prefetch_related(
+            'options',
+            'media',
+            Prefetch('reservations', queryset=active_reservations, to_attr='active_reservations'),
+        )
         .filter(status__in=[Vehicle.VehicleStatus.FOR_SALE, Vehicle.VehicleStatus.RESERVED], stock_count__gt=0)
         .order_by('-created_at')
     )
@@ -354,6 +464,7 @@ def autosalon(request):
         )
     for vehicle in vehicles_qs:
         vehicle.primary_photo = next((media for media in vehicle.media.all() if media.media_type == 'photo'), None)
+        vehicle.active_reservation = next(iter(getattr(vehicle, 'active_reservations', [])), None)
     return render(
         request,
         'crm/autosalon_showroom.html',
