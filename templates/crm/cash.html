@@ -489,6 +489,21 @@
 
   const loadItems = (key) => JSON.parse(localStorage.getItem(key) || '[]');
   const saveItems = (key, items) => localStorage.setItem(key, JSON.stringify(items));
+  const getCsrfToken = () => {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+  };
+  const postEmployee = (url, payload) =>
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken()
+      },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  const persistEmployee = (employee) => postEmployee('/cash/employees/save/', employee);
+  const deleteEmployee = (employeeId) => postEmployee('/cash/employees/delete/', { id: employeeId });
 
   const updateCashBalances = () => {
     const state = cashStore.getState();
@@ -961,6 +976,7 @@
       }
       employees.splice(employeeIndex, 1);
       saveItems(EMPLOYEES_KEY, employees);
+      deleteEmployee(employeeId);
       refreshEmployees();
     }
   });
@@ -996,6 +1012,7 @@
       status: formData.get('status'),
       updatedAt: new Date().toISOString(),
     };
+    persistEmployee(employees[index]);
     saveItems(EMPLOYEES_KEY, employees);
     closeEmployeeModal();
     refreshEmployees();
@@ -1032,6 +1049,7 @@
     };
     employees.unshift(employee);
     saveItems(EMPLOYEES_KEY, employees);
+    persistEmployee(employee);
     employeeForm.reset();
     refreshEmployees();
   });
