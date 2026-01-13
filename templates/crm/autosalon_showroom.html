@@ -4,27 +4,230 @@
 
 {% block extra_styles %}
   <style>
-    .receipt-sheet {
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: 18px;
+    :root {
+      --page-w: 210mm;
+      --page-h: 297mm;
+      --pad: 14mm;
+      --border: #d9d9d9;
+      --text: #111;
+      --muted: #666;
+    }
+
+    .receipt-page {
+      width: var(--page-w);
+      min-height: var(--page-h);
+      margin: 0 auto;
       background: #fff;
-      max-width: 210mm;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      padding: var(--pad);
+      box-sizing: border-box;
+      position: relative;
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
 
-    .receipt-sheet .table > :not(caption) > * > * {
-      padding: 0.45rem 0.6rem;
+    .receipt-top {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 12mm;
+      align-items: start;
     }
 
-    .receipt-label {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #6c757d;
+    .receipt-brand h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.2px;
+    }
+
+    .receipt-brand .meta {
+      margin-top: 6px;
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.35rem;
+    }
+
+    .receipt-doc {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .receipt-doc .title {
+      font-weight: 900;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .receipt-kv {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px 10px;
+      font-size: 12.5px;
+      line-height: 1.25rem;
+    }
+
+    .receipt-kv div:nth-child(odd) {
+      color: var(--muted);
+    }
+
+    .receipt-kv div:nth-child(even) {
+      font-weight: 700;
+    }
+
+    .receipt-hr {
+      border-top: 1px solid var(--border);
+      margin: 10mm 0;
+    }
+
+    .receipt-two-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10mm;
+    }
+
+    .receipt-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .receipt-box h3 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      letter-spacing: 0.2px;
+    }
+
+    .receipt-box .small {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.35rem;
+    }
+
+    .receipt-box .small b {
+      color: var(--text);
+    }
+
+    .receipt-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    .receipt-table th,
+    .receipt-table td {
+      border-bottom: 1px solid var(--border);
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+
+    .receipt-table th {
+      text-align: left;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+    }
+
+    .receipt-table .right {
+      text-align: right;
+    }
+
+    .receipt-table .center {
+      text-align: center;
+    }
+
+    .receipt-note {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.35rem;
+    }
+
+    .receipt-totals {
+      display: grid;
+      grid-template-columns: 1fr 80mm;
+      gap: 10mm;
+      align-items: start;
+      margin-top: 6mm;
+    }
+
+    .receipt-sum {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .receipt-sum .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12.5px;
+      line-height: 1.35rem;
+      padding: 3px 0;
+    }
+
+    .receipt-sum .row span {
+      color: var(--muted);
+    }
+
+    .receipt-sum .row strong {
+      font-weight: 900;
+    }
+
+    .receipt-sum .grand {
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+      padding-top: 8px;
+      font-size: 14px;
+    }
+
+    .receipt-signs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10mm;
+      margin-top: 10mm;
+    }
+
+    .receipt-sign {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-height: 20mm;
+    }
+
+    .receipt-sign .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .receipt-line {
+      border-top: 1px solid #bbb;
+      margin-top: 14mm;
+    }
+
+    .receipt-footer {
+      position: absolute;
+      left: var(--pad);
+      right: var(--pad);
+      bottom: 10mm;
+      display: flex;
+      justify-content: space-between;
+      gap: 10mm;
+      align-items: flex-end;
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
     }
 
     @media print {
       body {
         background: #fff;
+        padding: 0;
       }
 
       body.print-receipt-active * {
@@ -41,15 +244,12 @@
         padding: 0;
       }
 
-      .receipt-sheet {
-        border: 0;
+      .receipt-page {
         box-shadow: none;
-        width: 210mm;
-        min-height: 297mm;
-        padding: 12mm;
-        margin: 0 auto;
-        font-size: 11px;
-        line-height: 1.3;
+        width: var(--page-w);
+        min-height: var(--page-h);
+        margin: 0;
+        border: 0;
       }
 
       .print-receipt-area {
@@ -58,14 +258,6 @@
         left: 0;
         top: 0;
         right: 0;
-      }
-
-      .receipt-label {
-        font-size: 0.65rem;
-      }
-
-      .receipt-sheet .table {
-        font-size: 11px;
       }
     }
   </style>
@@ -91,150 +283,144 @@
   </div>
 
   {% if receipt %}
-    <div class="card shadow-sm mb-4 border-0 receipt-sheet print-receipt-area" id="sale-receipt">
-      <div class="card-body p-4">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-          <div>
-            <span class="badge rounded-pill text-bg-success-subtle text-success mb-2">Сделка подтверждена</span>
-            <div class="receipt-label">Квитанция о покупке автомобиля</div>
-            <h2 class="h4 mb-1">№ {{ receipt.id|default:"—" }}</h2>
-            <p class="text-muted mb-0">Распечатайте документ для клиента (формат A4).</p>
-          </div>
-          <div class="text-end">
-            <div class="fw-semibold">Major Motors</div>
-            <div class="text-muted small">Контакт: +998 (00) 000-00-00</div>
-            <div class="text-muted small">Адрес: ул. Демонстрационная, 10</div>
-            <div class="text-muted small">Дата: {{ receipt.signed_at|date:"d.m.Y" }}</div>
-          </div>
-          <button class="btn btn-primary d-print-none" type="button" id="print-receipt">Печать</button>
-        </div>
-
-        <div class="row g-3 mt-3">
-          <div class="col-12 col-lg-6">
-            <div class="border rounded-4 p-3 h-100">
-              <div class="receipt-label mb-2">Покупатель</div>
-              <table class="table table-sm table-borderless mb-0">
-                <tbody>
-                  <tr>
-                    <th class="text-muted fw-normal">ФИО</th>
-                    <td class="text-end">{{ receipt.customer.full_name }}</td>
-                  </tr>
-                  <tr>
-                    <th class="text-muted fw-normal">Телефон</th>
-                    <td class="text-end">{{ receipt.customer.phone }}</td>
-                  </tr>
-                  <tr>
-                    <th class="text-muted fw-normal">Паспорт</th>
-                    <td class="text-end">{{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}</td>
-                  </tr>
-                  <tr>
-                    <th class="text-muted fw-normal">Адрес</th>
-                    <td class="text-end">{{ receipt.customer.address|default:"—" }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="col-12 col-lg-6">
-            <div class="border rounded-4 p-3 h-100">
-              <div class="receipt-label mb-2">Детали автомобиля</div>
-              <table class="table table-sm table-borderless mb-0">
-                <tbody>
-                  <tr>
-                    <th class="text-muted fw-normal">Модель</th>
-                    <td class="text-end">{{ receipt.vehicle.make }} · {{ receipt.vehicle.model }}</td>
-                  </tr>
-                  <tr>
-                    <th class="text-muted fw-normal">Название</th>
-                    <td class="text-end">{{ receipt.vehicle.name }}</td>
-                  </tr>
-                  <tr>
-                    <th class="text-muted fw-normal">VIN</th>
-                    <td class="text-end">{{ receipt.vehicle.vin }}</td>
-                  </tr>
-                  <tr>
-                    <th class="text-muted fw-normal">Состояние</th>
-                    <td class="text-end">{{ receipt.vehicle.get_condition_display }}</td>
-                  </tr>
-                  {% if receipt.vehicle.condition == 'used' %}
-                    <tr>
-                      <th class="text-muted fw-normal">Пробег</th>
-                      <td class="text-end">{{ receipt.vehicle.mileage|default:"—" }} км</td>
-                    </tr>
-                  {% endif %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="col-12 col-lg-6">
-            <div class="border rounded-4 p-3 h-100">
-              <div class="receipt-label mb-2">Условия сделки</div>
-              <table class="table table-sm table-borderless mb-0">
-                <tbody>
-                  <tr>
-                    <th class="text-muted fw-normal">Сумма</th>
-                    <td class="text-end fw-semibold">
-                      {{ receipt.sale_price }}
-                      {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th class="text-muted fw-normal">Тип оплаты</th>
-                    <td class="text-end">{{ receipt.get_financing_type_display }}</td>
-                  </tr>
-                  <tr>
-                    <th class="text-muted fw-normal">Менеджер</th>
-                    <td class="text-end">
-                      {% if receipt.manager %}
-                        {{ receipt.manager.get_full_name|default:receipt.manager.username }}
-                      {% elif receipt.sold_by_name %}
-                        {{ receipt.sold_by_name }}
-                      {% else %}
-                        —
-                      {% endif %}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th class="text-muted fw-normal">Дата сделки</th>
-                    <td class="text-end">{{ receipt.signed_at|date:"d.m.Y H:i" }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="col-12 col-lg-6">
-            <div class="border rounded-4 p-3 h-100">
-              <div class="receipt-label mb-2">Комплектация и опции</div>
-              <table class="table table-sm table-bordered mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Опция</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if receipt.vehicle.options.exists %}
-                    {% for option in receipt.vehicle.options.all %}
-                      <tr>
-                        <td>{{ option.name }}</td>
-                      </tr>
-                    {% endfor %}
-                  {% else %}
-                    <tr>
-                      <td class="text-muted">Опции не указаны.</td>
-                    </tr>
-                  {% endif %}
-                </tbody>
-              </table>
-            </div>
+    <div class="d-flex justify-content-end mb-3 d-print-none">
+      <button class="btn btn-primary" type="button" id="print-receipt">Печать</button>
+    </div>
+    <section class="receipt-page print-receipt-area" id="sale-receipt">
+      <div class="receipt-top">
+        <div class="receipt-brand">
+          <h1>Major Motors</h1>
+          <div class="meta">
+            Тел: +998 (00) 000-00-00<br>
+            Адрес: ул. Демонстрационная, 10<br>
+            ИНН: 000000000 • Банк: Major Bank • Р/с: 0000 0000 0000 0000
           </div>
         </div>
-
-        <div class="d-flex justify-content-between flex-wrap gap-3 mt-4">
-          <div class="text-muted small">Подпись клиента ______________________</div>
-          <div class="text-muted small">Подпись менеджера ______________________</div>
+        <div class="receipt-doc">
+          <div class="title">КВИТАНЦИЯ / ЧЕК</div>
+          <div class="receipt-kv">
+            <div>Номер документа</div><div>{{ receipt.id|default:"—" }}</div>
+            <div>Номер заказа</div><div>SALE-{{ receipt.id|default:"—" }}</div>
+            <div>Дата и время</div><div>{{ receipt.signed_at|date:"d.m.Y H:i" }}</div>
+            <div>Способ оплаты</div><div>{{ receipt.get_financing_type_display }}</div>
+            <div>Статус</div><div>Оплачено</div>
+            <div>Кассир</div>
+            <div>
+              {% if receipt.manager %}
+                {{ receipt.manager.get_full_name|default:receipt.manager.username }}
+              {% elif receipt.sold_by_name %}
+                {{ receipt.sold_by_name }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div class="receipt-hr"></div>
+
+      <div class="receipt-two-cols">
+        <div class="receipt-box">
+          <h3>Покупатель</h3>
+          <div class="small">
+            <b>ФИО:</b> {{ receipt.customer.full_name }}<br>
+            <b>Телефон:</b> {{ receipt.customer.phone }}<br>
+            <b>Паспорт:</b> {{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}<br>
+            <b>Адрес:</b> {{ receipt.customer.address|default:"—" }}<br>
+            <b>Комментарий:</b> {{ receipt.notes|default:"—" }}
+          </div>
+        </div>
+        <div class="receipt-box">
+          <h3>Информация о доставке</h3>
+          <div class="small">
+            <b>Способ:</b> Самовывоз<br>
+            <b>Окно:</b> По договоренности<br>
+            <b>Стоимость:</b> 0<br>
+            <b>Трек/номер:</b> —<br>
+            <b>Получатель:</b> {{ receipt.customer.full_name }}
+          </div>
+        </div>
+      </div>
+
+      <div class="receipt-hr"></div>
+
+      <h3 style="margin:0 0 6px 0; font-size: 13px;">Автомобиль / услуги</h3>
+      <table class="receipt-table">
+        <thead>
+          <tr>
+            <th style="width:38px" class="center">№</th>
+            <th>Наименование</th>
+            <th style="width:80px" class="center">Кол-во</th>
+            <th style="width:90px" class="right">Цена</th>
+            <th style="width:90px" class="right">Сумма</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="center">1</td>
+            <td>
+              <b>{{ receipt.vehicle.name }}</b><br>
+              <span style="color:#666; font-size:12px;">
+                {{ receipt.vehicle.make }} · {{ receipt.vehicle.model }} · VIN {{ receipt.vehicle.vin }} ·
+                {{ receipt.vehicle.get_condition_display }}
+                {% if receipt.vehicle.condition == 'used' %}
+                  · Пробег {{ receipt.vehicle.mileage|default:"—" }} км
+                {% endif %}
+              </span>
+            </td>
+            <td class="center">1</td>
+            <td class="right">{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</td>
+            <td class="right"><b>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</b></td>
+          </tr>
+          {% if receipt.vehicle.options.exists %}
+            {% for option in receipt.vehicle.options.all %}
+              <tr>
+                <td class="center">{{ forloop.counter|add:1 }}</td>
+                <td>
+                  <b>{{ option.name }}</b><br>
+                  <span style="color:#666; font-size:12px;">Дополнительная опция</span>
+                </td>
+                <td class="center">1</td>
+                <td class="right">0</td>
+                <td class="right"><b>0</b></td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+
+      <div class="receipt-totals">
+        <div class="receipt-note">
+          <b>Условия:</b> Автомобиль передан покупателю после оплаты.<br>
+          <b>Гарантия:</b> Согласно условиям дилера и законодательства.<br>
+          <b>Примечание:</b> Данный документ является подтверждением покупки автомобиля.
+        </div>
+        <div class="receipt-sum">
+          <div class="row"><span>Подытог</span><strong>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</strong></div>
+          <div class="row"><span>Скидка</span><strong>0</strong></div>
+          <div class="row"><span>Доставка</span><strong>0</strong></div>
+          <div class="row"><span>Налог (если есть)</span><strong>0</strong></div>
+          <div class="row grand"><span>ИТОГО К ОПЛАТЕ</span><strong>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</strong></div>
+        </div>
+      </div>
+
+      <div class="receipt-signs">
+        <div class="receipt-sign">
+          <div class="label">Подпись продавца</div>
+          <div class="receipt-line"></div>
+        </div>
+        <div class="receipt-sign">
+          <div class="label">Подпись покупателя</div>
+          <div class="receipt-line"></div>
+        </div>
+      </div>
+
+      <div class="receipt-footer">
+        <div>Служба поддержки: +998 (00) 000-00-00 • majormotors.uz</div>
+        <div>Стр. 1 / 1</div>
+      </div>
+    </section>
   {% endif %}
 
   <ul class="nav nav-tabs mb-4" id="autosalonTabs" role="tablist">
@@ -628,146 +814,94 @@
       <div class="modal-content">
         <div class="modal-header">
           <div>
-            <div class="receipt-label">Квитанция о покупке автомобиля</div>
-            <h5 class="modal-title mb-0">№ <span id="soldReceiptNumber">—</span></h5>
+            <h5 class="modal-title mb-0">Квитанция о покупке автомобиля № <span id="soldReceiptNumber">—</span></h5>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
         <div class="modal-body">
-          <div class="receipt-sheet p-4 print-receipt-area" id="soldReceiptPrintArea">
-            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-              <div>
-                <div class="text-muted small">Дата: <span id="soldReceiptDate">—</span></div>
-              </div>
-              <div class="text-end">
-                <div class="fw-semibold">Major Motors</div>
-                <div class="text-muted small">Контакт: +998 (00) 000-00-00</div>
-                <div class="text-muted small">Адрес: ул. Демонстрационная, 10</div>
-              </div>
-            </div>
-
-            <div class="row g-3 mt-3">
-              <div class="col-12 col-lg-6">
-                <div class="border rounded-4 p-3 h-100">
-                  <div class="receipt-label mb-2">Покупатель</div>
-                  <table class="table table-sm table-borderless mb-0">
-                    <tbody>
-                      <tr>
-                        <th class="text-muted fw-normal">ФИО</th>
-                        <td class="text-end" id="soldReceiptCustomerName">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Телефон</th>
-                        <td class="text-end" id="soldReceiptCustomerPhone">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Паспорт</th>
-                        <td class="text-end" id="soldReceiptCustomerPassport">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Адрес</th>
-                        <td class="text-end" id="soldReceiptCustomerAddress">—</td>
-                      </tr>
-                    </tbody>
-                  </table>
+          <section class="receipt-page print-receipt-area" id="soldReceiptPrintArea">
+            <div class="receipt-top">
+              <div class="receipt-brand">
+                <h1>Major Motors</h1>
+                <div class="meta">
+                  Тел: +998 (00) 000-00-00<br>
+                  Адрес: ул. Демонстрационная, 10<br>
+                  ИНН: 000000000 • Банк: Major Bank • Р/с: 0000 0000 0000 0000
                 </div>
               </div>
-              <div class="col-12 col-lg-6">
-                <div class="border rounded-4 p-3 h-100">
-                  <div class="receipt-label mb-2">Детали автомобиля</div>
-                  <table class="table table-sm table-borderless mb-0">
-                    <tbody>
-                      <tr>
-                        <th class="text-muted fw-normal">Модель</th>
-                        <td class="text-end" id="soldReceiptVehicleModel">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Название</th>
-                        <td class="text-end" id="soldReceiptVehicleName">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">VIN</th>
-                        <td class="text-end" id="soldReceiptVehicleVin">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Состояние</th>
-                        <td class="text-end" id="soldReceiptVehicleCondition">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Пробег</th>
-                        <td class="text-end" id="soldReceiptVehicleMileage">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Цвет</th>
-                        <td class="text-end" id="soldReceiptVehicleColor">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">КПП</th>
-                        <td class="text-end" id="soldReceiptVehicleTransmission">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Двигатель</th>
-                        <td class="text-end" id="soldReceiptVehicleEngine">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Посадочные места</th>
-                        <td class="text-end" id="soldReceiptVehicleSeats">—</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <div class="col-12 col-lg-6">
-                <div class="border rounded-4 p-3 h-100">
-                  <div class="receipt-label mb-2">Условия сделки</div>
-                  <table class="table table-sm table-borderless mb-0">
-                    <tbody>
-                      <tr>
-                        <th class="text-muted fw-normal">Сумма</th>
-                        <td class="text-end fw-semibold">
-                          <span id="soldReceiptSalePrice">—</span> <span id="soldReceiptSaleCurrency"></span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Тип оплаты</th>
-                        <td class="text-end" id="soldReceiptFinancing">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Менеджер</th>
-                        <td class="text-end" id="soldReceiptManager">—</td>
-                      </tr>
-                      <tr>
-                        <th class="text-muted fw-normal">Дата сделки</th>
-                        <td class="text-end" id="soldReceiptDealDate">—</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <div class="col-12 col-lg-6">
-                <div class="border rounded-4 p-3 h-100">
-                  <div class="receipt-label mb-2">Комплектация и опции</div>
-                  <table class="table table-sm table-bordered mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Опция</th>
-                      </tr>
-                    </thead>
-                    <tbody id="soldReceiptOptions">
-                      <tr>
-                        <td class="text-muted">Опции не указаны.</td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <div class="receipt-doc">
+                <div class="title">КВИТАНЦИЯ / ЧЕК</div>
+                <div class="receipt-kv">
+                  <div>Номер документа</div><div id="soldReceiptDocNo">—</div>
+                  <div>Номер заказа</div><div id="soldReceiptOrderNo">—</div>
+                  <div>Дата и время</div><div id="soldReceiptDate">—</div>
+                  <div>Способ оплаты</div><div id="soldReceiptFinancing">—</div>
+                  <div>Статус</div><div>Оплачено</div>
+                  <div>Кассир</div><div id="soldReceiptManager">—</div>
                 </div>
               </div>
             </div>
 
-            <div class="d-flex justify-content-between flex-wrap gap-3 mt-4">
-              <div class="text-muted small">Подпись клиента ______________________</div>
-              <div class="text-muted small">Подпись менеджера ______________________</div>
+            <div class="receipt-hr"></div>
+
+            <div class="receipt-two-cols">
+              <div class="receipt-box">
+                <h3>Покупатель</h3>
+                <div class="small" id="soldReceiptBuyerBox">—</div>
+              </div>
+              <div class="receipt-box">
+                <h3>Информация о доставке</h3>
+                <div class="small" id="soldReceiptDeliveryBox">—</div>
+              </div>
             </div>
-          </div>
+
+            <div class="receipt-hr"></div>
+
+            <h3 style="margin:0 0 6px 0; font-size: 13px;">Автомобиль / услуги</h3>
+            <table class="receipt-table">
+              <thead>
+                <tr>
+                  <th style="width:38px" class="center">№</th>
+                  <th>Наименование</th>
+                  <th style="width:80px" class="center">Кол-во</th>
+                  <th style="width:90px" class="right">Цена</th>
+                  <th style="width:90px" class="right">Сумма</th>
+                </tr>
+              </thead>
+              <tbody id="soldReceiptItems"></tbody>
+            </table>
+
+            <div class="receipt-totals">
+              <div class="receipt-note" id="soldReceiptTerms">
+                <b>Условия:</b> Автомобиль передан покупателю после оплаты.<br>
+                <b>Гарантия:</b> Согласно условиям дилера и законодательства.<br>
+                <b>Примечание:</b> Данный документ является подтверждением покупки автомобиля.
+              </div>
+              <div class="receipt-sum">
+                <div class="row"><span>Подытог</span><strong id="soldReceiptSubTotal">—</strong></div>
+                <div class="row"><span>Скидка</span><strong id="soldReceiptDiscount">—</strong></div>
+                <div class="row"><span>Доставка</span><strong id="soldReceiptShipping">—</strong></div>
+                <div class="row"><span>Налог (если есть)</span><strong id="soldReceiptTax">—</strong></div>
+                <div class="row grand"><span>ИТОГО К ОПЛАТЕ</span><strong id="soldReceiptGrandTotal">—</strong></div>
+              </div>
+            </div>
+
+            <div class="receipt-signs">
+              <div class="receipt-sign">
+                <div class="label">Подпись продавца</div>
+                <div class="receipt-line"></div>
+              </div>
+              <div class="receipt-sign">
+                <div class="label">Подпись покупателя</div>
+                <div class="receipt-line"></div>
+              </div>
+            </div>
+
+            <div class="receipt-footer">
+              <div id="soldReceiptFooterLeft">Служба поддержки: +998 (00) 000-00-00 • majormotors.uz</div>
+              <div>Стр. 1 / 1</div>
+            </div>
+          </section>
         </div>
         <div class="modal-footer">
           <button class="btn btn-primary" type="button" id="print-sold-receipt">Печать</button>
@@ -1394,58 +1528,110 @@
         if (!button) {
           return;
         }
+        const formatNumber = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
         const setText = (id, value) => {
           const el = document.getElementById(id);
           if (el) {
             el.textContent = value || '—';
           }
         };
-        setText('soldReceiptNumber', button.dataset.receiptNumber);
+        const setHTML = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.innerHTML = value || '—';
+          }
+        };
+
+        const currency = button.dataset.saleCurrency || '';
+        const salePriceRaw = button.dataset.salePrice || '0';
+        const salePrice = Number(salePriceRaw) || 0;
+        const docNumber = button.dataset.receiptNumber || '—';
+        const orderNumber = docNumber ? `SALE-${docNumber}` : '—';
+        const vehicleMake = button.dataset.vehicleMake || '';
+        const vehicleModel = button.dataset.vehicleModel || '';
+        const vehicleInfo = `${vehicleMake} · ${vehicleModel}`.trim();
+        const vehicleName = button.dataset.vehicleName || '—';
+        const vehicleVin = button.dataset.vehicleVin || '—';
+        const vehicleCondition = button.dataset.vehicleCondition || '—';
+        const vehicleMileage = button.dataset.vehicleMileage || '—';
+        const vehicleColor = button.dataset.vehicleColor || '—';
+        const vehicleTransmission = button.dataset.vehicleTransmission || '—';
+        const vehicleEngine = button.dataset.vehicleEngine || '—';
+        const vehicleSeats = button.dataset.vehicleSeats || '—';
+        const buyerBox = `
+          <b>ФИО:</b> ${button.dataset.customerName || '—'}<br>
+          <b>Телефон:</b> ${button.dataset.customerPhone || '—'}<br>
+          <b>Паспорт:</b> ${button.dataset.customerPassport || '—'}<br>
+          <b>Адрес:</b> ${button.dataset.customerAddress || '—'}<br>
+          <b>Комментарий:</b> —
+        `;
+        const deliveryBox = `
+          <b>Способ:</b> Самовывоз<br>
+          <b>Окно:</b> По договоренности<br>
+          <b>Стоимость:</b> 0<br>
+          <b>Трек/номер:</b> —<br>
+          <b>Получатель:</b> ${button.dataset.customerName || '—'}
+        `;
+
+        setText('soldReceiptNumber', docNumber);
+        setText('soldReceiptDocNo', docNumber);
+        setText('soldReceiptOrderNo', orderNumber);
         setText('soldReceiptDate', button.dataset.receiptDate);
-        setText('soldReceiptDealDate', button.dataset.receiptDate);
-        setText('soldReceiptCustomerName', button.dataset.customerName);
-        setText('soldReceiptCustomerPhone', button.dataset.customerPhone);
-        setText('soldReceiptCustomerPassport', button.dataset.customerPassport);
-        setText('soldReceiptCustomerAddress', button.dataset.customerAddress);
-        setText(
-          'soldReceiptVehicleModel',
-          `${button.dataset.vehicleMake || ''} · ${button.dataset.vehicleModel || ''}`.trim(),
-        );
-        setText('soldReceiptVehicleName', button.dataset.vehicleName);
-        setText('soldReceiptVehicleVin', button.dataset.vehicleVin);
-        setText('soldReceiptVehicleCondition', button.dataset.vehicleCondition);
-        setText('soldReceiptVehicleMileage', button.dataset.vehicleMileage);
-        setText('soldReceiptVehicleColor', button.dataset.vehicleColor);
-        setText('soldReceiptVehicleTransmission', button.dataset.vehicleTransmission);
-        setText('soldReceiptVehicleEngine', button.dataset.vehicleEngine);
-        setText('soldReceiptVehicleSeats', button.dataset.vehicleSeats);
-        setText('soldReceiptSalePrice', button.dataset.salePrice);
-        setText('soldReceiptSaleCurrency', button.dataset.saleCurrency);
         setText('soldReceiptFinancing', button.dataset.financing);
         setText('soldReceiptManager', button.dataset.manager);
+        setHTML('soldReceiptBuyerBox', buyerBox);
+        setHTML('soldReceiptDeliveryBox', deliveryBox);
 
-        const optionsBody = document.getElementById('soldReceiptOptions');
-        if (optionsBody) {
-          optionsBody.innerHTML = '';
+        const itemsBody = document.getElementById('soldReceiptItems');
+        if (itemsBody) {
+          itemsBody.innerHTML = '';
+          const baseDescParts = [
+            vehicleInfo,
+            `VIN ${vehicleVin}`,
+            vehicleCondition,
+            vehicleMileage !== '—' ? `Пробег ${vehicleMileage} км` : null,
+            vehicleColor !== '—' ? `Цвет ${vehicleColor}` : null,
+            vehicleTransmission !== '—' ? `КПП ${vehicleTransmission}` : null,
+            vehicleEngine !== '—' ? `Двигатель ${vehicleEngine} л` : null,
+            vehicleSeats !== '—' ? `Мест ${vehicleSeats}` : null,
+          ].filter(Boolean);
+          const baseRow = document.createElement('tr');
+          baseRow.innerHTML = `
+            <td class="center">1</td>
+            <td>
+              <b>${vehicleName}</b><br>
+              <span style="color:#666; font-size:12px;">${baseDescParts.join(' · ')}</span>
+            </td>
+            <td class="center">1</td>
+            <td class="right">${formatNumber(salePrice)} ${currency}</td>
+            <td class="right"><b>${formatNumber(salePrice)} ${currency}</b></td>
+          `;
+          itemsBody.appendChild(baseRow);
+
           const optionsRaw = button.dataset.options || '';
           const optionsList = optionsRaw ? optionsRaw.split('||').filter((item) => item.trim()) : [];
-          if (optionsList.length) {
-            optionsList.forEach((option) => {
-              const row = document.createElement('tr');
-              const cell = document.createElement('td');
-              cell.textContent = option;
-              row.appendChild(cell);
-              optionsBody.appendChild(row);
-            });
-          } else {
+          optionsList.forEach((option, index) => {
             const row = document.createElement('tr');
-            const cell = document.createElement('td');
-            cell.classList.add('text-muted');
-            cell.textContent = 'Опции не указаны.';
-            row.appendChild(cell);
-            optionsBody.appendChild(row);
-          }
+            row.innerHTML = `
+              <td class="center">${index + 2}</td>
+              <td>
+                <b>${option}</b><br>
+                <span style="color:#666; font-size:12px;">Дополнительная опция</span>
+              </td>
+              <td class="center">1</td>
+              <td class="right">0</td>
+              <td class="right"><b>0</b></td>
+            `;
+            itemsBody.appendChild(row);
+          });
         }
+
+        const totalText = `${formatNumber(salePrice)} ${currency}`;
+        setText('soldReceiptSubTotal', totalText);
+        setText('soldReceiptDiscount', `- 0 ${currency}`);
+        setText('soldReceiptShipping', `0 ${currency}`);
+        setText('soldReceiptTax', `0 ${currency}`);
+        setText('soldReceiptGrandTotal', totalText);
       });
     }
 
