@@ -127,7 +127,7 @@
               <div class="col-12 col-md-4">
                 <div class="ratio ratio-4x3 h-100 bg-body-tertiary">
                   {% if vehicle.primary_photo %}
-                    <img class="img-fluid object-fit-cover" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
+                    <img class="w-100 h-100 object-fit-contain" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
                   {% else %}
                     <div class="d-flex align-items-center justify-content-center bg-secondary-subtle text-muted">Фото отсутствует</div>
                   {% endif %}
