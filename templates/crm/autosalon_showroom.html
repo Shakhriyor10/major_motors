@@ -108,6 +108,25 @@
               <div class="d-flex flex-wrap gap-2 align-items-center">
                 <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
                 <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
+                {% if vehicle.active_reservation %}
+                  <button
+                    class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                    type="button"
+                    data-open-reservation-details
+                    data-reservation-customer="{{ vehicle.active_reservation.customer.full_name }}"
+                    data-reservation-phone="{{ vehicle.active_reservation.customer.phone }}"
+                    data-reservation-passport="{{ vehicle.active_reservation.customer.passport_series }} {{ vehicle.active_reservation.customer.passport_number }}"
+                    data-reservation-issued="{{ vehicle.active_reservation.customer.passport_issued_by|default:'—' }}"
+                    data-reservation-address="{{ vehicle.active_reservation.customer.address|default:'—' }}"
+                    data-reservation-start="{{ vehicle.active_reservation.start_at|date:'d.m.Y H:i' }}"
+                    data-reservation-end="{{ vehicle.active_reservation.end_at|date:'d.m.Y H:i' }}"
+                    data-reservation-deposit="{{ vehicle.active_reservation.deposit_amount|default:'—' }}"
+                    data-reservation-terms="{{ vehicle.active_reservation.deposit_terms|default:'—' }}"
+                    aria-label="Детали брони"
+                  >
+                    👁 <span class="small">Детали брони</span>
+                  </button>
+                {% endif %}
               </div>
               <div class="row g-2 text-muted small">
                 <div class="col-12 col-md-6 col-lg-3">
@@ -151,17 +170,29 @@
                 <div class="text-muted small bg-light rounded-3 p-3">{{ vehicle.description }}</div>
               {% endif %}
               <div class="d-flex justify-content-end">
-                <button
-                  class="btn btn-primary"
-                  type="button"
-                  data-open-sale
-                  data-vehicle-id="{{ vehicle.id }}"
-                  data-vehicle-name="{{ vehicle.name }}"
-                  data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
-                  data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency }}"
-                >
-                  Продать
-                </button>
+                <div class="d-flex flex-wrap gap-2">
+                  <button
+                    class="btn btn-outline-primary"
+                    type="button"
+                    data-open-reserve
+                    data-vehicle-id="{{ vehicle.id }}"
+                    data-vehicle-name="{{ vehicle.name }}"
+                    {% if vehicle.status == 'reserved' %}disabled{% endif %}
+                  >
+                    Забронировать
+                  </button>
+                  <button
+                    class="btn btn-primary"
+                    type="button"
+                    data-open-sale
+                    data-vehicle-id="{{ vehicle.id }}"
+                    data-vehicle-name="{{ vehicle.name }}"
+                    data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                    data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency }}"
+                  >
+                    Продать
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -254,6 +285,137 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="reserve-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="h5 mb-1">Оформление брони</h3>
+            <p class="text-muted mb-0" id="reserve-modal-title">Закрепите автомобиль за клиентом.</p>
+          </div>
+          <span class="badge rounded-pill text-bg-warning-subtle text-warning">Бронь</span>
+          <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <form method="post">
+          <div class="modal-body">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reserve_vehicle">
+            <input type="hidden" name="vehicle_id" id="reserve-vehicle-id">
+            <div class="row g-3">
+              <div class="col-12 col-md-6 col-lg-4">
+                <label for="reserve_customer_id" class="form-label">Клиент из базы</label>
+                <select id="reserve_customer_id" name="customer_id" class="form-select">
+                  <option value="">Новый клиент</option>
+                  {% for customer in customers %}
+                    <option value="{{ customer.id }}">{{ customer.full_name }} · {{ customer.phone }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label for="start_at" class="form-label">Начало брони</label>
+                <input id="start_at" name="start_at" type="datetime-local" class="form-control">
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label for="end_at" class="form-label">Окончание брони</label>
+                <input id="end_at" name="end_at" type="datetime-local" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="deposit_amount" class="form-label">Сумма депозита</label>
+                <input id="deposit_amount" name="deposit_amount" type="number" min="0" step="0.01" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="deposit_terms" class="form-label">Условия депозита</label>
+                <input id="deposit_terms" name="deposit_terms" type="text" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="reserve_full_name" class="form-label">ФИО клиента</label>
+                <input id="reserve_full_name" name="full_name" type="text" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="reserve_phone" class="form-label">Телефон</label>
+                <input id="reserve_phone" name="phone" type="text" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="reserve_passport_series" class="form-label">Серия паспорта</label>
+                <input id="reserve_passport_series" name="passport_series" type="text" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="reserve_passport_number" class="form-label">Номер паспорта</label>
+                <input id="reserve_passport_number" name="passport_number" type="text" class="form-control">
+              </div>
+              <div class="col-12">
+                <label for="reserve_passport_issued_by" class="form-label">Кем выдан</label>
+                <input id="reserve_passport_issued_by" name="passport_issued_by" type="text" class="form-control">
+              </div>
+              <div class="col-12">
+                <label for="reserve_address" class="form-label">Адрес регистрации</label>
+                <input id="reserve_address" name="address" type="text" class="form-control">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-secondary" type="button" data-close-reserve>Отмена</button>
+            <button class="btn btn-primary" type="submit">Забронировать</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="reservation-details-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="h5 mb-1">Детали брони</h3>
+            <p class="text-muted mb-0">Информация о клиенте и условиях бронирования.</p>
+          </div>
+          <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="border rounded-4 p-3 bg-body-tertiary h-100">
+                <strong class="d-block mb-2">Клиент</strong>
+                <div id="reservation-customer-name">—</div>
+                <div class="text-muted small" id="reservation-customer-phone">—</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="border rounded-4 p-3 bg-body-tertiary h-100">
+                <strong class="d-block mb-2">Паспорт</strong>
+                <div id="reservation-customer-passport">—</div>
+                <div class="text-muted small" id="reservation-customer-issued">—</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="border rounded-4 p-3 bg-body-tertiary">
+                <strong class="d-block mb-2">Адрес</strong>
+                <div id="reservation-customer-address">—</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="border rounded-4 p-3 bg-body-tertiary h-100">
+                <strong class="d-block mb-2">Период брони</strong>
+                <div id="reservation-period">—</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="border rounded-4 p-3 bg-body-tertiary h-100">
+                <strong class="d-block mb-2">Депозит</strong>
+                <div id="reservation-deposit">—</div>
+                <div class="text-muted small" id="reservation-terms">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -268,6 +430,24 @@
     const customerFields = ['full_name', 'phone', 'passport_series', 'passport_number', 'passport_issued_by', 'address'];
     const printButton = document.getElementById('print-receipt');
     const saleModalInstance = saleModal ? bootstrap.Modal.getOrCreateInstance(saleModal) : null;
+    const reserveModal = document.getElementById('reserve-modal');
+    const reserveVehicleId = document.getElementById('reserve-vehicle-id');
+    const reserveModalTitle = document.getElementById('reserve-modal-title');
+    const reserveCustomerSelect = document.getElementById('reserve_customer_id');
+    const reserveCustomerFields = [
+      'reserve_full_name',
+      'reserve_phone',
+      'reserve_passport_series',
+      'reserve_passport_number',
+      'reserve_passport_issued_by',
+      'reserve_address'
+    ];
+    const reserveCloseButtons = document.querySelectorAll('[data-close-reserve]');
+    const reserveModalInstance = reserveModal ? bootstrap.Modal.getOrCreateInstance(reserveModal) : null;
+    const reservationDetailsModal = document.getElementById('reservation-details-modal');
+    const reservationDetailsModalInstance = reservationDetailsModal
+      ? bootstrap.Modal.getOrCreateInstance(reservationDetailsModal)
+      : null;
 
     const toggleCustomerFields = (disabled) => {
       customerFields.forEach((fieldId) => {
@@ -275,6 +455,16 @@
         if (field) {
           field.disabled = disabled;
           field.required = !disabled && (fieldId === 'full_name' || fieldId === 'phone');
+        }
+      });
+    };
+
+    const toggleReserveCustomerFields = (disabled) => {
+      reserveCustomerFields.forEach((fieldId) => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.disabled = disabled;
+          field.required = !disabled && (fieldId === 'reserve_full_name' || fieldId === 'reserve_phone');
         }
       });
     };
@@ -294,15 +484,65 @@
       });
     });
 
+    document.querySelectorAll('[data-open-reserve]').forEach((button) => {
+      button.addEventListener('click', () => {
+        reserveModalInstance?.show();
+        reserveVehicleId.value = button.dataset.vehicleId;
+        reserveModalTitle.textContent = `Оформление брони: ${button.dataset.vehicleName}`;
+        if (reserveCustomerSelect) {
+          reserveCustomerSelect.value = '';
+        }
+        toggleReserveCustomerFields(false);
+      });
+    });
+
+    document.querySelectorAll('[data-open-reservation-details]').forEach((button) => {
+      button.addEventListener('click', () => {
+        reservationDetailsModalInstance?.show();
+        const getValue = (name) => button.dataset[name] || '—';
+        const customerName = document.getElementById('reservation-customer-name');
+        const customerPhone = document.getElementById('reservation-customer-phone');
+        const customerPassport = document.getElementById('reservation-customer-passport');
+        const customerIssued = document.getElementById('reservation-customer-issued');
+        const customerAddress = document.getElementById('reservation-customer-address');
+        const reservationPeriod = document.getElementById('reservation-period');
+        const reservationDeposit = document.getElementById('reservation-deposit');
+        const reservationTerms = document.getElementById('reservation-terms');
+
+        if (customerName) customerName.textContent = getValue('reservationCustomer');
+        if (customerPhone) customerPhone.textContent = getValue('reservationPhone');
+        if (customerPassport) customerPassport.textContent = getValue('reservationPassport');
+        if (customerIssued) customerIssued.textContent = getValue('reservationIssued');
+        if (customerAddress) customerAddress.textContent = getValue('reservationAddress');
+        if (reservationPeriod) {
+          reservationPeriod.textContent = `${getValue('reservationStart')} — ${getValue('reservationEnd')}`;
+        }
+        if (reservationDeposit) reservationDeposit.textContent = getValue('reservationDeposit');
+        if (reservationTerms) reservationTerms.textContent = getValue('reservationTerms');
+      });
+    });
+
     closeButtons.forEach((button) => {
       button.addEventListener('click', () => {
         saleModalInstance?.hide();
       });
     });
 
+    reserveCloseButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        reserveModalInstance?.hide();
+      });
+    });
+
     if (customerSelect) {
       customerSelect.addEventListener('change', () => {
         toggleCustomerFields(Boolean(customerSelect.value));
+      });
+    }
+
+    if (reserveCustomerSelect) {
+      reserveCustomerSelect.addEventListener('change', () => {
+        toggleReserveCustomerFields(Boolean(reserveCustomerSelect.value));
       });
     }
 
