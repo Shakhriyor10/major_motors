@@ -62,6 +62,14 @@
               </div>
               <div class="text-muted small">Тип оплаты: {{ receipt.get_financing_type_display }}</div>
               <div class="text-muted small">Дата: {{ receipt.signed_at|date:"d.m.Y" }}</div>
+              <div class="text-muted small">
+                Менеджер:
+                {% if receipt.manager %}
+                  {{ receipt.manager.get_full_name|default:receipt.manager.username }}
+                {% else %}
+                  —
+                {% endif %}
+              </div>
             </div>
           </div>
           <div class="col-12 col-md-6 col-lg-3">
@@ -156,6 +164,7 @@
                         data-reservation-end="{{ vehicle.active_reservation.end_at|date:'d.m.Y H:i' }}"
                         data-reservation-deposit="{{ vehicle.active_reservation.deposit_amount|default:'—' }}"
                         data-reservation-terms="{{ vehicle.active_reservation.deposit_terms|default:'—' }}"
+                        data-reservation-staff="{% if vehicle.active_reservation.reserved_by %}{{ vehicle.active_reservation.reserved_by.get_full_name|default:vehicle.active_reservation.reserved_by.username }}{% else %}—{% endif %}"
                         aria-label="Детали брони"
                       >
                         👁 <span class="small">Детали брони</span>
@@ -302,6 +311,7 @@
                   <th>Тип оплаты</th>
                   <th>Сумма</th>
                   <th>VIN</th>
+                  <th>Сотрудник</th>
                   <th>
                     <button type="button" class="btn btn-link p-0 fw-semibold text-decoration-none" data-sold-sort-key="date">
                       Дата продажи
@@ -313,7 +323,7 @@
               <tbody id="soldTableBody">
                 {% for deal in sold_deals %}
                   <tr
-                    data-search-text="{{ deal.vehicle.name|lower }} {{ deal.customer.full_name|lower }} {{ deal.vehicle.vin|lower }}"
+                    data-search-text="{{ deal.vehicle.name|lower }} {{ deal.customer.full_name|lower }} {{ deal.vehicle.vin|lower }} {% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username|lower }}{% endif %}"
                     data-sort-vehicle="{{ deal.vehicle.name|lower }}"
                     data-sort-date="{{ deal.signed_at|date:'c' }}"
                   >
@@ -345,11 +355,18 @@
                       {{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}
                     </td>
                     <td>{{ deal.vehicle.vin }}</td>
+                    <td>
+                      {% if deal.manager %}
+                        {{ deal.manager.get_full_name|default:deal.manager.username }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
                     <td>{{ deal.signed_at|date:'d.m.Y H:i' }}</td>
                   </tr>
                 {% empty %}
                   <tr>
-                    <td colspan="6" class="text-muted">Проданных автомобилей пока нет.</td>
+                    <td colspan="7" class="text-muted">Проданных автомобилей пока нет.</td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -450,6 +467,17 @@
                   <option value="trade_in">Трейд-ин</option>
                 </select>
               </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label for="sale-manager" class="form-label">Сотрудник (кем продано)</label>
+                <select id="sale-manager" name="manager_id" class="form-select" required>
+                  <option value="">Выберите сотрудника</option>
+                  {% for employee in employees %}
+                    <option value="{{ employee.id }}" {% if employee.id == request.user.id %}selected{% endif %}>
+                      {{ employee.get_full_name|default:employee.username }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
               <div class="col-12 col-md-6">
                 <label for="full_name" class="form-label">ФИО клиента</label>
                 <input id="full_name" name="full_name" type="text" class="form-control" required>
@@ -522,6 +550,17 @@
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="end_at" class="form-label">Окончание брони</label>
                 <input id="end_at" name="end_at" type="datetime-local" class="form-control">
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label for="reserve-employee" class="form-label">Сотрудник (кем забронировано)</label>
+                <select id="reserve-employee" name="reserved_by_id" class="form-select" required>
+                  <option value="">Выберите сотрудника</option>
+                  {% for employee in employees %}
+                    <option value="{{ employee.id }}" {% if employee.id == request.user.id %}selected{% endif %}>
+                      {{ employee.get_full_name|default:employee.username }}
+                    </option>
+                  {% endfor %}
+                </select>
               </div>
               <div class="col-12 col-md-6">
                 <label for="deposit_amount" class="form-label">Сумма депозита</label>
@@ -609,6 +648,12 @@
                 <strong class="d-block mb-2">Депозит</strong>
                 <div id="reservation-deposit">—</div>
                 <div class="text-muted small" id="reservation-terms">—</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="border rounded-4 p-3 bg-body-tertiary">
+                <strong class="d-block mb-2">Сотрудник</strong>
+                <div id="reservation-staff">—</div>
               </div>
             </div>
           </div>
@@ -742,6 +787,7 @@
         const reservationPeriod = document.getElementById('reservation-period');
         const reservationDeposit = document.getElementById('reservation-deposit');
         const reservationTerms = document.getElementById('reservation-terms');
+        const reservationStaff = document.getElementById('reservation-staff');
 
         if (reservationIdInput) {
           reservationIdInput.value = button.dataset.reservationId || '';
@@ -759,6 +805,7 @@
         }
         if (reservationDeposit) reservationDeposit.textContent = getValue('reservationDeposit');
         if (reservationTerms) reservationTerms.textContent = getValue('reservationTerms');
+        if (reservationStaff) reservationStaff.textContent = getValue('reservationStaff');
       });
     });
 

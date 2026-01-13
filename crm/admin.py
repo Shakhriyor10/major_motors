@@ -111,7 +111,7 @@ class TradeInRecordAdmin(admin.ModelAdmin):
 
 @admin.register(models.Reservation)
 class ReservationAdmin(admin.ModelAdmin):
-    list_display = ('vehicle', 'customer', 'start_at', 'end_at', 'status')
+    list_display = ('vehicle', 'customer', 'reserved_by', 'start_at', 'end_at', 'status')
     list_filter = ('status',)
 
 

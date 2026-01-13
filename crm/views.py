@@ -1,6 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Prefetch, Q
 from django.shortcuts import redirect, render
@@ -24,6 +25,8 @@ from .models import (
     VehicleExpense,
     VehicleMedia,
 )
+
+User = get_user_model()
 
 
 @login_required
@@ -323,9 +326,17 @@ def autosalon(request):
                 if sale_price_value is None:
                     sale_price_value = vehicle.sale_price or vehicle.purchase_price
 
+                manager_id = request.POST.get('manager_id')
+                manager = None
+                if manager_id:
+                    manager = User.objects.filter(pk=manager_id, is_active=True).first()
+                if manager is None and request.user.is_authenticated:
+                    manager = request.user
+
                 deal = Deal.objects.create(
                     customer=customer,
                     vehicle=vehicle,
+                    manager=manager,
                     sale_price=sale_price_value,
                     financing_type=request.POST.get('financing_type') or Deal.FinancingType.CASH,
                     status=Deal.DealStatus.COMPLETED,
@@ -408,10 +419,17 @@ def autosalon(request):
                 except InvalidOperation:
                     deposit_value = None
 
+                reserved_by_id = request.POST.get('reserved_by_id')
+                reserved_by = None
+                if reserved_by_id:
+                    reserved_by = User.objects.filter(pk=reserved_by_id, is_active=True).first()
+                if reserved_by is None and request.user.is_authenticated:
+                    reserved_by = request.user
+
                 Reservation.objects.create(
                     vehicle=vehicle,
                     customer=customer,
-                    reserved_by=request.user,
+                    reserved_by=reserved_by,
                     start_at=start_at,
                     end_at=end_at,
                     deposit_amount=deposit_value,
@@ -441,7 +459,7 @@ def autosalon(request):
                         reservation.vehicle.save(update_fields=['status'])
             return redirect('autosalon')
 
-    active_reservations = Reservation.objects.select_related('customer').filter(
+    active_reservations = Reservation.objects.select_related('customer', 'reserved_by').filter(
         status=Reservation.ReservationStatus.ACTIVE,
     )
     vehicles_qs = (
@@ -454,16 +472,17 @@ def autosalon(request):
         .order_by('-created_at')
     )
     customers_qs = Customer.objects.order_by('full_name')
+    employees_qs = User.objects.filter(is_active=True).order_by('first_name', 'last_name', 'username')
     receipt_deal = None
     receipt_id = request.GET.get('receipt')
     if receipt_id:
         receipt_deal = (
-            Deal.objects.select_related('customer', 'vehicle')
+            Deal.objects.select_related('customer', 'vehicle', 'manager')
             .filter(pk=receipt_id)
             .first()
         )
     sold_deals = (
-        Deal.objects.select_related('customer', 'vehicle')
+        Deal.objects.select_related('customer', 'vehicle', 'manager')
         .filter(status=Deal.DealStatus.COMPLETED)
         .order_by('-signed_at', '-created_at')
     )
@@ -476,6 +495,7 @@ def autosalon(request):
         {
             'vehicles': vehicles_qs,
             'customers': customers_qs,
+            'employees': employees_qs,
             'receipt': receipt_deal,
             'sold_deals': sold_deals,
         },
