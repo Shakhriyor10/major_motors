@@ -462,6 +462,11 @@ def autosalon(request):
             .filter(pk=receipt_id)
             .first()
         )
+    sold_deals = (
+        Deal.objects.select_related('customer', 'vehicle')
+        .filter(status=Deal.DealStatus.COMPLETED)
+        .order_by('-signed_at', '-created_at')
+    )
     for vehicle in vehicles_qs:
         vehicle.primary_photo = next((media for media in vehicle.media.all() if media.media_type == 'photo'), None)
         vehicle.active_reservation = next(iter(getattr(vehicle, 'active_reservations', [])), None)
@@ -472,6 +477,7 @@ def autosalon(request):
             'vehicles': vehicles_qs,
             'customers': customers_qs,
             'receipt': receipt_deal,
+            'sold_deals': sold_deals,
         },
     )
 

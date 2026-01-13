@@ -77,138 +77,337 @@
     </div>
   {% endif %}
 
-  <div class="vstack gap-4">
-    {% for vehicle in vehicles %}
-      <div class="card shadow-sm overflow-hidden border-0">
-        <div class="row g-0">
-          <div class="col-12 col-md-4">
-            <div class="ratio ratio-4x3 h-100 bg-body-tertiary">
-              {% if vehicle.primary_photo %}
-                <img class="img-fluid object-fit-cover" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
-              {% else %}
-                <div class="d-flex align-items-center justify-content-center bg-secondary-subtle text-muted">Фото отсутствует</div>
-              {% endif %}
+  <ul class="nav nav-tabs mb-4" id="autosalonTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="autosalon-showroom-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#autosalon-showroom"
+        type="button"
+        role="tab"
+        aria-controls="autosalon-showroom"
+        aria-selected="true"
+      >
+        В продаже
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="autosalon-sold-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#autosalon-sold"
+        type="button"
+        role="tab"
+        aria-controls="autosalon-sold"
+        aria-selected="false"
+      >
+        Проданные
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="autosalon-showroom" role="tabpanel" aria-labelledby="autosalon-showroom-tab">
+      <div class="vstack gap-4">
+        {% for vehicle in vehicles %}
+          <div class="card shadow-sm overflow-hidden border-0">
+            <div class="row g-0">
+              <div class="col-12 col-md-4">
+                <div class="ratio ratio-4x3 h-100 bg-body-tertiary">
+                  {% if vehicle.primary_photo %}
+                    <img class="img-fluid object-fit-cover" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
+                  {% else %}
+                    <div class="d-flex align-items-center justify-content-center bg-secondary-subtle text-muted">Фото отсутствует</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-12 col-md-8">
+                <div class="card-body vstack gap-3 p-4">
+                  <div class="d-flex justify-content-between flex-wrap gap-3">
+                    <div>
+                      <strong class="fs-5">{{ vehicle.name }}</strong>
+                      <div class="text-muted small">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
+                    </div>
+                    <div class="text-end">
+                      <div class="text-muted small">Цена продажи</div>
+                      <div class="fs-5 fw-semibold text-primary">
+                        {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                        {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
+                    <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
+                    {% if vehicle.active_reservation %}
+                      <button
+                        class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                        type="button"
+                        data-open-reservation-details
+                        data-reservation-id="{{ vehicle.active_reservation.id }}"
+                        data-reservation-customer="{{ vehicle.active_reservation.customer.full_name }}"
+                        data-reservation-phone="{{ vehicle.active_reservation.customer.phone }}"
+                        data-reservation-passport="{{ vehicle.active_reservation.customer.passport_series }} {{ vehicle.active_reservation.customer.passport_number }}"
+                        data-reservation-issued="{{ vehicle.active_reservation.customer.passport_issued_by|default:'—' }}"
+                        data-reservation-address="{{ vehicle.active_reservation.customer.address|default:'—' }}"
+                        data-reservation-start="{{ vehicle.active_reservation.start_at|date:'d.m.Y H:i' }}"
+                        data-reservation-end="{{ vehicle.active_reservation.end_at|date:'d.m.Y H:i' }}"
+                        data-reservation-deposit="{{ vehicle.active_reservation.deposit_amount|default:'—' }}"
+                        data-reservation-terms="{{ vehicle.active_reservation.deposit_terms|default:'—' }}"
+                        aria-label="Детали брони"
+                      >
+                        👁 <span class="small">Детали брони</span>
+                      </button>
+                    {% endif %}
+                  </div>
+                  <div class="row g-2 text-muted small">
+                    <div class="col-12 col-md-6 col-lg-3">
+                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
+                        <strong class="text-dark d-block">Цвет</strong>
+                        {{ vehicle.color|default:"—" }}
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
+                        <strong class="text-dark d-block">КПП</strong>
+                        {{ vehicle.get_transmission_display|default:"—" }}
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
+                        <strong class="text-dark d-block">Двигатель</strong>
+                        {{ vehicle.engine_volume|default:"—" }} л
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
+                        <strong class="text-dark d-block">Кол-во</strong>
+                        {{ vehicle.stock_count }}
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
+                        <strong class="text-dark d-block">Посадочные места</strong>
+                        {{ vehicle.seat_count|default:"—" }}
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
+                        <strong class="text-dark d-block">Пробег</strong>
+                        {{ vehicle.mileage|default:"—" }} км
+                      </div>
+                    </div>
+                  </div>
+                  {% if vehicle.description %}
+                    <div class="text-muted small bg-light rounded-3 p-3">{{ vehicle.description }}</div>
+                  {% endif %}
+                  <div class="d-flex justify-content-end">
+                    <div class="d-flex flex-wrap gap-2">
+                      <button
+                        class="btn btn-outline-primary"
+                        type="button"
+                        data-open-reserve
+                        data-vehicle-id="{{ vehicle.id }}"
+                        data-vehicle-name="{{ vehicle.name }}"
+                        {% if vehicle.status == 'reserved' or vehicle.active_reservation %}disabled{% endif %}
+                      >
+                        Забронировать
+                      </button>
+                      <button
+                        class="btn btn-primary"
+                        type="button"
+                        data-open-sale
+                        data-vehicle-id="{{ vehicle.id }}"
+                        data-vehicle-name="{{ vehicle.name }}"
+                        data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                        data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency }}"
+                        data-reservation-customer-id="{{ vehicle.active_reservation.customer.id|default:'' }}"
+                        data-reservation-customer-name="{{ vehicle.active_reservation.customer.full_name|default:'' }}"
+                        data-reservation-customer-phone="{{ vehicle.active_reservation.customer.phone|default:'' }}"
+                      >
+                        Продать
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="col-12 col-md-8">
-            <div class="card-body vstack gap-3 p-4">
-              <div class="d-flex justify-content-between flex-wrap gap-3">
-                <div>
-                  <strong class="fs-5">{{ vehicle.name }}</strong>
-                  <div class="text-muted small">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
-                </div>
-                <div class="text-end">
-                  <div class="text-muted small">Цена продажи</div>
-                  <div class="fs-5 fw-semibold text-primary">
-                    {{ vehicle.sale_price|default:vehicle.purchase_price }}
-                    {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
-                  </div>
-                </div>
+        {% empty %}
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <p class="text-muted mb-0">Витрина пустая. Добавьте авто в общем списке и переведите статус в продажу.</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="autosalon-sold" role="tabpanel" aria-labelledby="autosalon-sold-tab">
+      <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <h2 class="h4 mb-1">Проданные автомобили</h2>
+              <p class="text-muted mb-0">История продаж автосалона с быстрым поиском и фильтрами.</p>
+            </div>
+            <span class="badge text-bg-primary px-3 py-2">Алфавитная сортировка по умолчанию</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="flex-grow-1">
+              <label class="form-label">Поиск по машине, клиенту или VIN</label>
+              <div class="input-group input-group-lg">
+                <span class="input-group-text">🔍</span>
+                <input
+                  type="text"
+                  id="soldSearch"
+                  class="form-control"
+                  placeholder="Например, Chevrolet, Иванов или VIN"
+                  autocomplete="off"
+                />
               </div>
-              <div class="d-flex flex-wrap gap-2 align-items-center">
-                <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
-                <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
-                {% if vehicle.active_reservation %}
-                  <button
-                    class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                    type="button"
-                    data-open-reservation-details
-                    data-reservation-id="{{ vehicle.active_reservation.id }}"
-                    data-reservation-customer="{{ vehicle.active_reservation.customer.full_name }}"
-                    data-reservation-phone="{{ vehicle.active_reservation.customer.phone }}"
-                    data-reservation-passport="{{ vehicle.active_reservation.customer.passport_series }} {{ vehicle.active_reservation.customer.passport_number }}"
-                    data-reservation-issued="{{ vehicle.active_reservation.customer.passport_issued_by|default:'—' }}"
-                    data-reservation-address="{{ vehicle.active_reservation.customer.address|default:'—' }}"
-                    data-reservation-start="{{ vehicle.active_reservation.start_at|date:'d.m.Y H:i' }}"
-                    data-reservation-end="{{ vehicle.active_reservation.end_at|date:'d.m.Y H:i' }}"
-                    data-reservation-deposit="{{ vehicle.active_reservation.deposit_amount|default:'—' }}"
-                    data-reservation-terms="{{ vehicle.active_reservation.deposit_terms|default:'—' }}"
-                    aria-label="Детали брони"
-                  >
-                    👁 <span class="small">Детали брони</span>
-                  </button>
-                {% endif %}
-              </div>
-              <div class="row g-2 text-muted small">
-                <div class="col-12 col-md-6 col-lg-3">
-                  <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                    <strong class="text-dark d-block">Цвет</strong>
-                    {{ vehicle.color|default:"—" }}
-                  </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                  <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                    <strong class="text-dark d-block">КПП</strong>
-                    {{ vehicle.get_transmission_display|default:"—" }}
-                  </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                  <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                    <strong class="text-dark d-block">Двигатель</strong>
-                    {{ vehicle.engine_volume|default:"—" }} л
-                  </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                  <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                    <strong class="text-dark d-block">Кол-во</strong>
-                    {{ vehicle.stock_count }}
-                  </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                  <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                    <strong class="text-dark d-block">Посадочные места</strong>
-                    {{ vehicle.seat_count|default:"—" }}
-                  </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                  <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                    <strong class="text-dark d-block">Пробег</strong>
-                    {{ vehicle.mileage|default:"—" }} км
-                  </div>
-                </div>
-              </div>
-              {% if vehicle.description %}
-                <div class="text-muted small bg-light rounded-3 p-3">{{ vehicle.description }}</div>
-              {% endif %}
-              <div class="d-flex justify-content-end">
-                <div class="d-flex flex-wrap gap-2">
-                  <button
-                    class="btn btn-outline-primary"
-                    type="button"
-                    data-open-reserve
-                    data-vehicle-id="{{ vehicle.id }}"
-                    data-vehicle-name="{{ vehicle.name }}"
-                    {% if vehicle.status == 'reserved' or vehicle.active_reservation %}disabled{% endif %}
-                  >
-                    Забронировать
-                  </button>
-                  <button
-                    class="btn btn-primary"
-                    type="button"
-                    data-open-sale
-                    data-vehicle-id="{{ vehicle.id }}"
-                    data-vehicle-name="{{ vehicle.name }}"
-                    data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
-                    data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency }}"
-                    data-reservation-customer-id="{{ vehicle.active_reservation.customer.id|default:'' }}"
-                    data-reservation-customer-name="{{ vehicle.active_reservation.customer.full_name|default:'' }}"
-                    data-reservation-customer-phone="{{ vehicle.active_reservation.customer.phone|default:'' }}"
-                  >
-                    Продать
-                  </button>
-                </div>
-              </div>
+            </div>
+            <div>
+              <label class="form-label">Дата продажи (с)</label>
+              <input type="date" id="soldDateFrom" class="form-control form-control-lg" />
+            </div>
+            <div>
+              <label class="form-label">Дата продажи (по)</label>
+              <input type="date" id="soldDateTo" class="form-control form-control-lg" />
             </div>
           </div>
         </div>
       </div>
-    {% empty %}
+
       <div class="card shadow-sm">
         <div class="card-body">
-          <p class="text-muted mb-0">Витрина пустая. Добавьте авто в общем списке и переведите статус в продажу.</p>
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>
+                    <button type="button" class="btn btn-link p-0 fw-semibold text-decoration-none" data-sold-sort-key="vehicle">
+                      Машина
+                      <span class="text-muted ms-1" data-sold-sort-indicator="vehicle">↕</span>
+                    </button>
+                  </th>
+                  <th>Клиент</th>
+                  <th>Тип оплаты</th>
+                  <th>Сумма</th>
+                  <th>VIN</th>
+                  <th>
+                    <button type="button" class="btn btn-link p-0 fw-semibold text-decoration-none" data-sold-sort-key="date">
+                      Дата продажи
+                      <span class="text-muted ms-1" data-sold-sort-indicator="date">↕</span>
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="soldTableBody">
+                {% for deal in sold_deals %}
+                  <tr
+                    data-search-text="{{ deal.vehicle.name|lower }} {{ deal.customer.full_name|lower }} {{ deal.vehicle.vin|lower }}"
+                    data-sort-vehicle="{{ deal.vehicle.name|lower }}"
+                    data-sort-date="{{ deal.signed_at|date:'c' }}"
+                  >
+                    <td class="fw-semibold">{{ deal.vehicle.name }}</td>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <span>{{ deal.customer.full_name }}</span>
+                        <button
+                          type="button"
+                          class="btn btn-outline-secondary btn-sm"
+                          data-bs-toggle="modal"
+                          data-bs-target="#soldCustomerDetailsModal"
+                          data-customer-name="{{ deal.customer.full_name }}"
+                          data-customer-phone="{{ deal.customer.phone }}"
+                          data-customer-inn="{{ deal.customer.inn|default:'' }}"
+                          data-customer-pinfl="{{ deal.customer.pinfl|default:'' }}"
+                          data-customer-passport-series="{{ deal.customer.passport_series|default:'' }}"
+                          data-customer-passport-number="{{ deal.customer.passport_number|default:'' }}"
+                          data-customer-passport-issued="{{ deal.customer.passport_issued_by|default:'' }}"
+                          data-customer-address="{{ deal.customer.address|default:'' }}"
+                        >
+                          👁️
+                        </button>
+                      </div>
+                    </td>
+                    <td>{{ deal.get_financing_type_display }}</td>
+                    <td>
+                      {{ deal.sale_price }}
+                      {{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}
+                    </td>
+                    <td>{{ deal.vehicle.vin }}</td>
+                    <td>{{ deal.signed_at|date:'d.m.Y H:i' }}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6" class="text-muted">Проданных автомобилей пока нет.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    {% endfor %}
+    </div>
+  </div>
+
+  <div class="modal fade" id="soldCustomerDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Карточка клиента</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="small text-muted">ФИО</div>
+              <div class="fw-semibold" id="soldCustomerName">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Телефон</div>
+              <div id="soldCustomerPhone">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">ИНН</div>
+              <div id="soldCustomerInn">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">ПИНФЛ</div>
+              <div id="soldCustomerPinfl">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Серия паспорта</div>
+              <div id="soldCustomerPassportSeries">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Номер паспорта</div>
+              <div id="soldCustomerPassportNumber">—</div>
+            </div>
+            <div class="col-12">
+              <div class="small text-muted">Кем выдан</div>
+              <div id="soldCustomerPassportIssued">—</div>
+            </div>
+            <div class="col-12">
+              <div class="small text-muted">Адрес</div>
+              <div id="soldCustomerAddress">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="modal fade" id="sale-modal" tabindex="-1" aria-hidden="true">
@@ -590,6 +789,119 @@
     if (printButton) {
       printButton.addEventListener('click', () => {
         window.print();
+      });
+    }
+
+    const soldSearchInput = document.getElementById('soldSearch');
+    const soldDateFromInput = document.getElementById('soldDateFrom');
+    const soldDateToInput = document.getElementById('soldDateTo');
+    const soldTableBody = document.getElementById('soldTableBody');
+
+    const applySoldFilters = () => {
+      if (!soldTableBody) {
+        return;
+      }
+      const query = soldSearchInput ? soldSearchInput.value.trim().toLowerCase() : '';
+      const fromValue = soldDateFromInput ? soldDateFromInput.value : '';
+      const toValue = soldDateToInput ? soldDateToInput.value : '';
+      const fromDate = fromValue ? new Date(`${fromValue}T00:00:00`) : null;
+      const toDate = toValue ? new Date(`${toValue}T23:59:59`) : null;
+      const rows = soldTableBody.querySelectorAll('tr[data-search-text]');
+      rows.forEach((row) => {
+        const haystack = row.dataset.searchText || '';
+        const soldAt = row.dataset.sortDate ? new Date(row.dataset.sortDate) : null;
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesFrom = !fromDate || (soldAt && soldAt >= fromDate);
+        const matchesTo = !toDate || (soldAt && soldAt <= toDate);
+        row.classList.toggle('d-none', !(matchesQuery && matchesFrom && matchesTo));
+      });
+    };
+
+    if (soldSearchInput) {
+      soldSearchInput.addEventListener('input', applySoldFilters);
+    }
+    if (soldDateFromInput) {
+      soldDateFromInput.addEventListener('change', applySoldFilters);
+    }
+    if (soldDateToInput) {
+      soldDateToInput.addEventListener('change', applySoldFilters);
+    }
+
+    const soldSortButtons = document.querySelectorAll('[data-sold-sort-key]');
+    const soldSortIndicators = document.querySelectorAll('[data-sold-sort-indicator]');
+    let currentSoldSort = { key: 'vehicle', direction: 'asc' };
+
+    const updateSoldSortIndicators = () => {
+      soldSortIndicators.forEach((indicator) => {
+        const key = indicator.dataset.soldSortIndicator;
+        if (key === currentSoldSort.key) {
+          indicator.textContent = currentSoldSort.direction === 'asc' ? '↑' : '↓';
+        } else {
+          indicator.textContent = '↕';
+        }
+      });
+    };
+
+    const getSoldRowsArray = () => Array.from(soldTableBody?.querySelectorAll('tr[data-search-text]') || []);
+
+    const sortSoldRows = () => {
+      if (!soldTableBody) {
+        return;
+      }
+      const rows = getSoldRowsArray();
+      const multiplier = currentSoldSort.direction === 'asc' ? 1 : -1;
+      rows.sort((a, b) => {
+        if (currentSoldSort.key === 'date') {
+          const aDate = new Date(a.dataset.sortDate || 0).getTime();
+          const bDate = new Date(b.dataset.sortDate || 0).getTime();
+          return (aDate - bDate) * multiplier;
+        }
+        const aValue = a.dataset.sortVehicle || '';
+        const bValue = b.dataset.sortVehicle || '';
+        return aValue.localeCompare(bValue, 'ru') * multiplier;
+      });
+      rows.forEach((row) => soldTableBody.appendChild(row));
+      updateSoldSortIndicators();
+    };
+
+    if (soldSortButtons.length && soldTableBody) {
+      soldSortButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const key = button.dataset.soldSortKey;
+          if (currentSoldSort.key === key) {
+            currentSoldSort.direction = currentSoldSort.direction === 'asc' ? 'desc' : 'asc';
+          } else {
+            currentSoldSort.key = key;
+            currentSoldSort.direction = key === 'vehicle' ? 'desc' : 'asc';
+          }
+          sortSoldRows();
+        });
+      });
+      updateSoldSortIndicators();
+      sortSoldRows();
+    }
+
+    const soldCustomerModal = document.getElementById('soldCustomerDetailsModal');
+    if (soldCustomerModal) {
+      soldCustomerModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        if (!button) {
+          return;
+        }
+        const setText = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.textContent = value || '—';
+          }
+        };
+        setText('soldCustomerName', button.dataset.customerName);
+        setText('soldCustomerPhone', button.dataset.customerPhone);
+        setText('soldCustomerInn', button.dataset.customerInn);
+        setText('soldCustomerPinfl', button.dataset.customerPinfl);
+        setText('soldCustomerPassportSeries', button.dataset.customerPassportSeries);
+        setText('soldCustomerPassportNumber', button.dataset.customerPassportNumber);
+        setText('soldCustomerPassportIssued', button.dataset.customerPassportIssued);
+        setText('soldCustomerAddress', button.dataset.customerAddress);
       });
     }
   </script>
