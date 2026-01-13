@@ -384,10 +384,23 @@ def autosalon(request):
                         bank_amount_uzs = Decimal('0')
                         if remaining_amount > 0:
                             if sale_currency == Vehicle.Currency.USD:
-                                exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
-                                if exchange_rate:
-                                    bank_rate_used = exchange_rate.rate
-                                    bank_amount_uzs = remaining_amount * exchange_rate.rate
+                                posted_rate_value = request.POST.get('bank_rate_used')
+                                try:
+                                    posted_rate = (
+                                        Decimal(posted_rate_value)
+                                        if posted_rate_value not in (None, '')
+                                        else None
+                                    )
+                                except InvalidOperation:
+                                    posted_rate = None
+                                if posted_rate and posted_rate > 0:
+                                    bank_rate_used = posted_rate
+                                    bank_amount_uzs = remaining_amount * posted_rate
+                                else:
+                                    exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
+                                    if exchange_rate:
+                                        bank_rate_used = exchange_rate.rate
+                                        bank_amount_uzs = remaining_amount * exchange_rate.rate
                             else:
                                 bank_amount_uzs = remaining_amount
 

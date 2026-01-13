@@ -921,11 +921,12 @@
           <span class="badge rounded-pill text-bg-primary-subtle text-primary">Быстрый чек</span>
           <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
-        <form method="post">
+        <form method="post" id="sale-form">
           <div class="modal-body">
             {% csrf_token %}
             <input type="hidden" name="action" value="sell_vehicle">
             <input type="hidden" name="vehicle_id" id="sale-vehicle-id">
+            <input type="hidden" name="bank_rate_used" id="sale-bank-rate">
             <div class="row g-3">
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="customer_id" class="form-label">Клиент из базы</label>
@@ -1190,6 +1191,7 @@
 {% block extra_scripts %}
   <script>
     const saleModal = document.getElementById('sale-modal');
+    const saleForm = document.getElementById('sale-form');
     const saleVehicleId = document.getElementById('sale-vehicle-id');
     const saleModalTitle = document.getElementById('sale-modal-title');
     const salePriceInput = document.getElementById('sale_price');
@@ -1198,6 +1200,7 @@
     const downPaymentField = document.getElementById('down-payment-field');
     const downPaymentInput = document.getElementById('down_payment_amount');
     const downPaymentHint = document.getElementById('down-payment-hint');
+    const saleBankRateInput = document.getElementById('sale-bank-rate');
     const closeButtons = document.querySelectorAll('[data-close-sale]');
     const customerSelect = document.getElementById('customer_id');
     const customerFields = ['full_name', 'phone', 'passport_series', 'passport_number', 'passport_issued_by', 'address'];
@@ -1242,6 +1245,18 @@
         downPaymentHint.textContent = isCredit
           ? 'Остаток будет зачислен на банковский счет по текущему курсу.'
           : '';
+      }
+    };
+
+    const syncSaleBankRate = () => {
+      if (!saleBankRateInput) {
+        return;
+      }
+      const rate = window.cashStore?.getState?.().rate;
+      if (Number(rate)) {
+        saleBankRateInput.value = rate;
+      } else {
+        saleBankRateInput.value = '';
       }
     };
 
@@ -1354,8 +1369,15 @@
         }
         lockSaleCustomer(button);
         updateDownPaymentVisibility();
+        syncSaleBankRate();
       });
     });
+
+    if (saleForm) {
+      saleForm.addEventListener('submit', () => {
+        syncSaleBankRate();
+      });
+    }
 
     document.querySelectorAll('[data-open-reserve]').forEach((button) => {
       button.addEventListener('click', () => {
