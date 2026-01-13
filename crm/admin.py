@@ -123,7 +123,16 @@ class TestDriveAdmin(admin.ModelAdmin):
 
 @admin.register(models.Deal)
 class DealAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer', 'vehicle', 'manager', 'status', 'sale_price')
+    list_display = (
+        'id',
+        'customer',
+        'vehicle',
+        'manager',
+        'status',
+        'sale_price',
+        'down_payment_amount',
+        'bank_transfer_amount_uzs',
+    )
     list_filter = ('status', 'financing_type')
 
 
@@ -158,6 +167,11 @@ class VehicleExpenseAdmin(admin.ModelAdmin):
 
 @admin.register(models.CashAccount)
 class CashAccountAdmin(admin.ModelAdmin):
+    list_display = ('id', 'uzs_balance', 'usd_balance', 'updated_by', 'updated_at')
+
+
+@admin.register(models.BankAccount)
+class BankAccountAdmin(admin.ModelAdmin):
     list_display = ('id', 'uzs_balance', 'usd_balance', 'updated_by', 'updated_at')
 
 
