@@ -1387,6 +1387,14 @@
     const soldReceiptArea = document.getElementById('soldReceiptPrintArea');
     let currentPrintTarget = null;
     const formatNumber = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    const parseNumber = (value) => {
+      if (value === null || value === undefined) {
+        return 0;
+      }
+      const normalized = `${value}`.replace(/\s+/g, '').replace(',', '.');
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
 
     const updateDownPaymentVisibility = () => {
       if (!financingTypeSelect || !downPaymentField) {
@@ -1759,7 +1767,7 @@
 
         const currency = button.dataset.saleCurrency || '';
         const salePriceRaw = button.dataset.salePrice || '0';
-        const salePrice = Number(salePriceRaw) || 0;
+        const salePrice = parseNumber(salePriceRaw);
         const docNumber = button.dataset.receiptNumber || '—';
         const orderNumber = docNumber ? `SALE-${docNumber}` : '—';
         const vehicleMake = button.dataset.vehicleMake || '';
@@ -1865,8 +1873,8 @@
         };
         const salePriceRaw = button.dataset.salePrice || '0';
         const downPaymentRaw = button.dataset.downPayment || '0';
-        const salePrice = Number(salePriceRaw) || 0;
-        const downPayment = Number(downPaymentRaw) || 0;
+        const salePrice = parseNumber(salePriceRaw);
+        const downPayment = parseNumber(downPaymentRaw);
         const creditAmount = Math.max(salePrice - downPayment, 0);
         const currency = button.dataset.saleCurrency || '';
         const financingType = button.dataset.financingType || '';
