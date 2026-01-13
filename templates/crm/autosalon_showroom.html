@@ -259,6 +259,19 @@
         top: 0;
         right: 0;
       }
+
+      .credit-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        margin: 0;
+      }
+
+      .credit-summary-grid > .credit-summary-item {
+        padding: 0;
+        flex: 0 0 auto;
+        max-width: none;
+      }
     }
   </style>
 {% endblock %}
@@ -441,6 +454,20 @@
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
+        id="autosalon-credit-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#autosalon-credit"
+        type="button"
+        role="tab"
+        aria-controls="autosalon-credit"
+        aria-selected="false"
+      >
+        Кредитный калькулятор
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
         id="autosalon-sold-tab"
         data-bs-toggle="tab"
         data-bs-target="#autosalon-sold"
@@ -572,6 +599,16 @@
                         Забронировать
                       </button>
                       <button
+                        class="btn btn-outline-success"
+                        type="button"
+                        data-open-credit
+                        data-vehicle-name="{{ vehicle.name }}"
+                        data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                        data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                      >
+                        Кредит
+                      </button>
+                      <button
                         class="btn btn-primary"
                         type="button"
                         data-open-sale
@@ -598,6 +635,120 @@
             </div>
           </div>
         {% endfor %}
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="autosalon-credit" role="tabpanel" aria-labelledby="autosalon-credit-tab">
+      <div id="credit-print-area">
+        <div class="row g-4">
+        <div class="col-12 col-lg-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 d-print-none">
+                <span class="badge text-bg-success px-3 py-2" id="credit-selected-vehicle">Автомобиль не выбран</span>
+                <button class="btn btn-outline-primary btn-sm" type="button" id="print-credit-schedule">
+                  Печать графика
+                </button>
+              </div>
+              <h3 class="h6 mb-3">Параметры кредита</h3>
+              <div class="vstack gap-3">
+                <div>
+                  <label class="form-label" for="credit-vehicle-price">Стоимость автомобиля</label>
+                  <div class="input-group">
+                    <input type="number" min="0" step="0.01" class="form-control" id="credit-vehicle-price" placeholder="Например, 250000000">
+                    <span class="input-group-text" id="credit-currency-label">UZS</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label" for="credit-down-payment-type">Первоначальный взнос</label>
+                  <div class="input-group">
+                    <select class="form-select" id="credit-down-payment-type">
+                      <option value="percent">В процентах</option>
+                      <option value="amount">В сумме</option>
+                    </select>
+                    <input type="number" min="0" step="0.01" class="form-control" id="credit-down-payment-value" placeholder="Например, 20">
+                    <span class="input-group-text" id="credit-down-payment-suffix">%</span>
+                  </div>
+                  <div class="form-text" id="credit-down-payment-hint">Введите процент от стоимости автомобиля.</div>
+                </div>
+                <div>
+                  <label class="form-label" for="credit-annual-rate">Годовая процентная ставка</label>
+                  <div class="input-group">
+                    <input type="number" min="0" step="0.01" class="form-control" id="credit-annual-rate" placeholder="Например, 24">
+                    <span class="input-group-text">%</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label" for="credit-months">Срок кредита (в месяцах)</label>
+                  <input type="number" min="1" step="1" class="form-control" id="credit-months" placeholder="Например, 36">
+                </div>
+                <div>
+                  <label class="form-label" for="credit-start-date">Дата первого платежа</label>
+                  <input type="date" class="form-control" id="credit-start-date">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-8">
+          <div class="card shadow-sm mb-4">
+            <div class="card-body">
+              <h3 class="h6 mb-3">Итоги расчета</h3>
+              <div class="row g-3 credit-summary-grid">
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Сумма кредита</div>
+                    <div class="fw-semibold fs-5" id="credit-summary-amount">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Ежемесячный платеж</div>
+                    <div class="fw-semibold fs-5" id="credit-summary-monthly">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Общая сумма выплат</div>
+                    <div class="fw-semibold" id="credit-summary-total">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Переплата по кредиту</div>
+                    <div class="fw-semibold" id="credit-summary-overpay">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h3 class="h6 mb-3">График платежей</h3>
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>№</th>
+                      <th>Дата платежа</th>
+                      <th class="text-end">Платеж</th>
+                      <th class="text-end">Проценты</th>
+                      <th class="text-end">Основной долг</th>
+                      <th class="text-end">Остаток</th>
+                    </tr>
+                  </thead>
+                  <tbody id="credit-schedule-body">
+                    <tr>
+                      <td colspan="6" class="text-muted">Заполните параметры кредита для расчета графика.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       </div>
     </div>
 
@@ -1385,6 +1536,24 @@
     const employeeSelects = document.querySelectorAll('[data-employee-select]');
     const saleReceiptArea = document.getElementById('sale-receipt');
     const soldReceiptArea = document.getElementById('soldReceiptPrintArea');
+    const creditPrintButton = document.getElementById('print-credit-schedule');
+    const creditPrintArea = document.getElementById('credit-print-area');
+    const creditTabButton = document.getElementById('autosalon-credit-tab');
+    const creditVehicleBadge = document.getElementById('credit-selected-vehicle');
+    const creditVehiclePriceInput = document.getElementById('credit-vehicle-price');
+    const creditCurrencyLabel = document.getElementById('credit-currency-label');
+    const creditDownPaymentType = document.getElementById('credit-down-payment-type');
+    const creditDownPaymentValue = document.getElementById('credit-down-payment-value');
+    const creditDownPaymentSuffix = document.getElementById('credit-down-payment-suffix');
+    const creditDownPaymentHint = document.getElementById('credit-down-payment-hint');
+    const creditAnnualRateInput = document.getElementById('credit-annual-rate');
+    const creditMonthsInput = document.getElementById('credit-months');
+    const creditStartDateInput = document.getElementById('credit-start-date');
+    const creditSummaryAmount = document.getElementById('credit-summary-amount');
+    const creditSummaryMonthly = document.getElementById('credit-summary-monthly');
+    const creditSummaryTotal = document.getElementById('credit-summary-total');
+    const creditSummaryOverpay = document.getElementById('credit-summary-overpay');
+    const creditScheduleBody = document.getElementById('credit-schedule-body');
     let currentPrintTarget = null;
     const formatNumber = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const parseNumber = (value) => {
@@ -1394,6 +1563,146 @@
       const normalized = `${value}`.replace(/\s+/g, '').replace(',', '.');
       const parsed = Number(normalized);
       return Number.isFinite(parsed) ? parsed : 0;
+    };
+
+    const toMoney = (value, currencyLabel) => {
+      const safeValue = Number.isFinite(value) ? value : 0;
+      const formatted = formatNumber(safeValue.toFixed(2));
+      return `${formatted} ${currencyLabel}`.trim();
+    };
+
+    const setCreditSummary = (values, currencyLabel) => {
+      if (!creditSummaryAmount || !creditSummaryMonthly || !creditSummaryTotal || !creditSummaryOverpay) {
+        return;
+      }
+      creditSummaryAmount.textContent = toMoney(values.amount, currencyLabel);
+      creditSummaryMonthly.textContent = toMoney(values.monthly, currencyLabel);
+      creditSummaryTotal.textContent = toMoney(values.total, currencyLabel);
+      creditSummaryOverpay.textContent = toMoney(values.overpay, currencyLabel);
+    };
+
+    const updateCreditDownPaymentUI = () => {
+      if (!creditDownPaymentType || !creditDownPaymentSuffix || !creditDownPaymentHint) {
+        return;
+      }
+      const isPercent = creditDownPaymentType.value === 'percent';
+      creditDownPaymentSuffix.textContent = isPercent ? '%' : (creditCurrencyLabel?.textContent || 'UZS');
+      creditDownPaymentHint.textContent = isPercent
+        ? 'Введите процент от стоимости автомобиля.'
+        : 'Введите сумму первоначального взноса.';
+    };
+
+    const buildPaymentDate = (baseDate, index) => {
+      const date = new Date(baseDate);
+      if (Number.isNaN(date.getTime())) {
+        return null;
+      }
+      date.setMonth(date.getMonth() + index);
+      return date;
+    };
+
+    const renderCreditSchedule = (schedule, currencyLabel) => {
+      if (!creditScheduleBody) {
+        return;
+      }
+      creditScheduleBody.innerHTML = '';
+      if (!schedule.length) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="6" class="text-muted">Заполните параметры кредита для расчета графика.</td>';
+        creditScheduleBody.appendChild(row);
+        return;
+      }
+      schedule.forEach((item) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.index}</td>
+          <td>${item.dateLabel}</td>
+          <td class="text-end">${toMoney(item.payment, currencyLabel)}</td>
+          <td class="text-end">${toMoney(item.interest, currencyLabel)}</td>
+          <td class="text-end">${toMoney(item.principal, currencyLabel)}</td>
+          <td class="text-end">${toMoney(item.balance, currencyLabel)}</td>
+        `;
+        creditScheduleBody.appendChild(row);
+      });
+    };
+
+    const calculateCreditSchedule = () => {
+      if (!creditVehiclePriceInput || !creditDownPaymentValue || !creditAnnualRateInput || !creditMonthsInput) {
+        return;
+      }
+      const currencyLabel = creditCurrencyLabel?.textContent || 'UZS';
+      const price = parseNumber(creditVehiclePriceInput.value);
+      const downPaymentRaw = parseNumber(creditDownPaymentValue.value);
+      const isPercent = creditDownPaymentType?.value === 'percent';
+      const downPaymentAmount = isPercent ? (price * downPaymentRaw) / 100 : downPaymentRaw;
+      const cappedDownPayment = Math.min(downPaymentAmount, price);
+      const creditAmount = Math.max(price - cappedDownPayment, 0);
+      const months = Math.max(parseInt(creditMonthsInput.value, 10) || 0, 0);
+      const annualRate = parseNumber(creditAnnualRateInput.value);
+      const monthlyRate = annualRate > 0 ? annualRate / 12 / 100 : 0;
+      const startDateValue = creditStartDateInput?.value;
+      const baseDate = startDateValue ? new Date(`${startDateValue}T00:00:00`) : new Date();
+
+      if (!price || !months) {
+        setCreditSummary({ amount: 0, monthly: 0, total: 0, overpay: 0 }, currencyLabel);
+        renderCreditSchedule([], currencyLabel);
+        return;
+      }
+
+      let monthlyPayment = 0;
+      if (monthlyRate === 0) {
+        monthlyPayment = creditAmount / months;
+      } else {
+        const factor = Math.pow(1 + monthlyRate, months);
+        monthlyPayment = creditAmount * (monthlyRate * factor) / (factor - 1);
+      }
+
+      let balance = creditAmount;
+      const schedule = [];
+      let totalPaid = 0;
+
+      for (let index = 1; index <= months; index += 1) {
+        const interest = balance * monthlyRate;
+        let principal = monthlyPayment - interest;
+        if (index === months) {
+          principal = balance;
+        }
+        const payment = principal + interest;
+        balance = Math.max(balance - principal, 0);
+        totalPaid += payment;
+        const paymentDate = buildPaymentDate(baseDate, index - 1);
+        const dateLabel = paymentDate ? paymentDate.toLocaleDateString('ru-RU') : '—';
+        schedule.push({
+          index,
+          dateLabel,
+          payment,
+          interest,
+          principal,
+          balance,
+        });
+      }
+
+      setCreditSummary(
+        {
+          amount: creditAmount,
+          monthly: monthlyPayment,
+          total: totalPaid,
+          overpay: totalPaid - creditAmount,
+        },
+        currencyLabel,
+      );
+      renderCreditSchedule(schedule, currencyLabel);
+    };
+
+    const syncCreditStartDate = () => {
+      if (!creditStartDateInput) {
+        return;
+      }
+      if (!creditStartDateInput.value) {
+        const today = new Date();
+        const isoDate = today.toISOString().slice(0, 10);
+        creditStartDateInput.value = isoDate;
+      }
     };
 
     const updateDownPaymentVisibility = () => {
@@ -1476,6 +1785,8 @@
     };
 
     populateEmployeeSelects();
+    syncCreditStartDate();
+    updateCreditDownPaymentUI();
 
     const toggleCustomerFields = (disabled) => {
       customerFields.forEach((fieldId) => {
@@ -1534,6 +1845,29 @@
         lockSaleCustomer(button);
         updateDownPaymentVisibility();
         syncSaleBankRate();
+      });
+    });
+
+    document.querySelectorAll('[data-open-credit]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const price = button.dataset.vehiclePrice || '';
+        const currency = button.dataset.vehicleCurrency?.toUpperCase() || 'UZS';
+        if (creditVehiclePriceInput) {
+          creditVehiclePriceInput.value = price;
+        }
+        if (creditCurrencyLabel) {
+          creditCurrencyLabel.textContent = currency;
+        }
+        if (creditVehicleBadge) {
+          const vehicleName = button.dataset.vehicleName || 'Автомобиль';
+          creditVehicleBadge.textContent = `${vehicleName} · ${currency}`;
+        }
+        updateCreditDownPaymentUI();
+        calculateCreditSchedule();
+        if (creditTabButton) {
+          const creditTab = bootstrap.Tab.getOrCreateInstance(creditTabButton);
+          creditTab.show();
+        }
       });
     });
 
@@ -1607,6 +1941,33 @@
       });
     }
 
+    if (creditDownPaymentType) {
+      creditDownPaymentType.addEventListener('change', () => {
+        updateCreditDownPaymentUI();
+        calculateCreditSchedule();
+      });
+    }
+
+    if (creditVehiclePriceInput) {
+      creditVehiclePriceInput.addEventListener('input', calculateCreditSchedule);
+    }
+
+    if (creditDownPaymentValue) {
+      creditDownPaymentValue.addEventListener('input', calculateCreditSchedule);
+    }
+
+    if (creditAnnualRateInput) {
+      creditAnnualRateInput.addEventListener('input', calculateCreditSchedule);
+    }
+
+    if (creditMonthsInput) {
+      creditMonthsInput.addEventListener('input', calculateCreditSchedule);
+    }
+
+    if (creditStartDateInput) {
+      creditStartDateInput.addEventListener('change', calculateCreditSchedule);
+    }
+
     if (financingTypeSelect) {
       financingTypeSelect.addEventListener('change', updateDownPaymentVisibility);
       updateDownPaymentVisibility();
@@ -1626,6 +1987,18 @@
         currentPrintTarget = saleReceiptArea;
         document.body.classList.add('print-receipt-active');
         saleReceiptArea.classList.add('is-print-target');
+        window.print();
+      });
+    }
+
+    if (creditPrintButton) {
+      creditPrintButton.addEventListener('click', () => {
+        if (!creditPrintArea) {
+          return;
+        }
+        currentPrintTarget = creditPrintArea;
+        document.body.classList.add('print-receipt-active');
+        creditPrintArea.classList.add('is-print-target');
         window.print();
       });
     }
