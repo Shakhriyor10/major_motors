@@ -18,7 +18,7 @@
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-6">
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -42,6 +42,40 @@
                 <button class="btn btn-primary" type="submit">Обновить кассу</button>
               </div>
             </form>
+            <form method="post" class="mt-4 border-top pt-3">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="update_bank_account">
+              <h6 class="text-uppercase text-muted small mb-3">Банковский счет</h6>
+              <div class="row g-3">
+                <div class="col-12">
+                  <label for="bank-uzs-balance" class="form-label">Сум (UZS)</label>
+                  <input
+                    type="number"
+                    id="bank-uzs-balance"
+                    name="bank_uzs_balance"
+                    min="0"
+                    step="0.01"
+                    value="{{ bank_account.uzs_balance|unlocalize }}"
+                    class="form-control"
+                  >
+                </div>
+                <div class="col-12">
+                  <label for="bank-usd-balance" class="form-label">Доллар (USD)</label>
+                  <input
+                    type="number"
+                    id="bank-usd-balance"
+                    name="bank_usd_balance"
+                    min="0"
+                    step="0.01"
+                    value="{{ bank_account.usd_balance|unlocalize }}"
+                    class="form-control"
+                  >
+                </div>
+              </div>
+              <div class="d-flex justify-content-end mt-3">
+                <button class="btn btn-outline-primary" type="submit">Обновить счет</button>
+              </div>
+            </form>
           {% else %}
             <p class="text-muted mt-3">Текущую кассу может менять только суперпользователь.</p>
             <div class="row g-3">
@@ -54,12 +88,24 @@
                 <input type="text" value="{{ cash_account.usd_balance|unlocalize }}" class="form-control" readonly>
               </div>
             </div>
+            <div class="border-top pt-3 mt-3">
+              <h6 class="text-uppercase text-muted small mb-3">Банковский счет</h6>
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Сум (UZS)</label>
+                  <input type="text" value="{{ bank_account.uzs_balance|unlocalize }}" class="form-control" readonly>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Доллар (USD)</label>
+                  <input type="text" value="{{ bank_account.usd_balance|unlocalize }}" class="form-control" readonly>
+                </div>
+              </div>
+            </div>
           {% endif %}
         </div>
       </div>
     </div>
-
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-6">
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">

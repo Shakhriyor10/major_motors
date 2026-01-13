@@ -950,6 +950,18 @@
                   <option value="trade_in">Трейд-ин</option>
                 </select>
               </div>
+              <div class="col-12 col-md-6 col-lg-4" id="down-payment-field" hidden>
+                <label for="down_payment_amount" class="form-label">Первоначальный взнос</label>
+                <input
+                  id="down_payment_amount"
+                  name="down_payment_amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="form-control"
+                >
+                <div class="form-text" id="down-payment-hint">Остаток будет зачислен на банковский счет по текущему курсу.</div>
+              </div>
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="sale-manager" class="form-label">Сотрудник (кем продано)</label>
                 <select
@@ -1182,6 +1194,10 @@
     const saleModalTitle = document.getElementById('sale-modal-title');
     const salePriceInput = document.getElementById('sale_price');
     const saleCurrencyHint = document.getElementById('sale-currency-hint');
+    const financingTypeSelect = document.getElementById('financing_type');
+    const downPaymentField = document.getElementById('down-payment-field');
+    const downPaymentInput = document.getElementById('down_payment_amount');
+    const downPaymentHint = document.getElementById('down-payment-hint');
     const closeButtons = document.querySelectorAll('[data-close-sale]');
     const customerSelect = document.getElementById('customer_id');
     const customerFields = ['full_name', 'phone', 'passport_series', 'passport_number', 'passport_issued_by', 'address'];
@@ -1212,6 +1228,22 @@
     const saleReceiptArea = document.getElementById('sale-receipt');
     const soldReceiptArea = document.getElementById('soldReceiptPrintArea');
     let currentPrintTarget = null;
+
+    const updateDownPaymentVisibility = () => {
+      if (!financingTypeSelect || !downPaymentField) {
+        return;
+      }
+      const isCredit = financingTypeSelect.value === 'credit';
+      downPaymentField.hidden = !isCredit;
+      if (!isCredit && downPaymentInput) {
+        downPaymentInput.value = '';
+      }
+      if (downPaymentHint) {
+        downPaymentHint.textContent = isCredit
+          ? 'Остаток будет зачислен на банковский счет по текущему курсу.'
+          : '';
+      }
+    };
 
     const loadItems = (key) => {
       try {
@@ -1321,6 +1353,7 @@
           saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
         }
         lockSaleCustomer(button);
+        updateDownPaymentVisibility();
       });
     });
 
@@ -1386,6 +1419,11 @@
       customerSelect.addEventListener('change', () => {
         toggleCustomerFields(Boolean(customerSelect.value));
       });
+    }
+
+    if (financingTypeSelect) {
+      financingTypeSelect.addEventListener('change', updateDownPaymentVisibility);
+      updateDownPaymentVisibility();
     }
 
     if (reserveCustomerSelect) {

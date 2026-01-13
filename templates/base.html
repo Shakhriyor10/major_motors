@@ -10,6 +10,8 @@
 </head>
 <body class="bg-light" data-cash-uzs="{{ cash_account.uzs_balance|default:0|unlocalize }}"
       data-cash-usd="{{ cash_account.usd_balance|default:0|unlocalize }}"
+      data-bank-uzs="{{ bank_account.uzs_balance|default:0|unlocalize }}"
+      data-bank-usd="{{ bank_account.usd_balance|default:0|unlocalize }}"
       data-cash-rate="{{ cash_rate|default:0|unlocalize }}"
       data-cash-updated="{{ cash_account.updated_at|date:'c' }}">
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-print-none">
@@ -36,11 +38,18 @@
           <li class="nav-item"><a class="nav-link" href="/roles/">Роли</a></li>
         </ul>
         <div class="d-flex align-items-center gap-3 text-white">
-          <div class="text-end">
-            <div class="small text-white-50">Касса</div>
+          <button
+            class="btn btn-link text-white text-end p-0 text-decoration-none"
+            type="button"
+            id="open-balance-modal"
+          >
+            <div class="small text-white-50">Касса и счет</div>
             <div class="fw-semibold" id="navbar-uzs">-- UZS</div>
             <div class="small" id="navbar-usd">-- USD</div>
-          </div>
+            <div class="small text-white-50 mt-1">Счет</div>
+            <div class="small" id="navbar-bank-uzs">-- UZS</div>
+            <div class="small" id="navbar-bank-usd">-- USD</div>
+          </button>
           <button class="btn btn-outline-light btn-sm" id="open-conversion-modal" type="button" aria-label="Конвертация валюты">⇄</button>
           {% if request.user.is_authenticated %}
             <div class="text-end">
@@ -103,11 +112,50 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="balance-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Касса и банковский счет</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-4">
+            <h6 class="text-uppercase text-muted small">Касса</h6>
+            <div class="d-flex justify-content-between">
+              <span>Сум (UZS)</span>
+              <strong id="modal-cash-uzs">--</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Доллар (USD)</span>
+              <strong id="modal-cash-usd">--</strong>
+            </div>
+          </div>
+          <div>
+            <h6 class="text-uppercase text-muted small">Банковский счет</h6>
+            <div class="d-flex justify-content-between">
+              <span>Сум (UZS)</span>
+              <strong id="modal-bank-uzs">--</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Доллар (USD)</span>
+              <strong id="modal-bank-usd">--</strong>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <a class="btn btn-primary" href="/cash/">Открыть кассу</a>
+        </div>
+      </div>
+    </div>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const initialUzs = Number(document.body.dataset.cashUzs || 0);
     const initialUsd = Number(document.body.dataset.cashUsd || 0);
     const initialRate = Number(document.body.dataset.cashRate || 0);
+    const initialBankUzs = Number(document.body.dataset.bankUzs || 0);
+    const initialBankUsd = Number(document.body.dataset.bankUsd || 0);
     const serverUpdatedAt = document.body.dataset.cashUpdated || '';
     const SERVER_UPDATED_KEY = 'crm_cash_server_updated_v1';
     const cashStore = (() => {
@@ -160,11 +208,19 @@
       const state = cashStore.getState();
       const uzsEl = document.getElementById('navbar-uzs');
       const usdEl = document.getElementById('navbar-usd');
+      const bankUzsEl = document.getElementById('navbar-bank-uzs');
+      const bankUsdEl = document.getElementById('navbar-bank-usd');
       if (uzsEl) {
         uzsEl.textContent = formatCurrency(state.uzs, 'uzs');
       }
       if (usdEl) {
         usdEl.textContent = formatCurrency(state.usd, 'usd');
+      }
+      if (bankUzsEl) {
+        bankUzsEl.textContent = formatCurrency(initialBankUzs, 'uzs');
+      }
+      if (bankUsdEl) {
+        bankUsdEl.textContent = formatCurrency(initialBankUsd, 'usd');
       }
     };
 
@@ -174,6 +230,9 @@
     const form = document.getElementById('conversion-form');
     const rateInput = document.getElementById('conversion-rate');
     const conversionModal = modal ? bootstrap.Modal.getOrCreateInstance(modal) : null;
+    const balanceModalEl = document.getElementById('balance-modal');
+    const balanceModal = balanceModalEl ? bootstrap.Modal.getOrCreateInstance(balanceModalEl) : null;
+    const openBalanceButton = document.getElementById('open-balance-modal');
 
     const openModal = () => {
       const state = cashStore.getState();
@@ -185,8 +244,32 @@
       form.reset();
     };
 
+    const openBalanceModal = () => {
+      const state = cashStore.getState();
+      const modalCashUzs = document.getElementById('modal-cash-uzs');
+      const modalCashUsd = document.getElementById('modal-cash-usd');
+      const modalBankUzs = document.getElementById('modal-bank-uzs');
+      const modalBankUsd = document.getElementById('modal-bank-usd');
+      if (modalCashUzs) {
+        modalCashUzs.textContent = formatCurrency(state.uzs, 'uzs');
+      }
+      if (modalCashUsd) {
+        modalCashUsd.textContent = formatCurrency(state.usd, 'usd');
+      }
+      if (modalBankUzs) {
+        modalBankUzs.textContent = formatCurrency(initialBankUzs, 'uzs');
+      }
+      if (modalBankUsd) {
+        modalBankUsd.textContent = formatCurrency(initialBankUsd, 'usd');
+      }
+      balanceModal?.show();
+    };
+
     if (openButton) {
       openButton.addEventListener('click', openModal);
+    }
+    if (openBalanceButton) {
+      openBalanceButton.addEventListener('click', openBalanceModal);
     }
     if (cancelButton) {
       cancelButton.addEventListener('click', closeModal);

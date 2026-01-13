@@ -12,6 +12,7 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 
 from .models import (
+    BankAccount,
     CashAccount,
     CashConversion,
     CashEmployee,
@@ -349,6 +350,7 @@ def autosalon(request):
                 )
 
                 cash_account = CashAccount.get_current()
+                bank_account = BankAccount.get_current()
                 sale_currency = vehicle.sale_currency or vehicle.purchase_currency or Vehicle.Currency.UZS
                 if vehicle.acquisition_type == Vehicle.AcquisitionType.CONSIGNMENT:
                     profit_amount = sale_price_value - (vehicle.purchase_price or Decimal('0'))
@@ -359,12 +361,51 @@ def autosalon(request):
                         cash_account.uzs_balance += profit_amount
                         cash_account.save(update_fields=['uzs_balance', 'updated_at'])
                 else:
-                    if sale_currency == Vehicle.Currency.USD:
-                        cash_account.usd_balance += sale_price_value
-                        cash_account.save(update_fields=['usd_balance', 'updated_at'])
+                    financing_type = request.POST.get('financing_type') or Deal.FinancingType.CASH
+                    down_payment_value = request.POST.get('down_payment_amount')
+                    try:
+                        down_payment = Decimal(down_payment_value) if down_payment_value not in (None, '') else Decimal('0')
+                    except InvalidOperation:
+                        down_payment = Decimal('0')
+                    if down_payment < 0:
+                        down_payment = Decimal('0')
+                    if down_payment > sale_price_value:
+                        down_payment = sale_price_value
+                    if financing_type == Deal.FinancingType.CREDIT:
+                        if sale_currency == Vehicle.Currency.USD:
+                            cash_account.usd_balance += down_payment
+                            cash_account.save(update_fields=['usd_balance', 'updated_at'])
+                        else:
+                            cash_account.uzs_balance += down_payment
+                            cash_account.save(update_fields=['uzs_balance', 'updated_at'])
+
+                        remaining_amount = sale_price_value - down_payment
+                        bank_rate_used = None
+                        bank_amount_uzs = Decimal('0')
+                        if remaining_amount > 0:
+                            if sale_currency == Vehicle.Currency.USD:
+                                exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
+                                if exchange_rate:
+                                    bank_rate_used = exchange_rate.rate
+                                    bank_amount_uzs = remaining_amount * exchange_rate.rate
+                            else:
+                                bank_amount_uzs = remaining_amount
+
+                        if bank_amount_uzs > 0:
+                            bank_account.uzs_balance += bank_amount_uzs
+                            bank_account.save(update_fields=['uzs_balance', 'updated_at'])
+
+                        deal.down_payment_amount = down_payment
+                        deal.bank_transfer_amount_uzs = bank_amount_uzs
+                        deal.bank_rate_used = bank_rate_used
+                        deal.save(update_fields=['down_payment_amount', 'bank_transfer_amount_uzs', 'bank_rate_used'])
                     else:
-                        cash_account.uzs_balance += sale_price_value
-                        cash_account.save(update_fields=['uzs_balance', 'updated_at'])
+                        if sale_currency == Vehicle.Currency.USD:
+                            cash_account.usd_balance += sale_price_value
+                            cash_account.save(update_fields=['usd_balance', 'updated_at'])
+                        else:
+                            cash_account.uzs_balance += sale_price_value
+                            cash_account.save(update_fields=['uzs_balance', 'updated_at'])
 
                 vehicle.stock_count = max(vehicle.stock_count - 1, 0)
                 if vehicle.stock_count == 0:
@@ -559,8 +600,16 @@ def deals(request):
 @login_required
 def cash_dashboard(request):
     cash_account = CashAccount.get_current()
+    bank_account = BankAccount.get_current()
     if request.method == 'POST' and request.user.is_superuser:
+        action = request.POST.get('action')
         try:
+            if action == 'update_bank_account':
+                bank_account.uzs_balance = Decimal(request.POST.get('bank_uzs_balance', bank_account.uzs_balance))
+                bank_account.usd_balance = Decimal(request.POST.get('bank_usd_balance', bank_account.usd_balance))
+                bank_account.updated_by = request.user
+                bank_account.save(update_fields=['uzs_balance', 'usd_balance', 'updated_by', 'updated_at'])
+                return redirect('/cash/?reset_cash=1')
             cash_account.uzs_balance = Decimal(request.POST.get('uzs_balance', cash_account.uzs_balance))
             cash_account.usd_balance = Decimal(request.POST.get('usd_balance', cash_account.usd_balance))
         except (InvalidOperation, TypeError):
@@ -600,6 +649,7 @@ def cash_dashboard(request):
         'crm/cash.html',
         {
             'cash_account': cash_account,
+            'bank_account': bank_account,
             'exchange_rate': exchange_rate,
             'conversions': conversions,
             'incomes': incomes,
