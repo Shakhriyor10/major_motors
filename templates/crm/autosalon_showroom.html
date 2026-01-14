@@ -646,9 +646,14 @@
             <div class="card-body">
               <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 d-print-none">
                 <span class="badge text-bg-success px-3 py-2" id="credit-selected-vehicle">Автомобиль не выбран</span>
-                <button class="btn btn-outline-primary btn-sm" type="button" id="print-credit-schedule">
-                  Печать графика
-                </button>
+                <div class="d-flex flex-column align-items-end gap-2">
+                  <button class="btn btn-outline-primary btn-sm" type="button" id="print-credit-schedule">
+                    Печать графика
+                  </button>
+                  <button class="btn btn-outline-success btn-sm" type="button" id="export-credit-excel">
+                    Экспорт в Excel
+                  </button>
+                </div>
               </div>
               <h3 class="h6 mb-3">Параметры кредита</h3>
               <div class="vstack gap-3">
@@ -1538,6 +1543,7 @@
     const soldReceiptArea = document.getElementById('soldReceiptPrintArea');
     const creditPrintButton = document.getElementById('print-credit-schedule');
     const creditPrintArea = document.getElementById('credit-print-area');
+    const creditExportButton = document.getElementById('export-credit-excel');
     const creditTabButton = document.getElementById('autosalon-credit-tab');
     const creditVehicleBadge = document.getElementById('credit-selected-vehicle');
     const creditVehiclePriceInput = document.getElementById('credit-vehicle-price');
@@ -1555,6 +1561,8 @@
     const creditSummaryOverpay = document.getElementById('credit-summary-overpay');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
     let currentPrintTarget = null;
+    let currentCreditSchedule = [];
+    let currentCreditCurrencyLabel = 'UZS';
     const formatNumber = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const parseNumber = (value) => {
       if (value === null || value === undefined) {
@@ -1631,6 +1639,7 @@
         return;
       }
       const currencyLabel = creditCurrencyLabel?.textContent || 'UZS';
+      currentCreditCurrencyLabel = currencyLabel;
       const price = parseNumber(creditVehiclePriceInput.value);
       const downPaymentRaw = parseNumber(creditDownPaymentValue.value);
       const isPercent = creditDownPaymentType?.value === 'percent';
@@ -1646,6 +1655,7 @@
       if (!price || !months) {
         setCreditSummary({ amount: 0, monthly: 0, total: 0, overpay: 0 }, currencyLabel);
         renderCreditSchedule([], currencyLabel);
+        currentCreditSchedule = [];
         return;
       }
 
@@ -1691,6 +1701,7 @@
         },
         currencyLabel,
       );
+      currentCreditSchedule = schedule;
       renderCreditSchedule(schedule, currencyLabel);
     };
 
@@ -2001,6 +2012,71 @@
         creditPrintArea.classList.add('is-print-target');
         window.print();
       });
+    }
+
+    const escapeCsvField = (value) => {
+      const stringValue = value === null || value === undefined ? '' : `${value}`;
+      if (/[\";\n\r]/.test(stringValue)) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
+    const downloadCsv = (rows, fileName) => {
+      const content = rows
+        .map((row) => row.map(escapeCsvField).join(';'))
+        .join('\r\n');
+      const blob = new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
+
+    const exportCreditToExcel = () => {
+      const vehicleLabel = creditVehicleBadge?.textContent?.trim() || 'Автомобиль';
+      const summaryAmount = creditSummaryAmount?.textContent?.trim() || '—';
+      const summaryMonthly = creditSummaryMonthly?.textContent?.trim() || '—';
+      const summaryTotal = creditSummaryTotal?.textContent?.trim() || '—';
+      const summaryOverpay = creditSummaryOverpay?.textContent?.trim() || '—';
+      const rows = [
+        ['Кредитный калькулятор', vehicleLabel],
+        [],
+        ['Итоги расчета'],
+        ['Сумма кредита', summaryAmount],
+        ['Ежемесячный платеж', summaryMonthly],
+        ['Общая сумма выплат', summaryTotal],
+        ['Переплата по кредиту', summaryOverpay],
+        [],
+        ['График платежей'],
+        ['№', 'Дата платежа', 'Платеж', 'Проценты', 'Основной долг', 'Остаток'],
+      ];
+
+      if (!currentCreditSchedule.length) {
+        rows.push(['—', '—', '—', '—', '—', '—']);
+      } else {
+        currentCreditSchedule.forEach((item) => {
+          rows.push([
+            item.index,
+            item.dateLabel,
+            toMoney(item.payment, currentCreditCurrencyLabel),
+            toMoney(item.interest, currentCreditCurrencyLabel),
+            toMoney(item.principal, currentCreditCurrencyLabel),
+            toMoney(item.balance, currentCreditCurrencyLabel),
+          ]);
+        });
+      }
+
+      const timestamp = new Date().toISOString().slice(0, 10);
+      downloadCsv(rows, `credit_schedule_${timestamp}.csv`);
+    };
+
+    if (creditExportButton) {
+      creditExportButton.addEventListener('click', exportCreditToExcel);
     }
 
     const soldSearchInput = document.getElementById('soldSearch');
