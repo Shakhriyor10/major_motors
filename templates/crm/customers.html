@@ -124,6 +124,12 @@
                     data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
                     data-customer-address="{{ customer.address|default:'' }}"
                     data-customer-notes="{{ customer.notes|default:'' }}"
+                    data-customer-contract-number="{{ customer.contract_number|default:'' }}"
+                    data-customer-contract-file="{% if customer.contract_file %}{{ customer.contract_file.url }}{% endif %}"
+                    data-customer-contract-file-second="{% if customer.contract_file_second %}{{ customer.contract_file_second.url }}{% endif %}"
+                    data-customer-power-of-attorney-file="{% if customer.power_of_attorney_file %}{{ customer.power_of_attorney_file.url }}{% endif %}"
+                    data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
+                    data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                   >
                     ✏️
                   </button>
@@ -278,7 +284,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
         <div class="modal-body">
-          <form id="customerEditForm" method="post" class="vstack gap-3">
+          <form id="customerEditForm" method="post" enctype="multipart/form-data" class="vstack gap-3">
             {% csrf_token %}
             <input type="hidden" name="action" value="update_customer" />
             <input type="hidden" name="customer_id" id="customerEditId" />
@@ -313,12 +319,41 @@
               </div>
             </div>
             <div>
+              <label class="form-label">Номер договора</label>
+              <input type="text" name="contract_number" id="customerEditContractNumber" class="form-control" />
+            </div>
+            <div>
               <label class="form-label">Кем выдан</label>
               <input type="text" name="passport_issued_by" id="customerEditPassportIssued" class="form-control" />
             </div>
             <div>
               <label class="form-label">Адрес</label>
               <input type="text" name="address" id="customerEditAddress" class="form-control" />
+            </div>
+            <div>
+              <label class="form-label">Файл договора</label>
+              <input type="file" name="contract_file" class="form-control" />
+              <div class="form-text" id="customerEditContractFileHint">Файл не загружен.</div>
+            </div>
+            <div>
+              <label class="form-label">Файл договора 2</label>
+              <input type="file" name="contract_file_second" class="form-control" />
+              <div class="form-text" id="customerEditContractFileSecondHint">Файл не загружен.</div>
+            </div>
+            <div>
+              <label class="form-label">Доверенность</label>
+              <input type="file" name="power_of_attorney_file" class="form-control" />
+              <div class="form-text" id="customerEditPowerOfAttorneyHint">Файл не загружен.</div>
+            </div>
+            <div>
+              <label class="form-label">Фото паспорта (лицевая сторона)</label>
+              <input type="file" name="passport_front" class="form-control" accept="image/*" />
+              <div class="form-text" id="customerEditPassportFrontHint">Фото не загружено.</div>
+            </div>
+            <div>
+              <label class="form-label">Фото паспорта (обратная сторона)</label>
+              <input type="file" name="passport_back" class="form-control" accept="image/*" />
+              <div class="form-text" id="customerEditPassportBackHint">Фото не загружено.</div>
             </div>
             <div>
               <label class="form-label">Заметки</label>
@@ -683,6 +718,37 @@
         setValue('customerEditPassportIssued', button.dataset.customerPassportIssued);
         setValue('customerEditAddress', button.dataset.customerAddress);
         setValue('customerEditNotes', button.dataset.customerNotes);
+        setValue('customerEditContractNumber', button.dataset.customerContractNumber);
+
+        const setFileHint = (hintId, href) => {
+          const hint = document.getElementById(hintId);
+          if (!hint) {
+            return;
+          }
+          if (href) {
+            hint.innerHTML = `<a href="${href}" target="_blank" rel="noopener">Текущий файл</a>`;
+          } else {
+            hint.textContent = 'Файл не загружен.';
+          }
+        };
+
+        const setImageHint = (hintId, href) => {
+          const hint = document.getElementById(hintId);
+          if (!hint) {
+            return;
+          }
+          if (href) {
+            hint.innerHTML = `<a href="${href}" target="_blank" rel="noopener">Текущее фото</a>`;
+          } else {
+            hint.textContent = 'Фото не загружено.';
+          }
+        };
+
+        setFileHint('customerEditContractFileHint', button.dataset.customerContractFile);
+        setFileHint('customerEditContractFileSecondHint', button.dataset.customerContractFileSecond);
+        setFileHint('customerEditPowerOfAttorneyHint', button.dataset.customerPowerOfAttorneyFile);
+        setImageHint('customerEditPassportFrontHint', button.dataset.customerPassportFront);
+        setImageHint('customerEditPassportBackHint', button.dataset.customerPassportBack);
       });
     }
   </script>
