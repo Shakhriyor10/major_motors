@@ -310,6 +310,33 @@
         text-align: right;
         font-size: 11px;
         color: #6c757d;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        gap: 6mm;
+      }
+
+      .credit-print-qr {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2mm;
+      }
+
+      .credit-print-qr img {
+        width: 24mm;
+        height: 24mm;
+        border: 1px solid #d9d9d9;
+        border-radius: 6px;
+        padding: 2mm;
+        background: #fff;
+        object-fit: contain;
+      }
+
+      .credit-print-qr span {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
       }
 
       .credit-print-table {
@@ -776,6 +803,10 @@
             <div class="credit-print-title">Autocenter Samarkand</div>
           </div>
           <div class="credit-print-meta">
+            <div class="credit-print-qr">
+              <img id="credit-print-qr" src="" alt="QR-код для скачивания графика">
+              <span>Скачать график</span>
+            </div>
             <div><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
             <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
           </div>
@@ -1805,6 +1836,7 @@
     const creditSummaryPreliminary = document.getElementById('credit-summary-preliminary');
     const creditPrintVehicle = document.getElementById('credit-print-vehicle');
     const creditPrintDate = document.getElementById('credit-print-date');
+    const creditPrintQr = document.getElementById('credit-print-qr');
     const creditPrintVehiclePrice = document.getElementById('credit-print-vehicle-price');
     const creditPrintDownPayment = document.getElementById('credit-print-down-payment');
     const creditPrintAnnualRate = document.getElementById('credit-print-annual-rate');
@@ -1876,6 +1908,15 @@
       return date.toLocaleDateString('ru-RU');
     };
 
+    const updateCreditPrintQr = () => {
+      if (!creditPrintQr) {
+        return;
+      }
+      const baseUrl = `${window.location.origin}/`;
+      const encodedUrl = encodeURIComponent(baseUrl);
+      creditPrintQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodedUrl}`;
+    };
+
     const updateCreditPrintTable = () => {
       if (!creditPrintVehiclePrice || !creditPrintDownPayment || !creditPrintAnnualRate || !creditPrintMonths
         || !creditPrintStartDate || !creditPrintCertificate || !creditPrintSummaryAmount || !creditPrintSummaryMonthly
@@ -1936,6 +1977,8 @@
           minute: '2-digit',
         })}`;
       }
+
+      updateCreditPrintQr();
     };
 
     const buildPaymentDate = (baseDate, index) => {
