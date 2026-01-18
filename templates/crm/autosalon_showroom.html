@@ -309,9 +309,44 @@
       }
 
       .credit-print-meta {
+        display: flex;
+        gap: 6mm;
+        align-items: flex-start;
+        justify-content: flex-end;
         text-align: right;
         font-size: 11px;
         color: #2c3e66;
+      }
+
+      .credit-print-meta .meta-details {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .credit-print-qr {
+        width: 22mm;
+        height: 22mm;
+        border: 1px solid #d9d9d9;
+        border-radius: 8px;
+        padding: 2mm;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .credit-print-qr img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .credit-print-qr-label {
+        font-size: 9px;
+        text-align: center;
+        color: #6c757d;
+        margin-top: 4px;
       }
 
       .credit-print-table {
@@ -798,8 +833,18 @@
             <div class="credit-print-title">Autocenter Samarkand</div>
           </div>
           <div class="credit-print-meta">
-            <div><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
-            <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
+            <div class="text-center">
+              <div class="credit-print-qr">
+                <a id="credit-print-qr-link" href="#" aria-label="Скачать график платежей через QR-код">
+                  <img id="credit-print-qr" src="" alt="QR-код для скачивания графика платежей">
+                </a>
+              </div>
+              <div class="credit-print-qr-label">Скачать график</div>
+            </div>
+            <div class="meta-details">
+              <div><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
+              <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
+            </div>
           </div>
         </div>
         <div class="d-none d-print-block mb-4 px-4">
@@ -876,7 +921,7 @@
             </tbody>
           </table>
         </div>
-        <div class="row g-4">
+      <div class="row g-4">
         <div class="col-12 col-lg-4 d-print-none">
           <div class="card shadow-sm h-100">
             <div class="card-body">
@@ -1015,6 +1060,19 @@
           </div>
         </div>
       </div>
+      </div>
+      <div class="d-none" aria-hidden="true">
+        <table class="table table-sm" id="credit-schedule-archive">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Дата</th>
+              <th>Автомобиль</th>
+              <th>Сумма кредита</th>
+            </tr>
+          </thead>
+          <tbody id="credit-schedule-archive-body"></tbody>
+        </table>
       </div>
     </div>
 
@@ -1840,7 +1898,11 @@
     const creditPrintSummaryInsuranceAnnual = document.getElementById('credit-print-summary-insurance-annual');
     const creditPrintSummaryInsuranceTotal = document.getElementById('credit-print-summary-insurance-total');
     const creditPrintSummaryPreliminary = document.getElementById('credit-print-summary-preliminary');
+    const creditPrintQr = document.getElementById('credit-print-qr');
+    const creditPrintQrLink = document.getElementById('credit-print-qr-link');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
+    const creditScheduleArchiveBody = document.getElementById('credit-schedule-archive-body');
+    const CREDIT_SCHEDULE_STORAGE_KEY = 'crm_credit_schedule_archive_v1';
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
     let currentCreditCurrencyLabel = 'UZS';
@@ -1958,6 +2020,166 @@
           minute: '2-digit',
         })}`;
       }
+    };
+
+    const escapeCsvField = (value) => {
+      const stringValue = value === null || value === undefined ? '' : `${value}`;
+      if (/[\";\n\r]/.test(stringValue)) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
+    const buildCsvContent = (rows) => rows
+      .map((row) => row.map(escapeCsvField).join(';'))
+      .join('\r\n');
+
+    const buildCreditScheduleRows = () => {
+      const vehicleLabel = creditVehicleBadge?.textContent?.trim() || 'Автомобиль';
+      const summaryAmount = creditSummaryAmount?.textContent?.trim() || '—';
+      const summaryMonthly = creditSummaryMonthly?.textContent?.trim() || '—';
+      const summaryTotal = creditSummaryTotal?.textContent?.trim() || '—';
+      const summaryOverpay = creditSummaryOverpay?.textContent?.trim() || '—';
+      const summaryInsuranceAnnual = creditSummaryInsuranceAnnual?.textContent?.trim() || '—';
+      const summaryInsuranceTotal = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
+      const summaryPreliminary = creditSummaryPreliminary?.textContent?.trim() || '—';
+      const summaryCertificate = creditCertificateFeeInput?.value
+        ? toMoney(parseNumber(creditCertificateFeeInput.value), currentCreditCurrencyLabel)
+        : '—';
+      const rows = [
+        ['Кредитный калькулятор', vehicleLabel],
+        [],
+        ['Итоги расчета'],
+        ['Сумма кредита', summaryAmount],
+        ['Ежемесячный платеж', summaryMonthly],
+        ['Общая сумма выплат', summaryTotal],
+        ['Переплата по кредиту', summaryOverpay],
+        ['Страхование (годовая)', summaryInsuranceAnnual],
+        ['Страхование (за весь срок)', summaryInsuranceTotal],
+        ['Сертификат соответствия', summaryCertificate],
+        ['Все предварительные расходы', summaryPreliminary],
+        [],
+        ['График платежей'],
+        ['№', 'Дата платежа', 'Платеж', 'Проценты', 'Основной долг', 'Остаток'],
+      ];
+
+      if (!currentCreditSchedule.length) {
+        rows.push(['—', '—', '—', '—', '—', '—']);
+      } else {
+        currentCreditSchedule.forEach((item) => {
+          rows.push([
+            item.index,
+            item.dateLabel,
+            toMoney(item.payment, currentCreditCurrencyLabel),
+            toMoney(item.interest, currentCreditCurrencyLabel),
+            toMoney(item.principal, currentCreditCurrencyLabel),
+            toMoney(item.balance, currentCreditCurrencyLabel),
+          ]);
+        });
+      }
+      return rows;
+    };
+
+    const loadCreditScheduleArchive = () => {
+      try {
+        return JSON.parse(localStorage.getItem(CREDIT_SCHEDULE_STORAGE_KEY) || '[]');
+      } catch (error) {
+        return [];
+      }
+    };
+
+    const saveCreditScheduleArchive = (items) => {
+      localStorage.setItem(CREDIT_SCHEDULE_STORAGE_KEY, JSON.stringify(items));
+    };
+
+    const appendCreditScheduleArchiveRow = (entry) => {
+      if (!creditScheduleArchiveBody) {
+        return;
+      }
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${entry.id}</td>
+        <td>${entry.createdAtLabel}</td>
+        <td>${entry.vehicleLabel}</td>
+        <td>${entry.summaryAmount}</td>
+      `;
+      creditScheduleArchiveBody.appendChild(row);
+    };
+
+    const hydrateCreditScheduleArchive = () => {
+      if (!creditScheduleArchiveBody) {
+        return;
+      }
+      creditScheduleArchiveBody.innerHTML = '';
+      loadCreditScheduleArchive().forEach((entry) => {
+        appendCreditScheduleArchiveRow(entry);
+      });
+    };
+
+    const storeCreditScheduleSnapshot = () => {
+      const rows = buildCreditScheduleRows();
+      const csvContent = buildCsvContent(rows);
+      const timestamp = new Date();
+      const scheduleId = `credit_${timestamp.getTime()}_${Math.floor(Math.random() * 1000)}`;
+      const entry = {
+        id: scheduleId,
+        createdAt: timestamp.toISOString(),
+        createdAtLabel: `${timestamp.toLocaleDateString('ru-RU')} ${timestamp.toLocaleTimeString('ru-RU', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })}`,
+        vehicleLabel: creditVehicleBadge?.textContent?.trim() || 'Автомобиль',
+        summaryAmount: creditSummaryAmount?.textContent?.trim() || '—',
+        csvContent,
+      };
+      const archive = loadCreditScheduleArchive();
+      archive.push(entry);
+      saveCreditScheduleArchive(archive);
+      appendCreditScheduleArchiveRow(entry);
+
+      const downloadUrl = new URL(window.location.href);
+      downloadUrl.searchParams.set('credit_schedule_id', scheduleId);
+      downloadUrl.searchParams.set('download', '1');
+
+      if (creditPrintQr) {
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(downloadUrl.toString())}`;
+        creditPrintQr.src = qrUrl;
+      }
+      if (creditPrintQrLink) {
+        creditPrintQrLink.href = downloadUrl.toString();
+      }
+      return entry;
+    };
+
+    const downloadCsvContent = (content, fileName) => {
+      const blob = new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
+
+    const maybeDownloadScheduleFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const scheduleId = params.get('credit_schedule_id');
+      const shouldDownload = params.get('download') === '1';
+      if (!scheduleId || !shouldDownload) {
+        return;
+      }
+      const archive = loadCreditScheduleArchive();
+      const entry = archive.find((item) => item.id === scheduleId);
+      if (!entry || !entry.csvContent) {
+        return;
+      }
+      downloadCsvContent(entry.csvContent, `credit_schedule_${scheduleId}.csv`);
+      const cleanedUrl = new URL(window.location.href);
+      cleanedUrl.searchParams.delete('credit_schedule_id');
+      cleanedUrl.searchParams.delete('download');
+      window.history.replaceState({}, document.title, cleanedUrl.toString());
     };
 
     const buildPaymentDate = (baseDate, index) => {
@@ -2179,6 +2401,8 @@
     populateEmployeeSelects();
     syncCreditStartDate();
     updateCreditDownPaymentUI();
+    hydrateCreditScheduleArchive();
+    maybeDownloadScheduleFromUrl();
 
     const toggleCustomerFields = (disabled) => {
       customerFields.forEach((fieldId) => {
@@ -2396,6 +2620,7 @@
           return;
         }
         updateCreditPrintTable();
+        storeCreditScheduleSnapshot();
         currentPrintTarget = creditPrintArea;
         document.body.classList.add('print-receipt-active');
         creditPrintArea.classList.add('is-print-target');
@@ -2403,73 +2628,13 @@
       });
     }
 
-    const escapeCsvField = (value) => {
-      const stringValue = value === null || value === undefined ? '' : `${value}`;
-      if (/[\";\n\r]/.test(stringValue)) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
-      return stringValue;
-    };
-
     const downloadCsv = (rows, fileName) => {
-      const content = rows
-        .map((row) => row.map(escapeCsvField).join(';'))
-        .join('\r\n');
-      const blob = new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const content = buildCsvContent(rows);
+      downloadCsvContent(content, fileName);
     };
 
     const exportCreditToExcel = () => {
-      const vehicleLabel = creditVehicleBadge?.textContent?.trim() || 'Автомобиль';
-      const summaryAmount = creditSummaryAmount?.textContent?.trim() || '—';
-      const summaryMonthly = creditSummaryMonthly?.textContent?.trim() || '—';
-      const summaryTotal = creditSummaryTotal?.textContent?.trim() || '—';
-      const summaryOverpay = creditSummaryOverpay?.textContent?.trim() || '—';
-      const summaryInsuranceAnnual = creditSummaryInsuranceAnnual?.textContent?.trim() || '—';
-      const summaryInsuranceTotal = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
-      const summaryPreliminary = creditSummaryPreliminary?.textContent?.trim() || '—';
-      const summaryCertificate = creditCertificateFeeInput?.value
-        ? toMoney(parseNumber(creditCertificateFeeInput.value), currentCreditCurrencyLabel)
-        : '—';
-      const rows = [
-        ['Кредитный калькулятор', vehicleLabel],
-        [],
-        ['Итоги расчета'],
-        ['Сумма кредита', summaryAmount],
-        ['Ежемесячный платеж', summaryMonthly],
-        ['Общая сумма выплат', summaryTotal],
-        ['Переплата по кредиту', summaryOverpay],
-        ['Страхование (годовая)', summaryInsuranceAnnual],
-        ['Страхование (за весь срок)', summaryInsuranceTotal],
-        ['Сертификат соответствия', summaryCertificate],
-        ['Все предварительные расходы', summaryPreliminary],
-        [],
-        ['График платежей'],
-        ['№', 'Дата платежа', 'Платеж', 'Проценты', 'Основной долг', 'Остаток'],
-      ];
-
-      if (!currentCreditSchedule.length) {
-        rows.push(['—', '—', '—', '—', '—', '—']);
-      } else {
-        currentCreditSchedule.forEach((item) => {
-          rows.push([
-            item.index,
-            item.dateLabel,
-            toMoney(item.payment, currentCreditCurrencyLabel),
-            toMoney(item.interest, currentCreditCurrencyLabel),
-            toMoney(item.principal, currentCreditCurrencyLabel),
-            toMoney(item.balance, currentCreditCurrencyLabel),
-          ]);
-        });
-      }
-
+      const rows = buildCreditScheduleRows();
       const timestamp = new Date().toISOString().slice(0, 10);
       downloadCsv(rows, `credit_schedule_${timestamp}.csv`);
     };
