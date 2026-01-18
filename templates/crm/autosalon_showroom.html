@@ -831,10 +831,6 @@
                       <td id="credit-print-months">—</td>
                     </tr>
                     <tr>
-                      <th>Дата первого платежа</th>
-                      <td id="credit-print-start-date">—</td>
-                    </tr>
-                    <tr>
                       <th>Сертификат соответствия</th>
                       <td id="credit-print-certificate">—</td>
                     </tr>
@@ -851,16 +847,8 @@
                       <td id="credit-print-summary-monthly">—</td>
                     </tr>
                     <tr>
-                      <th>Общая сумма выплат</th>
-                      <td id="credit-print-summary-total">—</td>
-                    </tr>
-                    <tr>
                       <th>Переплата по кредиту</th>
                       <td id="credit-print-summary-overpay">—</td>
-                    </tr>
-                    <tr>
-                      <th>Страхование (годовая)</th>
-                      <td id="credit-print-summary-insurance-annual">—</td>
                     </tr>
                     <tr>
                       <th>Страхование (за весь срок)</th>
@@ -924,10 +912,6 @@
                   <input type="number" min="1" step="1" class="form-control" id="credit-months" placeholder="Например, 36">
                 </div>
                 <div>
-                  <label class="form-label" for="credit-start-date">Дата первого платежа</label>
-                  <input type="date" class="form-control" id="credit-start-date">
-                </div>
-                <div>
                   <label class="form-label" for="credit-certificate-fee">Сертификат соответствия</label>
                   <div class="input-group">
                     <input type="number" min="0" step="0.01" class="form-control" id="credit-certificate-fee" placeholder="Например, 1500000">
@@ -957,20 +941,8 @@
                 </div>
                 <div class="col-12 col-md-6 credit-summary-item">
                   <div class="p-3 bg-body-tertiary rounded-3 h-100">
-                    <div class="small text-muted">Общая сумма выплат</div>
-                    <div class="fw-semibold" id="credit-summary-total">—</div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6 credit-summary-item">
-                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
                     <div class="small text-muted">Переплата по кредиту</div>
                     <div class="fw-semibold" id="credit-summary-overpay">—</div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6 credit-summary-item">
-                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
-                    <div class="small text-muted">Страхование (годовая)</div>
-                    <div class="fw-semibold" id="credit-summary-insurance-annual">—</div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6 credit-summary-item">
@@ -1815,14 +1787,11 @@
     const creditDownPaymentHint = document.getElementById('credit-down-payment-hint');
     const creditAnnualRateInput = document.getElementById('credit-annual-rate');
     const creditMonthsInput = document.getElementById('credit-months');
-    const creditStartDateInput = document.getElementById('credit-start-date');
     const creditCertificateFeeInput = document.getElementById('credit-certificate-fee');
     const creditCertificateCurrency = document.getElementById('credit-certificate-currency');
     const creditSummaryAmount = document.getElementById('credit-summary-amount');
     const creditSummaryMonthly = document.getElementById('credit-summary-monthly');
-    const creditSummaryTotal = document.getElementById('credit-summary-total');
     const creditSummaryOverpay = document.getElementById('credit-summary-overpay');
-    const creditSummaryInsuranceAnnual = document.getElementById('credit-summary-insurance-annual');
     const creditSummaryInsuranceTotal = document.getElementById('credit-summary-insurance-total');
     const creditSummaryPreliminary = document.getElementById('credit-summary-preliminary');
     const creditPrintVehicle = document.getElementById('credit-print-vehicle');
@@ -1831,13 +1800,10 @@
     const creditPrintDownPayment = document.getElementById('credit-print-down-payment');
     const creditPrintAnnualRate = document.getElementById('credit-print-annual-rate');
     const creditPrintMonths = document.getElementById('credit-print-months');
-    const creditPrintStartDate = document.getElementById('credit-print-start-date');
     const creditPrintCertificate = document.getElementById('credit-print-certificate');
     const creditPrintSummaryAmount = document.getElementById('credit-print-summary-amount');
     const creditPrintSummaryMonthly = document.getElementById('credit-print-summary-monthly');
-    const creditPrintSummaryTotal = document.getElementById('credit-print-summary-total');
     const creditPrintSummaryOverpay = document.getElementById('credit-print-summary-overpay');
-    const creditPrintSummaryInsuranceAnnual = document.getElementById('credit-print-summary-insurance-annual');
     const creditPrintSummaryInsuranceTotal = document.getElementById('credit-print-summary-insurance-total');
     const creditPrintSummaryPreliminary = document.getElementById('credit-print-summary-preliminary');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
@@ -1861,17 +1827,21 @@
     };
 
     const setCreditSummary = (values, currencyLabel) => {
-      if (!creditSummaryAmount || !creditSummaryMonthly || !creditSummaryTotal || !creditSummaryOverpay
-        || !creditSummaryInsuranceAnnual || !creditSummaryInsuranceTotal || !creditSummaryPreliminary) {
-        return;
+      if (creditSummaryAmount) {
+        creditSummaryAmount.textContent = toMoney(values.amount, currencyLabel);
       }
-      creditSummaryAmount.textContent = toMoney(values.amount, currencyLabel);
-      creditSummaryMonthly.textContent = toMoney(values.monthly, currencyLabel);
-      creditSummaryTotal.textContent = toMoney(values.total, currencyLabel);
-      creditSummaryOverpay.textContent = toMoney(values.overpay, currencyLabel);
-      creditSummaryInsuranceAnnual.textContent = toMoney(values.insuranceAnnual, currencyLabel);
-      creditSummaryInsuranceTotal.textContent = toMoney(values.insuranceTotal, currencyLabel);
-      creditSummaryPreliminary.textContent = toMoney(values.preliminary, currencyLabel);
+      if (creditSummaryMonthly) {
+        creditSummaryMonthly.textContent = toMoney(values.monthly, currencyLabel);
+      }
+      if (creditSummaryOverpay) {
+        creditSummaryOverpay.textContent = toMoney(values.overpay, currencyLabel);
+      }
+      if (creditSummaryInsuranceTotal) {
+        creditSummaryInsuranceTotal.textContent = toMoney(values.insuranceTotal, currencyLabel);
+      }
+      if (creditSummaryPreliminary) {
+        creditSummaryPreliminary.textContent = toMoney(values.preliminary, currencyLabel);
+      }
     };
 
     const updateCreditDownPaymentUI = () => {
@@ -1887,22 +1857,10 @@
 
     const formatPercent = (value) => `${formatNumber(value.toFixed(2))} %`;
 
-    const formatDateLabel = (value) => {
-      if (!value) {
-        return '—';
-      }
-      const date = new Date(`${value}T00:00:00`);
-      if (Number.isNaN(date.getTime())) {
-        return '—';
-      }
-      return date.toLocaleDateString('ru-RU');
-    };
-
     const updateCreditPrintTable = () => {
       if (!creditPrintVehiclePrice || !creditPrintDownPayment || !creditPrintAnnualRate || !creditPrintMonths
-        || !creditPrintStartDate || !creditPrintCertificate || !creditPrintSummaryAmount || !creditPrintSummaryMonthly
-        || !creditPrintSummaryTotal || !creditPrintSummaryOverpay || !creditPrintSummaryInsuranceAnnual
-        || !creditPrintSummaryInsuranceTotal || !creditPrintSummaryPreliminary) {
+        || !creditPrintCertificate || !creditPrintSummaryAmount || !creditPrintSummaryMonthly
+        || !creditPrintSummaryOverpay || !creditPrintSummaryInsuranceTotal || !creditPrintSummaryPreliminary) {
         return;
       }
 
@@ -1934,16 +1892,13 @@
         ? `${parseInt(monthsValue, 10) || 0} мес.`
         : '—';
 
-      creditPrintStartDate.textContent = formatDateLabel(creditStartDateInput?.value);
       creditPrintCertificate.textContent = certificateValue
         ? toMoney(parseNumber(certificateValue), currencyLabel)
         : '—';
 
       creditPrintSummaryAmount.textContent = creditSummaryAmount?.textContent?.trim() || '—';
       creditPrintSummaryMonthly.textContent = creditSummaryMonthly?.textContent?.trim() || '—';
-      creditPrintSummaryTotal.textContent = creditSummaryTotal?.textContent?.trim() || '—';
       creditPrintSummaryOverpay.textContent = creditSummaryOverpay?.textContent?.trim() || '—';
-      creditPrintSummaryInsuranceAnnual.textContent = creditSummaryInsuranceAnnual?.textContent?.trim() || '—';
       creditPrintSummaryInsuranceTotal.textContent = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
       creditPrintSummaryPreliminary.textContent = creditSummaryPreliminary?.textContent?.trim() || '—';
 
@@ -2012,8 +1967,7 @@
       const months = Math.max(parseInt(creditMonthsInput.value, 10) || 0, 0);
       const annualRate = parseNumber(creditAnnualRateInput.value);
       const monthlyRate = annualRate > 0 ? annualRate / 12 / 100 : 0;
-      const startDateValue = creditStartDateInput?.value;
-      const baseDate = startDateValue ? new Date(`${startDateValue}T00:00:00`) : new Date();
+      const baseDate = new Date();
 
       if (!price || !months) {
         setCreditSummary({
@@ -2084,17 +2038,6 @@
       currentCreditSchedule = schedule;
       renderCreditSchedule(schedule, currencyLabel);
       updateCreditPrintTable();
-    };
-
-    const syncCreditStartDate = () => {
-      if (!creditStartDateInput) {
-        return;
-      }
-      if (!creditStartDateInput.value) {
-        const today = new Date();
-        const isoDate = today.toISOString().slice(0, 10);
-        creditStartDateInput.value = isoDate;
-      }
     };
 
     const updateDownPaymentVisibility = () => {
@@ -2177,7 +2120,6 @@
     };
 
     populateEmployeeSelects();
-    syncCreditStartDate();
     updateCreditDownPaymentUI();
 
     const toggleCustomerFields = (disabled) => {
@@ -2359,10 +2301,6 @@
       creditMonthsInput.addEventListener('input', calculateCreditSchedule);
     }
 
-    if (creditStartDateInput) {
-      creditStartDateInput.addEventListener('change', calculateCreditSchedule);
-    }
-
     if (creditCertificateFeeInput) {
       creditCertificateFeeInput.addEventListener('input', calculateCreditSchedule);
     }
@@ -2430,9 +2368,7 @@
       const vehicleLabel = creditVehicleBadge?.textContent?.trim() || 'Автомобиль';
       const summaryAmount = creditSummaryAmount?.textContent?.trim() || '—';
       const summaryMonthly = creditSummaryMonthly?.textContent?.trim() || '—';
-      const summaryTotal = creditSummaryTotal?.textContent?.trim() || '—';
       const summaryOverpay = creditSummaryOverpay?.textContent?.trim() || '—';
-      const summaryInsuranceAnnual = creditSummaryInsuranceAnnual?.textContent?.trim() || '—';
       const summaryInsuranceTotal = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
       const summaryPreliminary = creditSummaryPreliminary?.textContent?.trim() || '—';
       const summaryCertificate = creditCertificateFeeInput?.value
@@ -2444,9 +2380,7 @@
         ['Итоги расчета'],
         ['Сумма кредита', summaryAmount],
         ['Ежемесячный платеж', summaryMonthly],
-        ['Общая сумма выплат', summaryTotal],
         ['Переплата по кредиту', summaryOverpay],
-        ['Страхование (годовая)', summaryInsuranceAnnual],
         ['Страхование (за весь срок)', summaryInsuranceTotal],
         ['Сертификат соответствия', summaryCertificate],
         ['Все предварительные расходы', summaryPreliminary],
