@@ -81,31 +81,81 @@ def customers(request):
             customer_id = request.POST.get('customer_id')
             customer = Customer.objects.filter(pk=customer_id).first()
             if customer:
+                update_fields = []
                 customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
+                update_fields.append('full_name')
                 customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
+                update_fields.append('phone')
                 customer.inn = request.POST.get('inn', customer.inn).strip()
+                update_fields.append('inn')
                 customer.pinfl = request.POST.get('pinfl', customer.pinfl).strip()
+                update_fields.append('pinfl')
                 customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
+                update_fields.append('passport_series')
                 customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                update_fields.append('passport_number')
                 customer.passport_issued_by = request.POST.get(
                     'passport_issued_by',
                     customer.passport_issued_by,
                 ).strip()
+                update_fields.append('passport_issued_by')
                 customer.address = request.POST.get('address', customer.address).strip()
+                update_fields.append('address')
                 customer.notes = request.POST.get('notes', customer.notes).strip()
-                customer.save(
-                    update_fields=[
-                        'full_name',
-                        'phone',
-                        'inn',
-                        'pinfl',
-                        'passport_series',
-                        'passport_number',
-                        'passport_issued_by',
-                        'address',
-                        'notes',
-                    ],
-                )
+                update_fields.append('notes')
+                customer.contract_number = request.POST.get('contract_number', customer.contract_number).strip()
+                update_fields.append('contract_number')
+
+                contract_file = request.FILES.get('contract_file')
+                if contract_file:
+                    customer.contract_file = contract_file
+                    update_fields.append('contract_file')
+                contract_file_second = request.FILES.get('contract_file_second')
+                if contract_file_second:
+                    customer.contract_file_second = contract_file_second
+                    update_fields.append('contract_file_second')
+                power_of_attorney_file = request.FILES.get('power_of_attorney_file')
+                if power_of_attorney_file:
+                    customer.power_of_attorney_file = power_of_attorney_file
+                    update_fields.append('power_of_attorney_file')
+
+                customer.save(update_fields=update_fields)
+
+                passport_front = request.FILES.get('passport_front')
+                if passport_front:
+                    front_doc = customer.documents.filter(
+                        description='Паспорт (лицевая сторона)',
+                        document_type=CustomerDocument.DocumentType.PASSPORT,
+                    ).first()
+                    if front_doc:
+                        front_doc.file = passport_front
+                        front_doc.save(update_fields=['file'])
+                    else:
+                        CustomerDocument.objects.create(
+                            customer=customer,
+                            document_type=CustomerDocument.DocumentType.PASSPORT,
+                            file=passport_front,
+                            uploaded_by=request.user if request.user.is_authenticated else None,
+                            description='Паспорт (лицевая сторона)',
+                        )
+
+                passport_back = request.FILES.get('passport_back')
+                if passport_back:
+                    back_doc = customer.documents.filter(
+                        description='Паспорт (обратная сторона)',
+                        document_type=CustomerDocument.DocumentType.PASSPORT,
+                    ).first()
+                    if back_doc:
+                        back_doc.file = passport_back
+                        back_doc.save(update_fields=['file'])
+                    else:
+                        CustomerDocument.objects.create(
+                            customer=customer,
+                            document_type=CustomerDocument.DocumentType.PASSPORT,
+                            file=passport_back,
+                            uploaded_by=request.user if request.user.is_authenticated else None,
+                            description='Паспорт (обратная сторона)',
+                        )
             return redirect('customers')
         if action == 'delete_customer':
             customer_id = request.POST.get('customer_id')
