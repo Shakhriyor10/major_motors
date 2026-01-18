@@ -264,6 +264,7 @@
       .credit-print-area {
         padding-top: 0;
         margin-top: -20mm;
+        position: relative;
       }
 
       .credit-summary-grid {
@@ -284,7 +285,7 @@
         justify-content: space-between;
         align-items: flex-end;
         padding: 0 12mm 4mm;
-        border-bottom: 1px solid #d9d9d9;
+        border-bottom: 2px solid #0b1f4b;
         margin-bottom: 4mm;
       }
 
@@ -304,19 +305,21 @@
         font-size: 18px;
         font-weight: 600;
         letter-spacing: 0.4px;
+        color: #0b1f4b;
       }
 
       .credit-print-meta {
         text-align: right;
         font-size: 11px;
-        color: #6c757d;
+        color: #2c3e66;
       }
 
       .credit-print-table {
         width: 100%;
         border-collapse: collapse;
-        border: 1px solid #d9d9d9;
+        border: 1px solid #0b1f4b;
         font-size: 11px;
+        background: #fff;
       }
 
       .credit-print-table th,
@@ -327,7 +330,8 @@
       }
 
       .credit-print-table thead th {
-        background: #f0f3f6;
+        background: #0b1f4b;
+        color: #fff;
         text-transform: uppercase;
         font-size: 10px;
         letter-spacing: 0.4px;
@@ -352,12 +356,13 @@
       .credit-print-table-inner th {
         width: 58%;
         font-weight: 500;
-        color: #555;
+        color: #2c3e66;
       }
 
       .credit-print-table-inner td {
         text-align: right;
         font-weight: 600;
+        color: #0b1f4b;
       }
 
       .credit-print-area .card {
@@ -376,12 +381,13 @@
       .credit-schedule-table {
         width: 100%;
         border-collapse: collapse;
-        border: 1px solid #d9d9d9;
+        border: 1px solid #0b1f4b;
         font-size: 10px;
       }
 
       .credit-schedule-table thead th {
-        background: #eef1f5;
+        background: #122a61;
+        color: #fff;
         text-transform: uppercase;
         font-size: 9px;
         letter-spacing: 0.3px;
@@ -395,12 +401,28 @@
       }
 
       .credit-schedule-table tbody tr:nth-child(even) {
-        background: #f9fbfd;
+        background: #f3f6fb;
       }
 
       .print-full-width {
         flex: 0 0 100%;
         max-width: 100%;
+      }
+
+      .credit-print-area::before {
+        content: "";
+        position: absolute;
+        inset: 18mm 12mm;
+        background: url("{% static 'img/logo.png' %}") no-repeat center;
+        background-size: 72%;
+        opacity: 0.06;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .credit-print-area > * {
+        position: relative;
+        z-index: 1;
       }
     }
   </style>
