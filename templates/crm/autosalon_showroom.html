@@ -294,6 +294,30 @@
         gap: 6mm;
       }
 
+      .credit-print-qr {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2mm;
+        min-width: 24mm;
+      }
+
+      .credit-print-qr img {
+        width: 24mm;
+        height: 24mm;
+        border: 1px solid #d9d9d9;
+        border-radius: 6px;
+        padding: 2mm;
+        background: #fff;
+      }
+
+      .credit-print-qr-label {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: #6c757d;
+      }
+
       .credit-print-logo {
         width: 22mm;
         height: 22mm;
@@ -310,6 +334,13 @@
         text-align: right;
         font-size: 11px;
         color: #6c757d;
+        display: flex;
+        gap: 6mm;
+        align-items: center;
+      }
+
+      .credit-print-meta-info {
+        text-align: right;
       }
 
       .credit-print-table {
@@ -776,8 +807,14 @@
             <div class="credit-print-title">Autocenter Samarkand</div>
           </div>
           <div class="credit-print-meta">
-            <div><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
-            <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
+            <div class="credit-print-meta-info">
+              <div><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
+              <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
+            </div>
+            <div class="credit-print-qr">
+              <div class="credit-print-qr-label">QR для скачивания</div>
+              <img id="credit-print-qr" src="" alt="QR-код для скачивания графика платежей">
+            </div>
           </div>
         </div>
         <div class="d-none d-print-block mb-4 px-4">
@@ -1818,10 +1855,12 @@
     const creditPrintSummaryInsuranceAnnual = document.getElementById('credit-print-summary-insurance-annual');
     const creditPrintSummaryInsuranceTotal = document.getElementById('credit-print-summary-insurance-total');
     const creditPrintSummaryPreliminary = document.getElementById('credit-print-summary-preliminary');
+    const creditPrintQr = document.getElementById('credit-print-qr');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
     let currentCreditCurrencyLabel = 'UZS';
+    const CREDIT_PRINT_STORAGE_KEY = 'credit_schedule_print_cache_v1';
     const formatNumber = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const parseNumber = (value) => {
       if (value === null || value === undefined) {
@@ -1936,6 +1975,53 @@
           minute: '2-digit',
         })}`;
       }
+    };
+
+    const buildCreditScheduleRows = () => {
+      const vehicleLabel = creditVehicleBadge?.textContent?.trim() || 'Автомобиль';
+      const summaryAmount = creditSummaryAmount?.textContent?.trim() || '—';
+      const summaryMonthly = creditSummaryMonthly?.textContent?.trim() || '—';
+      const summaryTotal = creditSummaryTotal?.textContent?.trim() || '—';
+      const summaryOverpay = creditSummaryOverpay?.textContent?.trim() || '—';
+      const summaryInsuranceAnnual = creditSummaryInsuranceAnnual?.textContent?.trim() || '—';
+      const summaryInsuranceTotal = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
+      const summaryPreliminary = creditSummaryPreliminary?.textContent?.trim() || '—';
+      const summaryCertificate = creditCertificateFeeInput?.value
+        ? toMoney(parseNumber(creditCertificateFeeInput.value), currentCreditCurrencyLabel)
+        : '—';
+      const rows = [
+        ['Кредитный калькулятор', vehicleLabel],
+        [],
+        ['Итоги расчета'],
+        ['Сумма кредита', summaryAmount],
+        ['Ежемесячный платеж', summaryMonthly],
+        ['Общая сумма выплат', summaryTotal],
+        ['Переплата по кредиту', summaryOverpay],
+        ['Страхование (годовая)', summaryInsuranceAnnual],
+        ['Страхование (за весь срок)', summaryInsuranceTotal],
+        ['Сертификат соответствия', summaryCertificate],
+        ['Все предварительные расходы', summaryPreliminary],
+        [],
+        ['График платежей'],
+        ['№', 'Дата платежа', 'Платеж', 'Проценты', 'Основной долг', 'Остаток'],
+      ];
+
+      if (!currentCreditSchedule.length) {
+        rows.push(['—', '—', '—', '—', '—', '—']);
+      } else {
+        currentCreditSchedule.forEach((item) => {
+          rows.push([
+            item.index,
+            item.dateLabel,
+            toMoney(item.payment, currentCreditCurrencyLabel),
+            toMoney(item.interest, currentCreditCurrencyLabel),
+            toMoney(item.principal, currentCreditCurrencyLabel),
+            toMoney(item.balance, currentCreditCurrencyLabel),
+          ]);
+        });
+      }
+
+      return rows;
     };
 
     const buildPaymentDate = (baseDate, index) => {
@@ -2374,6 +2460,7 @@
           return;
         }
         updateCreditPrintTable();
+        updateCreditPrintQr();
         currentPrintTarget = creditPrintArea;
         document.body.classList.add('print-receipt-active');
         creditPrintArea.classList.add('is-print-target');
@@ -2404,50 +2491,23 @@
       URL.revokeObjectURL(url);
     };
 
-    const exportCreditToExcel = () => {
-      const vehicleLabel = creditVehicleBadge?.textContent?.trim() || 'Автомобиль';
-      const summaryAmount = creditSummaryAmount?.textContent?.trim() || '—';
-      const summaryMonthly = creditSummaryMonthly?.textContent?.trim() || '—';
-      const summaryTotal = creditSummaryTotal?.textContent?.trim() || '—';
-      const summaryOverpay = creditSummaryOverpay?.textContent?.trim() || '—';
-      const summaryInsuranceAnnual = creditSummaryInsuranceAnnual?.textContent?.trim() || '—';
-      const summaryInsuranceTotal = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
-      const summaryPreliminary = creditSummaryPreliminary?.textContent?.trim() || '—';
-      const summaryCertificate = creditCertificateFeeInput?.value
-        ? toMoney(parseNumber(creditCertificateFeeInput.value), currentCreditCurrencyLabel)
-        : '—';
-      const rows = [
-        ['Кредитный калькулятор', vehicleLabel],
-        [],
-        ['Итоги расчета'],
-        ['Сумма кредита', summaryAmount],
-        ['Ежемесячный платеж', summaryMonthly],
-        ['Общая сумма выплат', summaryTotal],
-        ['Переплата по кредиту', summaryOverpay],
-        ['Страхование (годовая)', summaryInsuranceAnnual],
-        ['Страхование (за весь срок)', summaryInsuranceTotal],
-        ['Сертификат соответствия', summaryCertificate],
-        ['Все предварительные расходы', summaryPreliminary],
-        [],
-        ['График платежей'],
-        ['№', 'Дата платежа', 'Платеж', 'Проценты', 'Основной долг', 'Остаток'],
-      ];
-
-      if (!currentCreditSchedule.length) {
-        rows.push(['—', '—', '—', '—', '—', '—']);
-      } else {
-        currentCreditSchedule.forEach((item) => {
-          rows.push([
-            item.index,
-            item.dateLabel,
-            toMoney(item.payment, currentCreditCurrencyLabel),
-            toMoney(item.interest, currentCreditCurrencyLabel),
-            toMoney(item.principal, currentCreditCurrencyLabel),
-            toMoney(item.balance, currentCreditCurrencyLabel),
-          ]);
-        });
+    const updateCreditPrintQr = () => {
+      if (!creditPrintQr) {
+        return;
       }
+      const rows = buildCreditScheduleRows();
+      const csvContent = rows
+        .map((row) => row.map(escapeCsvField).join(';'))
+        .join('\r\n');
+      const csvData = `\uFEFF${csvContent}`;
+      const dataUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(csvData)}`;
+      localStorage.setItem(CREDIT_PRINT_STORAGE_KEY, csvData);
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(dataUrl)}`;
+      creditPrintQr.src = qrUrl;
+    };
 
+    const exportCreditToExcel = () => {
+      const rows = buildCreditScheduleRows();
       const timestamp = new Date().toISOString().slice(0, 10);
       downloadCsv(rows, `credit_schedule_${timestamp}.csv`);
     };
