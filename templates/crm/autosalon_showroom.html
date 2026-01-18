@@ -1740,7 +1740,7 @@
       const annualInsurance = (creditAmount * 1.34) * 0.009 + (creditAmount * 1.3) * 0.002;
       const insuranceTotal = annualInsurance * (months / 12);
       const certificateFee = parseNumber(creditCertificateFeeInput?.value);
-      const preliminaryTotal = (totalPaid - creditAmount) + insuranceTotal + certificateFee;
+      const preliminaryTotal = cappedDownPayment + insuranceTotal + certificateFee;
 
       setCreditSummary(
         {
