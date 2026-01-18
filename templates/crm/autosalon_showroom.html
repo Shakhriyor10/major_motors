@@ -724,6 +724,12 @@
                     <div class="fw-semibold" id="credit-summary-overpay">—</div>
                   </div>
                 </div>
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Страхование (за весь срок)</div>
+                    <div class="fw-semibold" id="credit-summary-insurance">—</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1559,6 +1565,7 @@
     const creditSummaryMonthly = document.getElementById('credit-summary-monthly');
     const creditSummaryTotal = document.getElementById('credit-summary-total');
     const creditSummaryOverpay = document.getElementById('credit-summary-overpay');
+    const creditSummaryInsurance = document.getElementById('credit-summary-insurance');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
@@ -1580,13 +1587,14 @@
     };
 
     const setCreditSummary = (values, currencyLabel) => {
-      if (!creditSummaryAmount || !creditSummaryMonthly || !creditSummaryTotal || !creditSummaryOverpay) {
+      if (!creditSummaryAmount || !creditSummaryMonthly || !creditSummaryTotal || !creditSummaryOverpay || !creditSummaryInsurance) {
         return;
       }
       creditSummaryAmount.textContent = toMoney(values.amount, currencyLabel);
       creditSummaryMonthly.textContent = toMoney(values.monthly, currencyLabel);
       creditSummaryTotal.textContent = toMoney(values.total, currencyLabel);
       creditSummaryOverpay.textContent = toMoney(values.overpay, currencyLabel);
+      creditSummaryInsurance.textContent = toMoney(values.insurance, currencyLabel);
     };
 
     const updateCreditDownPaymentUI = () => {
@@ -1653,7 +1661,7 @@
       const baseDate = startDateValue ? new Date(`${startDateValue}T00:00:00`) : new Date();
 
       if (!price || !months) {
-        setCreditSummary({ amount: 0, monthly: 0, total: 0, overpay: 0 }, currencyLabel);
+        setCreditSummary({ amount: 0, monthly: 0, total: 0, overpay: 0, insurance: 0 }, currencyLabel);
         renderCreditSchedule([], currencyLabel);
         currentCreditSchedule = [];
         return;
@@ -1692,12 +1700,16 @@
         });
       }
 
+      const annualInsurance = (creditAmount * 1.34) * 0.009 + (creditAmount * 1.3) * 0.002;
+      const insuranceTotal = annualInsurance * (months / 12);
+
       setCreditSummary(
         {
           amount: creditAmount,
           monthly: monthlyPayment,
           total: totalPaid,
           overpay: totalPaid - creditAmount,
+          insurance: insuranceTotal,
         },
         currencyLabel,
       );
@@ -2043,6 +2055,7 @@
       const summaryMonthly = creditSummaryMonthly?.textContent?.trim() || '—';
       const summaryTotal = creditSummaryTotal?.textContent?.trim() || '—';
       const summaryOverpay = creditSummaryOverpay?.textContent?.trim() || '—';
+      const summaryInsurance = creditSummaryInsurance?.textContent?.trim() || '—';
       const rows = [
         ['Кредитный калькулятор', vehicleLabel],
         [],
@@ -2051,6 +2064,7 @@
         ['Ежемесячный платеж', summaryMonthly],
         ['Общая сумма выплат', summaryTotal],
         ['Переплата по кредиту', summaryOverpay],
+        ['Страхование (за весь срок)', summaryInsurance],
         [],
         ['График платежей'],
         ['№', 'Дата платежа', 'Платеж', 'Проценты', 'Основной долг', 'Остаток'],
