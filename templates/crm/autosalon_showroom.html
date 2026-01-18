@@ -409,25 +409,29 @@
         max-width: 100%;
       }
 
-      .credit-schedule-title {
-        position: relative;
-        margin-bottom: 3mm;
-      }
-
-      .credit-schedule-title::after {
-        content: "";
-        position: absolute;
-        inset: -5mm 0 0;
-        background: url("{% static 'img/logo-2.png' %}") no-repeat center;
-        background-size: 70mm;
-        opacity: 0.1;
-        pointer-events: none;
-      }
-
       .credit-schedule-title h3 {
         position: relative;
         z-index: 1;
         margin: 0;
+      }
+
+      .credit-summary-print {
+        position: relative;
+      }
+
+      .credit-summary-print::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url("{% static 'img/logo-2.png' %}") no-repeat center;
+        background-size: 90mm;
+        opacity: 0.08;
+        pointer-events: none;
+      }
+
+      .credit-summary-print > * {
+        position: relative;
+        z-index: 1;
       }
     }
   </style>
@@ -929,7 +933,7 @@
         </div>
         <div class="col-12 col-lg-8 print-full-width">
           <div class="card shadow-sm mb-4 d-print-none">
-            <div class="card-body">
+            <div class="card-body credit-summary-print">
               <h3 class="h6 mb-3">Итоги расчета</h3>
               <div class="row g-3 credit-summary-grid">
                 <div class="col-12 col-md-6 credit-summary-item">
