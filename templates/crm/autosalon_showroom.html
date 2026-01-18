@@ -691,6 +691,13 @@
                   <label class="form-label" for="credit-start-date">Дата первого платежа</label>
                   <input type="date" class="form-control" id="credit-start-date">
                 </div>
+                <div>
+                  <label class="form-label" for="credit-certificate-fee">Сертификат соответствия</label>
+                  <div class="input-group">
+                    <input type="number" min="0" step="0.01" class="form-control" id="credit-certificate-fee" placeholder="Например, 1500000">
+                    <span class="input-group-text" id="credit-certificate-currency">UZS</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -726,8 +733,20 @@
                 </div>
                 <div class="col-12 col-md-6 credit-summary-item">
                   <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Страхование (годовая)</div>
+                    <div class="fw-semibold" id="credit-summary-insurance-annual">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
                     <div class="small text-muted">Страхование (за весь срок)</div>
-                    <div class="fw-semibold" id="credit-summary-insurance">—</div>
+                    <div class="fw-semibold" id="credit-summary-insurance-total">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 credit-summary-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Все предварительные расходы</div>
+                    <div class="fw-semibold" id="credit-summary-preliminary">—</div>
                   </div>
                 </div>
               </div>
@@ -1561,11 +1580,15 @@
     const creditAnnualRateInput = document.getElementById('credit-annual-rate');
     const creditMonthsInput = document.getElementById('credit-months');
     const creditStartDateInput = document.getElementById('credit-start-date');
+    const creditCertificateFeeInput = document.getElementById('credit-certificate-fee');
+    const creditCertificateCurrency = document.getElementById('credit-certificate-currency');
     const creditSummaryAmount = document.getElementById('credit-summary-amount');
     const creditSummaryMonthly = document.getElementById('credit-summary-monthly');
     const creditSummaryTotal = document.getElementById('credit-summary-total');
     const creditSummaryOverpay = document.getElementById('credit-summary-overpay');
-    const creditSummaryInsurance = document.getElementById('credit-summary-insurance');
+    const creditSummaryInsuranceAnnual = document.getElementById('credit-summary-insurance-annual');
+    const creditSummaryInsuranceTotal = document.getElementById('credit-summary-insurance-total');
+    const creditSummaryPreliminary = document.getElementById('credit-summary-preliminary');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
@@ -1587,14 +1610,17 @@
     };
 
     const setCreditSummary = (values, currencyLabel) => {
-      if (!creditSummaryAmount || !creditSummaryMonthly || !creditSummaryTotal || !creditSummaryOverpay || !creditSummaryInsurance) {
+      if (!creditSummaryAmount || !creditSummaryMonthly || !creditSummaryTotal || !creditSummaryOverpay
+        || !creditSummaryInsuranceAnnual || !creditSummaryInsuranceTotal || !creditSummaryPreliminary) {
         return;
       }
       creditSummaryAmount.textContent = toMoney(values.amount, currencyLabel);
       creditSummaryMonthly.textContent = toMoney(values.monthly, currencyLabel);
       creditSummaryTotal.textContent = toMoney(values.total, currencyLabel);
       creditSummaryOverpay.textContent = toMoney(values.overpay, currencyLabel);
-      creditSummaryInsurance.textContent = toMoney(values.insurance, currencyLabel);
+      creditSummaryInsuranceAnnual.textContent = toMoney(values.insuranceAnnual, currencyLabel);
+      creditSummaryInsuranceTotal.textContent = toMoney(values.insuranceTotal, currencyLabel);
+      creditSummaryPreliminary.textContent = toMoney(values.preliminary, currencyLabel);
     };
 
     const updateCreditDownPaymentUI = () => {
@@ -1648,6 +1674,9 @@
       }
       const currencyLabel = creditCurrencyLabel?.textContent || 'UZS';
       currentCreditCurrencyLabel = currencyLabel;
+      if (creditCertificateCurrency) {
+        creditCertificateCurrency.textContent = currencyLabel;
+      }
       const price = parseNumber(creditVehiclePriceInput.value);
       const downPaymentRaw = parseNumber(creditDownPaymentValue.value);
       const isPercent = creditDownPaymentType?.value === 'percent';
@@ -1661,7 +1690,15 @@
       const baseDate = startDateValue ? new Date(`${startDateValue}T00:00:00`) : new Date();
 
       if (!price || !months) {
-        setCreditSummary({ amount: 0, monthly: 0, total: 0, overpay: 0, insurance: 0 }, currencyLabel);
+        setCreditSummary({
+          amount: 0,
+          monthly: 0,
+          total: 0,
+          overpay: 0,
+          insuranceAnnual: 0,
+          insuranceTotal: 0,
+          preliminary: 0,
+        }, currencyLabel);
         renderCreditSchedule([], currencyLabel);
         currentCreditSchedule = [];
         return;
@@ -1702,6 +1739,8 @@
 
       const annualInsurance = (creditAmount * 1.34) * 0.009 + (creditAmount * 1.3) * 0.002;
       const insuranceTotal = annualInsurance * (months / 12);
+      const certificateFee = parseNumber(creditCertificateFeeInput?.value);
+      const preliminaryTotal = (totalPaid - creditAmount) + insuranceTotal + certificateFee;
 
       setCreditSummary(
         {
@@ -1709,7 +1748,9 @@
           monthly: monthlyPayment,
           total: totalPaid,
           overpay: totalPaid - creditAmount,
-          insurance: insuranceTotal,
+          insuranceAnnual: annualInsurance,
+          insuranceTotal,
+          preliminary: preliminaryTotal,
         },
         currencyLabel,
       );
@@ -1881,6 +1922,9 @@
         if (creditCurrencyLabel) {
           creditCurrencyLabel.textContent = currency;
         }
+        if (creditCertificateCurrency) {
+          creditCertificateCurrency.textContent = currency;
+        }
         if (creditVehicleBadge) {
           const vehicleName = button.dataset.vehicleName || 'Автомобиль';
           creditVehicleBadge.textContent = `${vehicleName} · ${currency}`;
@@ -1991,6 +2035,10 @@
       creditStartDateInput.addEventListener('change', calculateCreditSchedule);
     }
 
+    if (creditCertificateFeeInput) {
+      creditCertificateFeeInput.addEventListener('input', calculateCreditSchedule);
+    }
+
     if (financingTypeSelect) {
       financingTypeSelect.addEventListener('change', updateDownPaymentVisibility);
       updateDownPaymentVisibility();
@@ -2055,7 +2103,12 @@
       const summaryMonthly = creditSummaryMonthly?.textContent?.trim() || '—';
       const summaryTotal = creditSummaryTotal?.textContent?.trim() || '—';
       const summaryOverpay = creditSummaryOverpay?.textContent?.trim() || '—';
-      const summaryInsurance = creditSummaryInsurance?.textContent?.trim() || '—';
+      const summaryInsuranceAnnual = creditSummaryInsuranceAnnual?.textContent?.trim() || '—';
+      const summaryInsuranceTotal = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
+      const summaryPreliminary = creditSummaryPreliminary?.textContent?.trim() || '—';
+      const summaryCertificate = creditCertificateFeeInput?.value
+        ? toMoney(parseNumber(creditCertificateFeeInput.value), currentCreditCurrencyLabel)
+        : '—';
       const rows = [
         ['Кредитный калькулятор', vehicleLabel],
         [],
@@ -2064,7 +2117,10 @@
         ['Ежемесячный платеж', summaryMonthly],
         ['Общая сумма выплат', summaryTotal],
         ['Переплата по кредиту', summaryOverpay],
-        ['Страхование (за весь срок)', summaryInsurance],
+        ['Страхование (годовая)', summaryInsuranceAnnual],
+        ['Страхование (за весь срок)', summaryInsuranceTotal],
+        ['Сертификат соответствия', summaryCertificate],
+        ['Все предварительные расходы', summaryPreliminary],
         [],
         ['График платежей'],
         ['№', 'Дата платежа', 'Платеж', 'Проценты', 'Основной долг', 'Остаток'],
