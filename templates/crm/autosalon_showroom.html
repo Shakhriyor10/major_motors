@@ -314,6 +314,12 @@
         color: #2c3e66;
       }
 
+      .credit-print-meta .credit-print-emphasis {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #0b1f4b;
+      }
+
       .credit-print-table {
         width: 100%;
         border-collapse: collapse;
@@ -798,9 +804,9 @@
             <div class="credit-print-title">Autocenter Samarkand</div>
           </div>
           <div class="credit-print-meta">
-            <div><span class="text-muted"></span> <span id="credit-print-customer-name"></span></div>
-            <div><span class="text-muted">Номер телефона:</span> <span id="credit-print-customer-phone">—</span></div>
-            <div><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
+            <div><span class="text-muted"></span> <span id="credit-print-customer-name" class="credit-print-emphasis"></span></div>
+            <div><span class="text-muted">Номер телефона:</span> <span id="credit-print-customer-phone" class="credit-print-emphasis">—</span></div>
+            <div id="credit-print-vehicle-row"><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
             <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
           </div>
         </div>
@@ -843,14 +849,6 @@
                     <tr>
                       <th>Сумма кредита</th>
                       <td id="credit-print-summary-amount">—</td>
-                    </tr>
-                    <tr>
-                      <th>Ежемесячный платеж</th>
-                      <td id="credit-print-summary-monthly">—</td>
-                    </tr>
-                    <tr>
-                      <th>Переплата по кредиту</th>
-                      <td id="credit-print-summary-overpay">—</td>
                     </tr>
                     <tr>
                       <th>Страхование (за весь срок)</th>
@@ -905,7 +903,7 @@
                       <option value="percent">В процентах</option>
                       <option value="amount">В сумме</option>
                     </select>
-                    <input type="text" inputmode="decimal" class="form-control" id="credit-down-payment-value" placeholder="Например, 20">
+                    <input type="text" inputmode="decimal" class="form-control" id="credit-down-payment-value" placeholder="Например, 20" value="30">
                     <span class="input-group-text" id="credit-down-payment-suffix">%</span>
                   </div>
                   <div class="form-text" id="credit-down-payment-hint">Введите процент от стоимости автомобиля.</div>
@@ -913,13 +911,13 @@
                 <div>
                   <label class="form-label" for="credit-annual-rate">Годовая процентная ставка</label>
                   <div class="input-group">
-                    <input type="number" min="0" step="0.01" class="form-control" id="credit-annual-rate" placeholder="Например, 24">
+                    <input type="number" min="0" step="0.01" class="form-control" id="credit-annual-rate" placeholder="Например, 24" value="27">
                     <span class="input-group-text">%</span>
                   </div>
                 </div>
                 <div>
                   <label class="form-label" for="credit-months">Срок кредита (в месяцах)</label>
-                  <input type="number" min="1" step="1" class="form-control" id="credit-months" placeholder="Например, 36">
+                  <input type="number" min="1" step="1" class="form-control" id="credit-months" placeholder="Например, 36" value="36">
                 </div>
                 <div>
                   <label class="form-label" for="credit-certificate-fee">Сертификат соответствия</label>
@@ -1816,10 +1814,9 @@
     const creditPrintMonths = document.getElementById('credit-print-months');
     const creditPrintCertificate = document.getElementById('credit-print-certificate');
     const creditPrintSummaryAmount = document.getElementById('credit-print-summary-amount');
-    const creditPrintSummaryMonthly = document.getElementById('credit-print-summary-monthly');
-    const creditPrintSummaryOverpay = document.getElementById('credit-print-summary-overpay');
     const creditPrintSummaryInsuranceTotal = document.getElementById('credit-print-summary-insurance-total');
     const creditPrintSummaryPreliminary = document.getElementById('credit-print-summary-preliminary');
+    const creditPrintVehicleRow = document.getElementById('credit-print-vehicle-row');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
@@ -1912,8 +1909,8 @@
 
     const updateCreditPrintTable = () => {
       if (!creditPrintVehiclePrice || !creditPrintDownPayment || !creditPrintAnnualRate || !creditPrintMonths
-        || !creditPrintCertificate || !creditPrintSummaryAmount || !creditPrintSummaryMonthly
-        || !creditPrintSummaryOverpay || !creditPrintSummaryInsuranceTotal || !creditPrintSummaryPreliminary) {
+        || !creditPrintCertificate || !creditPrintSummaryAmount
+        || !creditPrintSummaryInsuranceTotal || !creditPrintSummaryPreliminary) {
         return;
       }
 
@@ -1950,8 +1947,6 @@
         : '—';
 
       creditPrintSummaryAmount.textContent = creditSummaryAmount?.textContent?.trim() || '—';
-      creditPrintSummaryMonthly.textContent = creditSummaryMonthly?.textContent?.trim() || '—';
-      creditPrintSummaryOverpay.textContent = creditSummaryOverpay?.textContent?.trim() || '—';
       creditPrintSummaryInsuranceTotal.textContent = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
       creditPrintSummaryPreliminary.textContent = creditSummaryPreliminary?.textContent?.trim() || '—';
 
@@ -1964,7 +1959,12 @@
       }
 
       if (creditPrintVehicle) {
-        creditPrintVehicle.textContent = creditVehicleBadge?.textContent?.trim() || 'Автомобиль не выбран';
+        const vehicleText = creditVehicleBadge?.textContent?.trim() || '';
+        const hasVehicle = vehicleText && vehicleText !== 'Автомобиль не выбран';
+        creditPrintVehicle.textContent = hasVehicle ? vehicleText : '';
+        if (creditPrintVehicleRow) {
+          creditPrintVehicleRow.style.display = hasVehicle ? '' : 'none';
+        }
       }
 
       if (creditPrintDate) {
