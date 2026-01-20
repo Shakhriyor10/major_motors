@@ -894,7 +894,7 @@
                 <div>
                   <label class="form-label" for="credit-vehicle-price">Стоимость автомобиля</label>
                   <div class="input-group">
-                    <input type="number" min="0" step="0.01" class="form-control" id="credit-vehicle-price" placeholder="Например, 250000000">
+                    <input type="text" inputmode="decimal" class="form-control" id="credit-vehicle-price" placeholder="Например, 250000000">
                     <span class="input-group-text" id="credit-currency-label">UZS</span>
                   </div>
                 </div>
@@ -905,7 +905,7 @@
                       <option value="percent">В процентах</option>
                       <option value="amount">В сумме</option>
                     </select>
-                    <input type="number" min="0" step="0.01" class="form-control" id="credit-down-payment-value" placeholder="Например, 20">
+                    <input type="text" inputmode="decimal" class="form-control" id="credit-down-payment-value" placeholder="Например, 20">
                     <span class="input-group-text" id="credit-down-payment-suffix">%</span>
                   </div>
                   <div class="form-text" id="credit-down-payment-hint">Введите процент от стоимости автомобиля.</div>
@@ -924,7 +924,7 @@
                 <div>
                   <label class="form-label" for="credit-certificate-fee">Сертификат соответствия</label>
                   <div class="input-group">
-                    <input type="number" min="0" step="0.01" class="form-control" id="credit-certificate-fee" placeholder="Например, 1500000">
+                    <input type="text" inputmode="decimal" class="form-control" id="credit-certificate-fee" placeholder="Например, 1500000">
                     <span class="input-group-text" id="credit-certificate-currency">UZS</span>
                   </div>
                 </div>
@@ -1824,7 +1824,8 @@
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
     let currentCreditCurrencyLabel = 'UZS';
-    const formatNumber = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    const formatNumberString = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    const formatNumber = (value) => formatNumberString(value);
     const parseNumber = (value) => {
       if (value === null || value === undefined) {
         return 0;
@@ -1838,6 +1839,44 @@
       const safeValue = Number.isFinite(value) ? value : 0;
       const formatted = formatNumber(safeValue.toFixed(2));
       return `${formatted} ${currencyLabel}`.trim();
+    };
+
+    const formatMoneyInputValue = (value) => {
+      const trimmed = `${value ?? ''}`.trim();
+      if (!trimmed) {
+        return '';
+      }
+      const normalized = trimmed.replace(/\s+/g, '').replace(',', '.');
+      const [integerPart, decimalPart] = normalized.split('.');
+      const digitsOnly = (integerPart || '').replace(/\D/g, '');
+      if (!digitsOnly) {
+        return '';
+      }
+      const formattedInteger = formatNumberString(digitsOnly);
+      if (decimalPart === undefined) {
+        return formattedInteger;
+      }
+      const formattedDecimal = decimalPart.replace(/\D/g, '').slice(0, 2);
+      return formattedDecimal ? `${formattedInteger}.${formattedDecimal}` : formattedInteger;
+    };
+
+    const applyMoneyFormatting = (input) => {
+      if (!input) {
+        return;
+      }
+      input.value = formatMoneyInputValue(input.value);
+    };
+
+    const maybeFormatDownPaymentValue = () => {
+      if (!creditDownPaymentValue) {
+        return;
+      }
+      if (creditDownPaymentType?.value === 'amount') {
+        applyMoneyFormatting(creditDownPaymentValue);
+      } else {
+        const cleaned = `${creditDownPaymentValue.value ?? ''}`.trim();
+        creditDownPaymentValue.value = cleaned ? `${parseNumber(cleaned)}` : '';
+      }
     };
 
     const setCreditSummary = (values, currencyLabel) => {
@@ -2028,7 +2067,7 @@
         const payment = principal + interest;
         balance = Math.max(balance - principal, 0);
         totalPaid += payment;
-        const paymentDate = buildPaymentDate(baseDate, index - 1);
+        const paymentDate = buildPaymentDate(baseDate, index);
         const dateLabel = paymentDate ? paymentDate.toLocaleDateString('ru-RU') : '—';
         schedule.push({
           index,
@@ -2215,6 +2254,7 @@
         const currency = button.dataset.vehicleCurrency?.toUpperCase() || 'UZS';
         if (creditVehiclePriceInput) {
           creditVehiclePriceInput.value = price;
+          applyMoneyFormatting(creditVehiclePriceInput);
         }
         if (creditCurrencyLabel) {
           creditCurrencyLabel.textContent = currency;
@@ -2308,16 +2348,23 @@
     if (creditDownPaymentType) {
       creditDownPaymentType.addEventListener('change', () => {
         updateCreditDownPaymentUI();
+        maybeFormatDownPaymentValue();
         calculateCreditSchedule();
       });
     }
 
     if (creditVehiclePriceInput) {
-      creditVehiclePriceInput.addEventListener('input', calculateCreditSchedule);
+      creditVehiclePriceInput.addEventListener('input', () => {
+        applyMoneyFormatting(creditVehiclePriceInput);
+        calculateCreditSchedule();
+      });
     }
 
     if (creditDownPaymentValue) {
-      creditDownPaymentValue.addEventListener('input', calculateCreditSchedule);
+      creditDownPaymentValue.addEventListener('input', () => {
+        maybeFormatDownPaymentValue();
+        calculateCreditSchedule();
+      });
     }
 
     if (creditAnnualRateInput) {
@@ -2329,7 +2376,10 @@
     }
 
     if (creditCertificateFeeInput) {
-      creditCertificateFeeInput.addEventListener('input', calculateCreditSchedule);
+      creditCertificateFeeInput.addEventListener('input', () => {
+        applyMoneyFormatting(creditCertificateFeeInput);
+        calculateCreditSchedule();
+      });
     }
 
     if (financingTypeSelect) {
