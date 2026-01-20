@@ -214,6 +214,23 @@
       letter-spacing: 0.5px;
     }
 
+    .attorney-subtitle {
+      text-align: center;
+      font-weight: 600;
+      font-size: 15.5px;
+      line-height: 1.4;
+      text-transform: uppercase;
+      margin-bottom: 6mm;
+    }
+
+    .attorney-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 14px;
+      margin-bottom: 8mm;
+    }
+
     .attorney-block {
       margin-bottom: 7mm;
       font-size: 14.5px;
@@ -1187,8 +1204,8 @@
             </div>
             <div class="vstack gap-3">
               <div>
-                <label class="form-label" for="attorney-trustor-name">Настоящим доверяет в лице (ФИО)</label>
-                <input type="text" class="form-control" id="attorney-trustor-name" placeholder="Например, Иванов Иван Иванович">
+                <label class="form-label" for="attorney-trustor-name">ФИО директора</label>
+                <input type="text" class="form-control" id="attorney-trustor-name" placeholder="Например, Primboyeva Gulnoza Ravshanovna">
               </div>
               <div>
                 <label class="form-label" for="attorney-vehicle-name">Имя машины</label>
@@ -1255,9 +1272,25 @@
               <img src="{% static 'img/logoavto3.png' %}" alt="Major Motors">
             </div>
             <div class="attorney-title">Доверенность</div>
-            <div class="attorney-block">
-              Настоящим доверяет в лице <strong id="attorney-trustor-preview">________________________</strong>
+            <div class="attorney-subtitle">
+              НА ПРАВО ПОЛЬЗОВАНИЯ И РАСПОРЯЖЕНИЯ ТРАНСПОРТНЫМ СРЕДСТВОМ
             </div>
+            <div class="attorney-meta">
+              <span>г. Ташкент</span>
+              <span id="attorney-header-date">«__» ______ 20__ г.</span>
+            </div>
+            <p class="attorney-paragraph" id="attorney-company-preview">
+              000 «AUTOCENTER» в лице директора <span id="attorney-director-preview">Primboyeva Gulnoza Ravshanovna</span>
+              являясь собственником автомобиля марки «<span id="attorney-make-inline">—</span>». Модель
+              <span id="attorney-model-inline">—</span>. Модельный год <span id="attorney-model-year-inline">—</span>, ДВС,
+              новый, Состоит из: SKD части и компоненты автомобиля., No кузова:
+              <span id="attorney-body-inline">—</span>, No двиг.: <span id="attorney-engine-inline">—</span>, об. дв.
+              1476см3, цвет <span id="attorney-color-inline">—</span>, <span id="attorney-engine-type-inline">—</span>,
+              Евро 6, 2025г.в.» настоящим доверяет в лице
+            </p>
+            <p class="attorney-paragraph" id="attorney-authorized-preview">
+              — (паспорт серия: —, выдан —)
+            </p>
             <div class="attorney-grid">
               <div class="attorney-row">
                 <span>Имя машины</span>
@@ -2155,7 +2188,7 @@
     const attorneyPassportInput = document.getElementById('attorney-passport');
     const attorneyPassportIssuedInput = document.getElementById('attorney-passport-issued');
     const attorneyExpiryInput = document.getElementById('attorney-expiry');
-    const attorneyTrustorPreview = document.getElementById('attorney-trustor-preview');
+    const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
     const attorneyVehicleNamePreview = document.getElementById('attorney-vehicle-name-preview');
     const attorneyVinPreview = document.getElementById('attorney-vin-preview');
     const attorneyMakePreview = document.getElementById('attorney-make-preview');
@@ -2168,6 +2201,15 @@
     const attorneyPassportPreview = document.getElementById('attorney-passport-preview');
     const attorneyPassportIssuedPreview = document.getElementById('attorney-passport-issued-preview');
     const attorneyExpiryPreview = document.getElementById('attorney-expiry-preview');
+    const attorneyHeaderDatePreview = document.getElementById('attorney-header-date');
+    const attorneyMakeInlinePreview = document.getElementById('attorney-make-inline');
+    const attorneyModelInlinePreview = document.getElementById('attorney-model-inline');
+    const attorneyModelYearInlinePreview = document.getElementById('attorney-model-year-inline');
+    const attorneyBodyInlinePreview = document.getElementById('attorney-body-inline');
+    const attorneyEngineInlinePreview = document.getElementById('attorney-engine-inline');
+    const attorneyColorInlinePreview = document.getElementById('attorney-color-inline');
+    const attorneyEngineTypeInlinePreview = document.getElementById('attorney-engine-type-inline');
+    const attorneyAuthorizedPreview = document.getElementById('attorney-authorized-preview');
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
     let currentCreditCurrencyLabel = 'UZS';
@@ -2216,6 +2258,28 @@
       return `«${day}» ${month} ${year} г.`;
     };
 
+    const formatAttorneyHeaderDate = () => {
+      const now = new Date();
+      const day = `${now.getDate()}`.padStart(2, '0');
+      const year = now.getFullYear();
+      const monthNames = [
+        'января',
+        'февраля',
+        'марта',
+        'апреля',
+        'мая',
+        'июня',
+        'июля',
+        'августа',
+        'сентября',
+        'октября',
+        'ноября',
+        'декабря',
+      ];
+      const month = monthNames[now.getMonth()];
+      return `«${day}» ${month} ${year} г.`;
+    };
+
     const formatMoneyInputValue = (value) => {
       const trimmed = `${value ?? ''}`.trim();
       if (!trimmed) {
@@ -2253,9 +2317,9 @@
         const normalized = `${value ?? ''}`.trim();
         element.textContent = normalized || fallback;
       };
-      if (attorneyTrustorPreview) {
-        const trustorValue = `${attorneyTrustorInput?.value ?? ''}`.trim();
-        attorneyTrustorPreview.textContent = trustorValue || '________________________';
+      if (attorneyDirectorPreview) {
+        const directorValue = `${attorneyTrustorInput?.value ?? ''}`.trim();
+        attorneyDirectorPreview.textContent = directorValue || 'Primboyeva Gulnoza Ravshanovna';
       }
       setText(attorneyVehicleNamePreview, attorneyVehicleNameInput?.value);
       setText(attorneyVinPreview, attorneyVinInput?.value);
@@ -2270,6 +2334,22 @@
       setText(attorneyPassportIssuedPreview, attorneyPassportIssuedInput?.value);
       if (attorneyExpiryPreview) {
         attorneyExpiryPreview.textContent = formatAttorneyDate(attorneyExpiryInput?.value);
+      }
+      if (attorneyHeaderDatePreview) {
+        attorneyHeaderDatePreview.textContent = formatAttorneyHeaderDate();
+      }
+      setText(attorneyMakeInlinePreview, attorneyMakeInput?.value);
+      setText(attorneyModelInlinePreview, attorneyVehicleNameInput?.value);
+      setText(attorneyModelYearInlinePreview, attorneyModelYearInput?.value);
+      setText(attorneyBodyInlinePreview, attorneyBodyNumberInput?.value);
+      setText(attorneyEngineInlinePreview, attorneyEngineNumberInput?.value);
+      setText(attorneyColorInlinePreview, attorneyColorInput?.value);
+      setText(attorneyEngineTypeInlinePreview, attorneyEngineTypeInput?.value);
+      if (attorneyAuthorizedPreview) {
+        const authorizedName = `${attorneyAuthorizedNameInput?.value ?? ''}`.trim() || '—';
+        const passport = `${attorneyPassportInput?.value ?? ''}`.trim() || '—';
+        const issued = `${attorneyPassportIssuedInput?.value ?? ''}`.trim() || '—';
+        attorneyAuthorizedPreview.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issued})`;
       }
     };
 
