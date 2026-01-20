@@ -798,7 +798,7 @@
             <div class="credit-print-title">Autocenter Samarkand</div>
           </div>
           <div class="credit-print-meta">
-            <div><span class="text-muted">Фамилия Имя:</span> <span id="credit-print-customer-name">—</span></div>
+            <div><span class="text-muted"></span> <span id="credit-print-customer-name"></span></div>
             <div><span class="text-muted">Номер телефона:</span> <span id="credit-print-customer-phone">—</span></div>
             <div><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
             <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
@@ -1917,7 +1917,7 @@
       creditPrintSummaryPreliminary.textContent = creditSummaryPreliminary?.textContent?.trim() || '—';
 
       if (creditPrintCustomerName) {
-        creditPrintCustomerName.textContent = creditCustomerNameInput?.value?.trim() || '—';
+        creditPrintCustomerName.textContent = creditCustomerNameInput?.value?.trim() || '';
       }
 
       if (creditPrintCustomerPhone) {

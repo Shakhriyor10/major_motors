@@ -33,8 +33,7 @@ from .models import (
 
 @login_required
 def home(request):
-    exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
-    return render(request, 'crm/home.html', {'exchange_rate': exchange_rate})
+    return redirect('autosalon')
 
 
 @login_required
