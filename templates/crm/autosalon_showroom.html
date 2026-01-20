@@ -385,11 +385,9 @@
         color: #0b1f4b;
       }
 
-      .credit-print-preliminary {
-        border: 1px solid #0b1f4b;
-        border-top: 0;
-        padding: 8mm 12mm;
+      .credit-print-preliminary-cell {
         text-align: center;
+        padding: 10mm 12mm;
       }
 
       .credit-print-preliminary-label {
@@ -398,12 +396,14 @@
         text-transform: uppercase;
         letter-spacing: 0.4px;
         margin-bottom: 4mm;
+        display: block;
       }
 
       .credit-print-preliminary-value {
         font-size: 20px;
         font-weight: 700;
         color: #0b1f4b;
+        display: block;
       }
 
       .credit-print-area .card {
@@ -889,15 +889,17 @@
                       <th>Страхование (за весь срок)</th>
                       <td id="credit-print-summary-insurance-total">—</td>
                     </tr>
+                    <tr>
+                      <th class="credit-print-preliminary-cell" colspan="2">
+                        <span class="credit-print-preliminary-label">Все предварительные расходы</span>
+                        <span id="credit-print-summary-preliminary" class="credit-print-preliminary-value">—</span>
+                      </th>
+                    </tr>
                   </table>
                 </td>
               </tr>
             </tbody>
           </table>
-          <div class="credit-print-preliminary">
-            <div class="credit-print-preliminary-label">Все предварительные расходы</div>
-            <div id="credit-print-summary-preliminary" class="credit-print-preliminary-value">—</div>
-          </div>
         </div>
         <div class="row g-4">
         <div class="col-12 col-lg-4 d-print-none">
