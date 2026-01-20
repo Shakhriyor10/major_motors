@@ -158,6 +158,15 @@
       padding: 10px 12px;
     }
 
+    .credit-action-btn {
+      font-size: 1rem;
+      padding: 0.6rem 1.3rem;
+    }
+
+    .credit-summary-item--wide {
+      grid-column: 1 / -1;
+    }
+
     .receipt-sum .row {
       display: flex;
       justify-content: space-between;
@@ -320,6 +329,11 @@
         color: #0b1f4b;
       }
 
+      .credit-print-meta .credit-print-customer-name {
+        font-size: 16px;
+        font-weight: 700;
+      }
+
       .credit-print-table {
         width: 100%;
         border-collapse: collapse;
@@ -369,6 +383,27 @@
         text-align: right;
         font-weight: 600;
         color: #0b1f4b;
+      }
+
+      .credit-print-preliminary-cell {
+        text-align: center;
+        padding: 10mm 12mm;
+      }
+
+      .credit-print-preliminary-label {
+        font-size: 12px;
+        color: #2c3e66;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 4mm;
+        display: block;
+      }
+
+      .credit-print-preliminary-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0b1f4b;
+        display: block;
       }
 
       .credit-print-area .card {
@@ -804,7 +839,7 @@
             <div class="credit-print-title">Autocenter Samarkand</div>
           </div>
           <div class="credit-print-meta">
-            <div><span class="text-muted"></span> <span id="credit-print-customer-name" class="credit-print-emphasis"></span></div>
+            <div><span class="text-muted"></span> <span id="credit-print-customer-name" class="credit-print-emphasis credit-print-customer-name"></span></div>
             <div><span class="text-muted">Номер телефона:</span> <span id="credit-print-customer-phone" class="credit-print-emphasis">—</span></div>
             <div id="credit-print-vehicle-row"><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
             <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
@@ -855,8 +890,10 @@
                       <td id="credit-print-summary-insurance-total">—</td>
                     </tr>
                     <tr>
-                      <th>Все предварительные расходы</th>
-                      <td id="credit-print-summary-preliminary">—</td>
+                      <th class="credit-print-preliminary-cell" colspan="2">
+                        <span class="credit-print-preliminary-label">Все предварительные расходы</span>
+                        <span id="credit-print-summary-preliminary" class="credit-print-preliminary-value">—</span>
+                      </th>
                     </tr>
                   </table>
                 </td>
@@ -871,7 +908,7 @@
               <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 d-print-none">
                 <span class="badge text-bg-success px-3 py-2" id="credit-selected-vehicle">Автомобиль не выбран</span>
                 <div class="d-flex flex-column align-items-end gap-2">
-                  <button class="btn btn-outline-primary btn-sm" type="button" id="print-credit-schedule">
+                  <button class="btn btn-outline-primary credit-action-btn" type="button" id="print-credit-schedule">
                     Печать графика
                   </button>
                   <button class="btn btn-outline-success btn-sm" type="button" id="export-credit-excel">
@@ -959,7 +996,7 @@
                     <div class="fw-semibold" id="credit-summary-insurance-total">—</div>
                   </div>
                 </div>
-                <div class="col-12 col-md-6 credit-summary-item">
+                <div class="col-12 col-md-12 credit-summary-item credit-summary-item--wide">
                   <div class="p-3 bg-body-tertiary rounded-3 h-100">
                     <div class="small text-muted">Все предварительные расходы</div>
                     <div class="fw-semibold" id="credit-summary-preliminary">—</div>
