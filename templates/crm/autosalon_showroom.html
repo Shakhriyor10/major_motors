@@ -798,6 +798,8 @@
             <div class="credit-print-title">Autocenter Samarkand</div>
           </div>
           <div class="credit-print-meta">
+            <div><span class="text-muted">Фамилия Имя:</span> <span id="credit-print-customer-name">—</span></div>
+            <div><span class="text-muted">Номер телефона:</span> <span id="credit-print-customer-phone">—</span></div>
             <div><span class="text-muted">Автомобиль:</span> <span id="credit-print-vehicle">—</span></div>
             <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
           </div>
@@ -881,6 +883,14 @@
               </div>
               <h3 class="h6 mb-3">Параметры кредита</h3>
               <div class="vstack gap-3">
+                <div>
+                  <label class="form-label" for="credit-customer-name">Фамилия Имя</label>
+                  <input type="text" class="form-control" id="credit-customer-name" placeholder="Например, Иванов Иван">
+                </div>
+                <div>
+                  <label class="form-label" for="credit-customer-phone">Номер телефона</label>
+                  <input type="tel" class="form-control" id="credit-customer-phone" placeholder="+998 (00) 000-00-00">
+                </div>
                 <div>
                   <label class="form-label" for="credit-vehicle-price">Стоимость автомобиля</label>
                   <div class="input-group">
@@ -1781,6 +1791,8 @@
     const creditVehicleBadge = document.getElementById('credit-selected-vehicle');
     const creditVehiclePriceInput = document.getElementById('credit-vehicle-price');
     const creditCurrencyLabel = document.getElementById('credit-currency-label');
+    const creditCustomerNameInput = document.getElementById('credit-customer-name');
+    const creditCustomerPhoneInput = document.getElementById('credit-customer-phone');
     const creditDownPaymentType = document.getElementById('credit-down-payment-type');
     const creditDownPaymentValue = document.getElementById('credit-down-payment-value');
     const creditDownPaymentSuffix = document.getElementById('credit-down-payment-suffix');
@@ -1796,6 +1808,8 @@
     const creditSummaryPreliminary = document.getElementById('credit-summary-preliminary');
     const creditPrintVehicle = document.getElementById('credit-print-vehicle');
     const creditPrintDate = document.getElementById('credit-print-date');
+    const creditPrintCustomerName = document.getElementById('credit-print-customer-name');
+    const creditPrintCustomerPhone = document.getElementById('credit-print-customer-phone');
     const creditPrintVehiclePrice = document.getElementById('credit-print-vehicle-price');
     const creditPrintDownPayment = document.getElementById('credit-print-down-payment');
     const creditPrintAnnualRate = document.getElementById('credit-print-annual-rate');
@@ -1901,6 +1915,14 @@
       creditPrintSummaryOverpay.textContent = creditSummaryOverpay?.textContent?.trim() || '—';
       creditPrintSummaryInsuranceTotal.textContent = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
       creditPrintSummaryPreliminary.textContent = creditSummaryPreliminary?.textContent?.trim() || '—';
+
+      if (creditPrintCustomerName) {
+        creditPrintCustomerName.textContent = creditCustomerNameInput?.value?.trim() || '—';
+      }
+
+      if (creditPrintCustomerPhone) {
+        creditPrintCustomerPhone.textContent = creditCustomerPhoneInput?.value?.trim() || '—';
+      }
 
       if (creditPrintVehicle) {
         creditPrintVehicle.textContent = creditVehicleBadge?.textContent?.trim() || 'Автомобиль не выбран';
