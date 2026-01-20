@@ -167,6 +167,159 @@
       grid-column: 1 / -1;
     }
 
+    .attorney-wrapper {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .attorney-preview {
+      background: #f8f9fb;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid #e6e8ee;
+    }
+
+    .attorney-page {
+      width: var(--page-w);
+      min-height: var(--page-h);
+      margin: 0 auto;
+      background: #fff;
+      padding: 18mm 16mm 20mm;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+      color: #111;
+      font-family: "Times New Roman", Times, serif;
+      position: relative;
+    }
+
+    .attorney-logo {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 0;
+    }
+
+    .attorney-logo img {
+      max-width: 120mm;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .attorney-address {
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #000;
+      font-style: italic;
+      margin-top: 1mm;
+      margin-bottom: 4mm;
+    }
+
+    .attorney-title {
+      text-align: center;
+      font-weight: 700;
+      font-size: 20px;
+      margin-bottom: 10mm;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .attorney-subtitle {
+      text-align: center;
+      font-weight: 600;
+      font-size: 15.5px;
+      line-height: 1.4;
+      text-transform: uppercase;
+      margin-bottom: 6mm;
+    }
+
+    .attorney-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 14px;
+      margin-bottom: 8mm;
+    }
+
+    .attorney-block {
+      margin-bottom: 7mm;
+      font-size: 14.5px;
+      line-height: 1.5;
+    }
+
+    .attorney-block strong {
+      font-weight: 700;
+    }
+
+    .attorney-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6mm 12mm;
+      margin-bottom: 6mm;
+    }
+
+    .attorney-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 14px;
+    }
+
+    .attorney-row span {
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+
+    .attorney-row b {
+      font-weight: 600;
+      font-size: 14.5px;
+      color: #111;
+    }
+
+    .attorney-paragraph {
+      margin: 5mm 0;
+      font-size: 14.5px;
+      line-height: 1.5;
+    }
+
+    .attorney-paragraph--justify {
+      text-align: justify;
+      text-align-last: left;
+      text-indent: 1.25em;
+    }
+
+    .attorney-paragraph--indent {
+      text-indent: 1.25em;
+    }
+
+    .attorney-paragraph--large {
+      font-size: 19.5px;
+    }
+
+    .attorney-warning-title {
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    .attorney-expiry {
+      text-align: center;
+      font-size: 15px;
+      margin: 10mm 0 8mm;
+    }
+
+    .attorney-doc {
+      display: flex;
+      justify-content: center;
+      margin-top: 8mm;
+    }
+
+    .attorney-doc img {
+      max-width: 120mm;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
     .receipt-sum .row {
       display: flex;
       justify-content: space-between;
@@ -465,6 +618,20 @@
         position: relative;
         z-index: 1;
       }
+
+      .attorney-preview {
+        border: 0;
+        background: transparent;
+        padding: 0;
+      }
+
+      .attorney-page {
+        box-shadow: none;
+        width: var(--page-w);
+        min-height: var(--page-h);
+        margin: 0;
+        border: 0;
+      }
     }
   </style>
 {% endblock %}
@@ -656,6 +823,20 @@
         aria-selected="true"
       >
         Кредитный калькулятор
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="autosalon-attorney-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#autosalon-attorney"
+        type="button"
+        role="tab"
+        aria-controls="autosalon-attorney"
+        aria-selected="false"
+      >
+        Доверенность
       </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -1032,6 +1213,191 @@
           </div>
         </div>
       </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="autosalon-attorney" role="tabpanel" aria-labelledby="autosalon-attorney-tab">
+      <div class="attorney-wrapper">
+        <div class="card shadow-sm h-100 d-print-none">
+          <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+              <h3 class="h6 mb-0">Данные доверенности</h3>
+              <button class="btn btn-outline-primary" type="button" id="print-attorney">
+                Печать
+              </button>
+            </div>
+            <div class="vstack gap-3">
+              <div>
+                <label class="form-label" for="attorney-trustor-name">ФИО директора</label>
+                <input type="text" class="form-control" id="attorney-trustor-name" placeholder="Например, Primboyeva Gulnoza Ravshanovna">
+              </div>
+              <div>
+                <label class="form-label" for="attorney-vehicle-name">Имя машины</label>
+                <input type="text" class="form-control" id="attorney-vehicle-name" placeholder="Например, Chevrolet Onix">
+              </div>
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-make">Марка автомобиля</label>
+                  <input type="text" class="form-control" id="attorney-make" placeholder="Chevrolet">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-model-year">Модельный год</label>
+                  <input type="number" class="form-control" id="attorney-model-year" placeholder="2024">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-body-number">Номер кузова</label>
+                  <input type="text" class="form-control" id="attorney-body-number" placeholder="Например, ABC1234567">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-engine-number">Номер двигателя</label>
+                  <input type="text" class="form-control" id="attorney-engine-number" placeholder="Например, ENG987654">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-engine-type">Тип двигателя</label>
+                  <input type="text" class="form-control" id="attorney-engine-type" placeholder="Бензин">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-color">Цвет машины</label>
+                  <input type="text" class="form-control" id="attorney-color" placeholder="Белый">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-skd">Состоит из</label>
+                  <input type="text" class="form-control" id="attorney-skd" placeholder="SKD части и компоненты автомобиля">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-engine-volume">Объём двигателя (см3)</label>
+                  <input type="number" class="form-control" id="attorney-engine-volume" placeholder="1476">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-euro">Экокласс</label>
+                  <input type="text" class="form-control" id="attorney-euro" placeholder="Евро 6">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-year">Год выпуска</label>
+                  <input type="number" class="form-control" id="attorney-year" placeholder="2025">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12">
+                  <label class="form-label" for="attorney-authorized-name">Доверенное лицо (ФИО)</label>
+                  <input type="text" class="form-control" id="attorney-authorized-name" placeholder="Например, Петров Петр Петрович">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-passport">Паспорт серия и номер</label>
+                  <input type="text" class="form-control" id="attorney-passport" placeholder="AB 1234567">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-passport-issued-date">Дата выдачи</label>
+                  <input type="date" class="form-control" id="attorney-passport-issued-date">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12">
+                  <label class="form-label" for="attorney-passport-issued">Кем выдан</label>
+                  <input type="text" class="form-control" id="attorney-passport-issued" placeholder="ОВД г. Самарканд">
+                </div>
+              </div>
+              <div>
+                <label class="form-label" for="attorney-expiry">Срок доверенности (до)</label>
+                <input type="date" class="form-control" id="attorney-expiry">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="attorney-preview">
+          <section class="attorney-page print-receipt-area" id="attorney-print-area">
+            <div class="attorney-logo">
+              <img src="{% static 'img/logoavto3.png' %}" alt="Major Motors">
+            </div>
+            <div class="attorney-address">
+              Адрес: г. Ташкент., сергелийский р-н, бунёбод мфй, д54, P/c: 20208000207157007001<br>
+              Банк: АКБ «Hamkorbank» сергелийский филиал. ИНН 311 648 151
+            </div>
+            <div class="attorney-title">Доверенность</div>
+            <div class="attorney-subtitle">
+              НА ПРАВО ПОЛЬЗОВАНИЯ И РАСПОРЯЖЕНИЯ ТРАНСПОРТНЫМ СРЕДСТВОМ
+            </div>
+            <div class="attorney-meta">
+              <span>г. Ташкент</span>
+              <span id="attorney-header-date">«__» ______ 20__ г.</span>
+            </div>
+            <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large" id="attorney-company-preview">
+              000 «AUTOCENTER» в лице директора <span id="attorney-director-preview">Primboyeva Gulnoza Ravshanovna</span>
+              являясь собственником автомобиля марки «<span id="attorney-make-inline">—</span>». Модель
+              <span id="attorney-model-inline">—</span>. Модельный год <span id="attorney-model-year-inline">—</span>, ДВС,
+              новый, Состоит из: <span id="attorney-skd-inline">—</span>, No кузова:
+              <span id="attorney-body-inline">—</span>, No двиг.: <span id="attorney-engine-inline">—</span>, об. дв.
+              <span id="attorney-engine-volume-inline">—</span>см3, цвет <span id="attorney-color-inline">—</span>,
+              <span id="attorney-engine-type-inline">—</span>, <span id="attorney-euro-inline">—</span>,
+              <span id="attorney-year-inline">—</span>г.в.» настоящим доверяет в лице
+            </p>
+            <p class="attorney-paragraph attorney-paragraph--indent attorney-paragraph--large" id="attorney-authorized-preview">
+              — (паспорт серия: —, выдан —)
+            </p>
+            <div class="attorney-grid">
+              <div class="attorney-row">
+                <span>Имя машины</span>
+                <b id="attorney-vehicle-name-preview">—</b>
+              </div>
+              <div class="attorney-row">
+                <span>Марка автомобиля</span>
+                <b id="attorney-make-preview">—</b>
+              </div>
+              <div class="attorney-row">
+                <span>Модельный год</span>
+                <b id="attorney-model-year-preview">—</b>
+              </div>
+              <div class="attorney-row">
+                <span>Номер кузова</span>
+                <b id="attorney-body-number-preview">—</b>
+              </div>
+              <div class="attorney-row">
+                <span>Номер двигателя</span>
+                <b id="attorney-engine-number-preview">—</b>
+              </div>
+              <div class="attorney-row">
+                <span>Тип двигателя</span>
+                <b id="attorney-engine-type-preview">—</b>
+              </div>
+              <div class="attorney-row">
+                <span>Цвет машины</span>
+                <b id="attorney-color-preview">—</b>
+              </div>
+            </div>
+            <div class="attorney-block">
+              Доверенное лицо: <strong id="attorney-authorized-name-preview">—</strong><br>
+              Паспорт: <strong id="attorney-passport-preview">—</strong><br>
+              Дата выдачи: <strong id="attorney-passport-issued-date-preview">—</strong><br>
+              Кем выдан: <strong id="attorney-passport-issued-preview">—</strong>
+            </div>
+            <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--indent attorney-paragraph--large fw-bold">
+              управлять вышеуказанным транспортным средством, следить за его техническим состоянием,
+              представлять интересы, связанные с временной эксплуатацией автомобиля, производить текущие ремонты и ТО
+              автомашины без права выезда за пределы Республики Узбекистан.
+            </p>
+            <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--indent attorney-paragraph--large">
+              <span class="attorney-warning-title">Доверенному запрещается:</span> быть представителем в органах СБДД ДОБ МВД
+              Республики Узбекистан (снимать/ставить на учет), расписываться в официальных документах по переоформлению
+              автомашины, самостоятельно производить замену номерных агрегатов, получать дубликаты регистрационных документов
+              и знаков, подавать заявления и иные документы, вносить обязательные платежи, заключать иные договора по его
+              очуждению.
+            </p>
+            <div class="attorney-expiry">
+              Доверенность выдан сроком до <span id="attorney-expiry-preview">«__» ______ 20__ г.</span>
+            </div>
+            <div class="attorney-doc">
+              <img src="{% static 'img/doc.png' %}" alt="Подпись и печать">
+            </div>
+          </section>
+        </div>
       </div>
     </div>
 
@@ -1855,6 +2221,51 @@
     const creditPrintSummaryPreliminary = document.getElementById('credit-print-summary-preliminary');
     const creditPrintVehicleRow = document.getElementById('credit-print-vehicle-row');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
+    const attorneyPrintButton = document.getElementById('print-attorney');
+    const attorneyPrintArea = document.getElementById('attorney-print-area');
+    const attorneyTrustorInput = document.getElementById('attorney-trustor-name');
+    const attorneyVehicleNameInput = document.getElementById('attorney-vehicle-name');
+    const attorneyMakeInput = document.getElementById('attorney-make');
+    const attorneyModelYearInput = document.getElementById('attorney-model-year');
+    const attorneyBodyNumberInput = document.getElementById('attorney-body-number');
+    const attorneyEngineNumberInput = document.getElementById('attorney-engine-number');
+    const attorneyEngineTypeInput = document.getElementById('attorney-engine-type');
+    const attorneyColorInput = document.getElementById('attorney-color');
+    const attorneySkdInput = document.getElementById('attorney-skd');
+    const attorneyEngineVolumeInput = document.getElementById('attorney-engine-volume');
+    const attorneyEuroInput = document.getElementById('attorney-euro');
+    const attorneyYearInput = document.getElementById('attorney-year');
+    const attorneyAuthorizedNameInput = document.getElementById('attorney-authorized-name');
+    const attorneyPassportInput = document.getElementById('attorney-passport');
+    const attorneyPassportIssuedDateInput = document.getElementById('attorney-passport-issued-date');
+    const attorneyPassportIssuedInput = document.getElementById('attorney-passport-issued');
+    const attorneyExpiryInput = document.getElementById('attorney-expiry');
+    const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
+    const attorneyVehicleNamePreview = document.getElementById('attorney-vehicle-name-preview');
+    const attorneyMakePreview = document.getElementById('attorney-make-preview');
+    const attorneyModelYearPreview = document.getElementById('attorney-model-year-preview');
+    const attorneyBodyNumberPreview = document.getElementById('attorney-body-number-preview');
+    const attorneyEngineNumberPreview = document.getElementById('attorney-engine-number-preview');
+    const attorneyEngineTypePreview = document.getElementById('attorney-engine-type-preview');
+    const attorneyColorPreview = document.getElementById('attorney-color-preview');
+    const attorneyAuthorizedNamePreview = document.getElementById('attorney-authorized-name-preview');
+    const attorneyPassportPreview = document.getElementById('attorney-passport-preview');
+    const attorneyPassportIssuedDatePreview = document.getElementById('attorney-passport-issued-date-preview');
+    const attorneyPassportIssuedPreview = document.getElementById('attorney-passport-issued-preview');
+    const attorneyExpiryPreview = document.getElementById('attorney-expiry-preview');
+    const attorneyHeaderDatePreview = document.getElementById('attorney-header-date');
+    const attorneyMakeInlinePreview = document.getElementById('attorney-make-inline');
+    const attorneyModelInlinePreview = document.getElementById('attorney-model-inline');
+    const attorneyModelYearInlinePreview = document.getElementById('attorney-model-year-inline');
+    const attorneyBodyInlinePreview = document.getElementById('attorney-body-inline');
+    const attorneyEngineInlinePreview = document.getElementById('attorney-engine-inline');
+    const attorneyColorInlinePreview = document.getElementById('attorney-color-inline');
+    const attorneyEngineTypeInlinePreview = document.getElementById('attorney-engine-type-inline');
+    const attorneySkdInlinePreview = document.getElementById('attorney-skd-inline');
+    const attorneyEngineVolumeInlinePreview = document.getElementById('attorney-engine-volume-inline');
+    const attorneyEuroInlinePreview = document.getElementById('attorney-euro-inline');
+    const attorneyYearInlinePreview = document.getElementById('attorney-year-inline');
+    const attorneyAuthorizedPreview = document.getElementById('attorney-authorized-preview');
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
     let currentCreditCurrencyLabel = 'UZS';
@@ -1873,6 +2284,84 @@
       const safeValue = Number.isFinite(value) ? value : 0;
       const formatted = formatNumber(safeValue.toFixed(2));
       return `${formatted} ${currencyLabel}`.trim();
+    };
+
+    const formatAttorneyDate = (value) => {
+      if (!value) {
+        return '«__» ______ 20__ г.';
+      }
+      const parsed = new Date(`${value}T00:00:00`);
+      if (Number.isNaN(parsed.getTime())) {
+        return '«__» ______ 20__ г.';
+      }
+      const day = `${parsed.getDate()}`.padStart(2, '0');
+      const year = parsed.getFullYear();
+      const monthNames = [
+        'января',
+        'февраля',
+        'марта',
+        'апреля',
+        'мая',
+        'июня',
+        'июля',
+        'августа',
+        'сентября',
+        'октября',
+        'ноября',
+        'декабря',
+      ];
+      const month = monthNames[parsed.getMonth()];
+      return `«${day}» ${month} ${year} г.`;
+    };
+
+    const formatAttorneyIssueDate = (value) => {
+      if (!value) {
+        return '—';
+      }
+      const parsed = new Date(`${value}T00:00:00`);
+      if (Number.isNaN(parsed.getTime())) {
+        return '—';
+      }
+      const day = `${parsed.getDate()}`.padStart(2, '0');
+      const year = parsed.getFullYear();
+      const monthNames = [
+        'января',
+        'февраля',
+        'марта',
+        'апреля',
+        'мая',
+        'июня',
+        'июля',
+        'августа',
+        'сентября',
+        'октября',
+        'ноября',
+        'декабря',
+      ];
+      const month = monthNames[parsed.getMonth()];
+      return `«${day}» ${month} ${year} г.`;
+    };
+
+    const formatAttorneyHeaderDate = () => {
+      const now = new Date();
+      const day = `${now.getDate()}`.padStart(2, '0');
+      const year = now.getFullYear();
+      const monthNames = [
+        'января',
+        'февраля',
+        'марта',
+        'апреля',
+        'мая',
+        'июня',
+        'июля',
+        'августа',
+        'сентября',
+        'октября',
+        'ноября',
+        'декабря',
+      ];
+      const month = monthNames[now.getMonth()];
+      return `«${day}» ${month} ${year} г.`;
     };
 
     const formatMoneyInputValue = (value) => {
@@ -1899,6 +2388,60 @@
         return;
       }
       input.value = formatMoneyInputValue(input.value);
+    };
+
+    const updateAttorneyPreview = () => {
+      if (!attorneyPrintArea) {
+        return;
+      }
+      const setText = (element, value, fallback = '—') => {
+        if (!element) {
+          return;
+        }
+        const normalized = `${value ?? ''}`.trim();
+        element.textContent = normalized || fallback;
+      };
+      if (attorneyDirectorPreview) {
+        const directorValue = `${attorneyTrustorInput?.value ?? ''}`.trim();
+        attorneyDirectorPreview.textContent = directorValue || 'Primboyeva Gulnoza Ravshanovna';
+      }
+      setText(attorneyVehicleNamePreview, attorneyVehicleNameInput?.value);
+      setText(attorneyMakePreview, attorneyMakeInput?.value);
+      setText(attorneyModelYearPreview, attorneyModelYearInput?.value);
+      setText(attorneyBodyNumberPreview, attorneyBodyNumberInput?.value);
+      setText(attorneyEngineNumberPreview, attorneyEngineNumberInput?.value);
+      setText(attorneyEngineTypePreview, attorneyEngineTypeInput?.value);
+      setText(attorneyColorPreview, attorneyColorInput?.value);
+      setText(attorneyAuthorizedNamePreview, attorneyAuthorizedNameInput?.value);
+      setText(attorneyPassportPreview, attorneyPassportInput?.value);
+      if (attorneyPassportIssuedDatePreview) {
+        attorneyPassportIssuedDatePreview.textContent = formatAttorneyIssueDate(attorneyPassportIssuedDateInput?.value);
+      }
+      setText(attorneyPassportIssuedPreview, attorneyPassportIssuedInput?.value);
+      if (attorneyExpiryPreview) {
+        attorneyExpiryPreview.textContent = formatAttorneyDate(attorneyExpiryInput?.value);
+      }
+      if (attorneyHeaderDatePreview) {
+        attorneyHeaderDatePreview.textContent = formatAttorneyHeaderDate();
+      }
+      setText(attorneyMakeInlinePreview, attorneyMakeInput?.value);
+      setText(attorneyModelInlinePreview, attorneyVehicleNameInput?.value);
+      setText(attorneyModelYearInlinePreview, attorneyModelYearInput?.value);
+      setText(attorneyBodyInlinePreview, attorneyBodyNumberInput?.value);
+      setText(attorneyEngineInlinePreview, attorneyEngineNumberInput?.value);
+      setText(attorneyColorInlinePreview, attorneyColorInput?.value);
+      setText(attorneyEngineTypeInlinePreview, attorneyEngineTypeInput?.value);
+      setText(attorneySkdInlinePreview, attorneySkdInput?.value);
+      setText(attorneyEngineVolumeInlinePreview, attorneyEngineVolumeInput?.value);
+      setText(attorneyEuroInlinePreview, attorneyEuroInput?.value);
+      setText(attorneyYearInlinePreview, attorneyYearInput?.value);
+      if (attorneyAuthorizedPreview) {
+        const authorizedName = `${attorneyAuthorizedNameInput?.value ?? ''}`.trim() || '—';
+        const passport = `${attorneyPassportInput?.value ?? ''}`.trim() || '—';
+        const issuedDate = formatAttorneyIssueDate(attorneyPassportIssuedDateInput?.value);
+        const issuedBy = `${attorneyPassportIssuedInput?.value ?? ''}`.trim() || '—';
+        attorneyAuthorizedPreview.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issuedDate} ${issuedBy})`;
+      }
     };
 
     const maybeFormatDownPaymentValue = () => {
@@ -2419,6 +2962,34 @@
       });
     }
 
+    const attorneyInputs = [
+      attorneyTrustorInput,
+      attorneyVehicleNameInput,
+      attorneyMakeInput,
+      attorneyModelYearInput,
+      attorneyBodyNumberInput,
+      attorneyEngineNumberInput,
+      attorneyEngineTypeInput,
+      attorneyColorInput,
+      attorneySkdInput,
+      attorneyEngineVolumeInput,
+      attorneyEuroInput,
+      attorneyYearInput,
+      attorneyAuthorizedNameInput,
+      attorneyPassportInput,
+      attorneyPassportIssuedDateInput,
+      attorneyPassportIssuedInput,
+      attorneyExpiryInput,
+    ];
+
+    attorneyInputs.forEach((input) => {
+      if (!input) {
+        return;
+      }
+      input.addEventListener('input', updateAttorneyPreview);
+      input.addEventListener('change', updateAttorneyPreview);
+    });
+
     if (financingTypeSelect) {
       financingTypeSelect.addEventListener('change', updateDownPaymentVisibility);
       updateDownPaymentVisibility();
@@ -2451,6 +3022,19 @@
         currentPrintTarget = creditPrintArea;
         document.body.classList.add('print-receipt-active');
         creditPrintArea.classList.add('is-print-target');
+        window.print();
+      });
+    }
+
+    if (attorneyPrintButton) {
+      attorneyPrintButton.addEventListener('click', () => {
+        if (!attorneyPrintArea) {
+          return;
+        }
+        updateAttorneyPreview();
+        currentPrintTarget = attorneyPrintArea;
+        document.body.classList.add('print-receipt-active');
+        attorneyPrintArea.classList.add('is-print-target');
         window.print();
       });
     }
@@ -2524,6 +3108,10 @@
 
     if (creditExportButton) {
       creditExportButton.addEventListener('click', exportCreditToExcel);
+    }
+
+    if (attorneyPrintArea) {
+      updateAttorneyPreview();
     }
 
     const soldSearchInput = document.getElementById('soldSearch');
