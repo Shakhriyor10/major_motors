@@ -288,6 +288,10 @@
       text-indent: 1.25em;
     }
 
+    .attorney-paragraph--indent {
+      text-indent: 1.25em;
+    }
+
     .attorney-warning-title {
       font-weight: 700;
       text-decoration: underline;
@@ -1287,6 +1291,12 @@
                   <input type="text" class="form-control" id="attorney-passport" placeholder="AB 1234567">
                 </div>
                 <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-passport-issued-date">Дата выдачи</label>
+                  <input type="date" class="form-control" id="attorney-passport-issued-date">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12">
                   <label class="form-label" for="attorney-passport-issued">Кем выдан</label>
                   <input type="text" class="form-control" id="attorney-passport-issued" placeholder="ОВД г. Самарканд">
                 </div>
@@ -1325,7 +1335,7 @@
               <span id="attorney-engine-type-inline">—</span>, <span id="attorney-euro-inline">—</span>,
               <span id="attorney-year-inline">—</span>г.в.» настоящим доверяет в лице
             </p>
-            <p class="attorney-paragraph" id="attorney-authorized-preview">
+            <p class="attorney-paragraph attorney-paragraph--indent" id="attorney-authorized-preview">
               — (паспорт серия: —, выдан —)
             </p>
             <div class="attorney-grid">
@@ -1361,6 +1371,7 @@
             <div class="attorney-block">
               Доверенное лицо: <strong id="attorney-authorized-name-preview">—</strong><br>
               Паспорт: <strong id="attorney-passport-preview">—</strong><br>
+              Дата выдачи: <strong id="attorney-passport-issued-date-preview">—</strong><br>
               Кем выдан: <strong id="attorney-passport-issued-preview">—</strong>
             </div>
             <p class="attorney-paragraph fw-bold">
@@ -2222,6 +2233,7 @@
     const attorneyYearInput = document.getElementById('attorney-year');
     const attorneyAuthorizedNameInput = document.getElementById('attorney-authorized-name');
     const attorneyPassportInput = document.getElementById('attorney-passport');
+    const attorneyPassportIssuedDateInput = document.getElementById('attorney-passport-issued-date');
     const attorneyPassportIssuedInput = document.getElementById('attorney-passport-issued');
     const attorneyExpiryInput = document.getElementById('attorney-expiry');
     const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
@@ -2234,6 +2246,7 @@
     const attorneyColorPreview = document.getElementById('attorney-color-preview');
     const attorneyAuthorizedNamePreview = document.getElementById('attorney-authorized-name-preview');
     const attorneyPassportPreview = document.getElementById('attorney-passport-preview');
+    const attorneyPassportIssuedDatePreview = document.getElementById('attorney-passport-issued-date-preview');
     const attorneyPassportIssuedPreview = document.getElementById('attorney-passport-issued-preview');
     const attorneyExpiryPreview = document.getElementById('attorney-expiry-preview');
     const attorneyHeaderDatePreview = document.getElementById('attorney-header-date');
@@ -2276,6 +2289,34 @@
       const parsed = new Date(`${value}T00:00:00`);
       if (Number.isNaN(parsed.getTime())) {
         return '«__» ______ 20__ г.';
+      }
+      const day = `${parsed.getDate()}`.padStart(2, '0');
+      const year = parsed.getFullYear();
+      const monthNames = [
+        'января',
+        'февраля',
+        'марта',
+        'апреля',
+        'мая',
+        'июня',
+        'июля',
+        'августа',
+        'сентября',
+        'октября',
+        'ноября',
+        'декабря',
+      ];
+      const month = monthNames[parsed.getMonth()];
+      return `«${day}» ${month} ${year} г.`;
+    };
+
+    const formatAttorneyIssueDate = (value) => {
+      if (!value) {
+        return '—';
+      }
+      const parsed = new Date(`${value}T00:00:00`);
+      if (Number.isNaN(parsed.getTime())) {
+        return '—';
       }
       const day = `${parsed.getDate()}`.padStart(2, '0');
       const year = parsed.getFullYear();
@@ -2369,6 +2410,9 @@
       setText(attorneyColorPreview, attorneyColorInput?.value);
       setText(attorneyAuthorizedNamePreview, attorneyAuthorizedNameInput?.value);
       setText(attorneyPassportPreview, attorneyPassportInput?.value);
+      if (attorneyPassportIssuedDatePreview) {
+        attorneyPassportIssuedDatePreview.textContent = formatAttorneyIssueDate(attorneyPassportIssuedDateInput?.value);
+      }
       setText(attorneyPassportIssuedPreview, attorneyPassportIssuedInput?.value);
       if (attorneyExpiryPreview) {
         attorneyExpiryPreview.textContent = formatAttorneyDate(attorneyExpiryInput?.value);
@@ -2390,8 +2434,9 @@
       if (attorneyAuthorizedPreview) {
         const authorizedName = `${attorneyAuthorizedNameInput?.value ?? ''}`.trim() || '—';
         const passport = `${attorneyPassportInput?.value ?? ''}`.trim() || '—';
-        const issued = `${attorneyPassportIssuedInput?.value ?? ''}`.trim() || '—';
-        attorneyAuthorizedPreview.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issued})`;
+        const issuedDate = formatAttorneyIssueDate(attorneyPassportIssuedDateInput?.value);
+        const issuedBy = `${attorneyPassportIssuedInput?.value ?? ''}`.trim() || '—';
+        attorneyAuthorizedPreview.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issuedDate} ${issuedBy})`;
       }
     };
 
@@ -2928,6 +2973,7 @@
       attorneyYearInput,
       attorneyAuthorizedNameInput,
       attorneyPassportInput,
+      attorneyPassportIssuedDateInput,
       attorneyPassportIssuedInput,
       attorneyExpiryInput,
     ];
