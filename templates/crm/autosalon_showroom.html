@@ -319,7 +319,7 @@
         border-collapse: collapse;
         border: 1px solid #0b1f4b;
         font-size: 11px;
-        background: #fff;
+        background: transparent;
       }
 
       .credit-print-table th,
@@ -416,10 +416,10 @@
       .credit-print-watermark::before {
         content: "";
         position: absolute;
-        inset: 16mm 10mm;
+        inset: 0;
         background: url("{% static 'img/logo-2.png' %}") no-repeat center;
-        background-size: 90%;
-        opacity: 0.12;
+        background-size: 85%;
+        opacity: 0.14;
         pointer-events: none;
         z-index: 0;
       }
@@ -965,10 +965,10 @@
             </div>
           </div>
 
-          <div class="card shadow-sm credit-print-watermark">
+          <div class="card shadow-sm">
             <div class="card-body">
               <h3 class="h6 mb-3">График платежей</h3>
-              <div class="table-responsive">
+              <div class="table-responsive credit-print-watermark">
                 <table class="table table-sm align-middle mb-0 credit-schedule-table">
                   <thead class="table-light">
                     <tr>
