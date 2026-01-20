@@ -1211,10 +1211,6 @@
                 <label class="form-label" for="attorney-vehicle-name">Имя машины</label>
                 <input type="text" class="form-control" id="attorney-vehicle-name" placeholder="Например, Chevrolet Onix">
               </div>
-              <div>
-                <label class="form-label" for="attorney-vin">VIN-код</label>
-                <input type="text" class="form-control" id="attorney-vin" placeholder="Например, XUF1234567890">
-              </div>
               <div class="row g-2">
                 <div class="col-12 col-md-6">
                   <label class="form-label" for="attorney-make">Марка автомобиля</label>
@@ -1316,10 +1312,6 @@
               <div class="attorney-row">
                 <span>Имя машины</span>
                 <b id="attorney-vehicle-name-preview">—</b>
-              </div>
-              <div class="attorney-row">
-                <span>VIN-код</span>
-                <b id="attorney-vin-preview">—</b>
               </div>
               <div class="attorney-row">
                 <span>Марка автомобиля</span>
@@ -2198,7 +2190,6 @@
     const attorneyPrintArea = document.getElementById('attorney-print-area');
     const attorneyTrustorInput = document.getElementById('attorney-trustor-name');
     const attorneyVehicleNameInput = document.getElementById('attorney-vehicle-name');
-    const attorneyVinInput = document.getElementById('attorney-vin');
     const attorneyMakeInput = document.getElementById('attorney-make');
     const attorneyModelYearInput = document.getElementById('attorney-model-year');
     const attorneyBodyNumberInput = document.getElementById('attorney-body-number');
@@ -2215,7 +2206,6 @@
     const attorneyExpiryInput = document.getElementById('attorney-expiry');
     const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
     const attorneyVehicleNamePreview = document.getElementById('attorney-vehicle-name-preview');
-    const attorneyVinPreview = document.getElementById('attorney-vin-preview');
     const attorneyMakePreview = document.getElementById('attorney-make-preview');
     const attorneyModelYearPreview = document.getElementById('attorney-model-year-preview');
     const attorneyBodyNumberPreview = document.getElementById('attorney-body-number-preview');
@@ -2351,7 +2341,6 @@
         attorneyDirectorPreview.textContent = directorValue || 'Primboyeva Gulnoza Ravshanovna';
       }
       setText(attorneyVehicleNamePreview, attorneyVehicleNameInput?.value);
-      setText(attorneyVinPreview, attorneyVinInput?.value);
       setText(attorneyMakePreview, attorneyMakeInput?.value);
       setText(attorneyModelYearPreview, attorneyModelYearInput?.value);
       setText(attorneyBodyNumberPreview, attorneyBodyNumberInput?.value);
@@ -2907,7 +2896,6 @@
     const attorneyInputs = [
       attorneyTrustorInput,
       attorneyVehicleNameInput,
-      attorneyVinInput,
       attorneyMakeInput,
       attorneyModelYearInput,
       attorneyBodyNumberInput,
