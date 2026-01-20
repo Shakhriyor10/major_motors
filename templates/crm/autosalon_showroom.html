@@ -409,7 +409,11 @@
         max-width: 100%;
       }
 
-      .credit-print-area::before {
+      .credit-print-watermark {
+        position: relative;
+      }
+
+      .credit-print-watermark::before {
         content: "";
         position: absolute;
         inset: 16mm 10mm;
@@ -420,7 +424,7 @@
         z-index: 0;
       }
 
-      .credit-print-area > * {
+      .credit-print-watermark > * {
         position: relative;
         z-index: 1;
       }
@@ -802,7 +806,7 @@
             <div><span class="text-muted">Дата печати:</span> <span id="credit-print-date">—</span></div>
           </div>
         </div>
-        <div class="d-none d-print-block mb-4 px-4">
+        <div class="d-none d-print-block mb-4 px-4 credit-print-watermark">
           <table class="credit-print-table">
             <thead>
               <tr>
@@ -961,7 +965,7 @@
             </div>
           </div>
 
-          <div class="card shadow-sm">
+          <div class="card shadow-sm credit-print-watermark">
             <div class="card-body">
               <h3 class="h6 mb-3">График платежей</h3>
               <div class="table-responsive">
