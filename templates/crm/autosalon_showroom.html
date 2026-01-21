@@ -1337,8 +1337,9 @@
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large" id="attorney-company-preview">
               000 «AUTOCENTER» в лице директора <span id="attorney-director-preview">Primboyeva Gulnoza Ravshanovna</span>
               являясь собственником автомобиля марки «<span id="attorney-make-inline">—</span>». Модель
-              <span id="attorney-model-inline">—</span>. Модельный год <span id="attorney-model-year-inline">—</span>,
-              <span id="attorney-dvs-inline">ДВС</span>, новый, Состоит из: <span id="attorney-skd-inline">—</span>, № кузова:
+              <span id="attorney-model-inline">—</span>. Модельный год <span id="attorney-model-year-inline">—</span>
+              <span id="attorney-dvs-block">, <span id="attorney-dvs-inline">ДВС</span></span>, новый, Состоит из:
+              <span id="attorney-skd-inline">—</span>, № кузова:
               <span id="attorney-body-inline">—</span>, № двиг.: <span id="attorney-engine-inline">—</span>, об. дв.
               <span id="attorney-engine-volume-inline">—</span>см3, цвет <span id="attorney-color-inline">—</span>,
               <span id="attorney-engine-type-inline">—</span>, <span id="attorney-euro-inline">—</span>,
@@ -2227,6 +2228,7 @@
     const attorneyMakeInlinePreview = document.getElementById('attorney-make-inline');
     const attorneyModelInlinePreview = document.getElementById('attorney-model-inline');
     const attorneyModelYearInlinePreview = document.getElementById('attorney-model-year-inline');
+    const attorneyDvsBlock = document.getElementById('attorney-dvs-block');
     const attorneyDvsInlinePreview = document.getElementById('attorney-dvs-inline');
     const attorneyBodyInlinePreview = document.getElementById('attorney-body-inline');
     const attorneyEngineInlinePreview = document.getElementById('attorney-engine-inline');
@@ -2398,7 +2400,11 @@
       setText(attorneyMakeInlinePreview, attorneyMakeInput?.value);
       setText(attorneyModelInlinePreview, attorneyVehicleNameInput?.value);
       setText(attorneyModelYearInlinePreview, attorneyModelYearInput?.value);
-      setText(attorneyDvsInlinePreview, attorneyDvsInput?.value, 'ДВС');
+      const dvsValue = `${attorneyDvsInput?.value ?? ''}`.trim();
+      setText(attorneyDvsInlinePreview, dvsValue, '');
+      if (attorneyDvsBlock) {
+        attorneyDvsBlock.style.display = dvsValue ? '' : 'none';
+      }
       setText(attorneyBodyInlinePreview, attorneyBodyNumberInput?.value);
       setText(attorneyEngineInlinePreview, attorneyEngineNumberInput?.value);
       setText(attorneyColorInlinePreview, attorneyColorInput?.value);
