@@ -95,6 +95,8 @@
                     data-customer-source="{{ customer.lead_source|default:'—' }}"
                     data-customer-passport-series="{{ customer.passport_series|default:'' }}"
                     data-customer-passport-number="{{ customer.passport_number|default:'' }}"
+                    data-customer-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
+                    data-customer-passport-issued-date-display="{{ customer.passport_issued_date|date:'d.m.Y' }}"
                     data-customer-pinfl="{{ customer.pinfl|default:'' }}"
                     data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
                     data-customer-address="{{ customer.address|default:'' }}"
@@ -121,6 +123,8 @@
                     data-customer-pinfl="{{ customer.pinfl|default:'' }}"
                     data-customer-passport-series="{{ customer.passport_series|default:'' }}"
                     data-customer-passport-number="{{ customer.passport_number|default:'' }}"
+                    data-customer-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
+                    data-customer-passport-issued-date-display="{{ customer.passport_issued_date|date:'d.m.Y' }}"
                     data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
                     data-customer-address="{{ customer.address|default:'' }}"
                     data-customer-notes="{{ customer.notes|default:'' }}"
@@ -188,6 +192,10 @@
             <div class="col-md-6">
               <div class="small text-muted">Номер паспорта</div>
               <div id="customerDetailsPassportNumber">—</div>
+            </div>
+            <div class="col-md-6">
+              <div class="small text-muted">Дата выдачи паспорта</div>
+              <div id="customerDetailsPassportIssuedDate">—</div>
             </div>
             <div class="col-md-6">
               <div class="small text-muted">ПИНФЛ</div>
@@ -318,6 +326,12 @@
                 <input type="text" name="passport_number" id="customerEditPassportNumber" class="form-control" />
               </div>
             </div>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">Дата выдачи паспорта</label>
+                <input type="date" name="passport_issued_date" id="customerEditPassportIssuedDate" class="form-control" />
+              </div>
+            </div>
             <div>
               <label class="form-label">Номер договора</label>
               <input type="text" name="contract_number" id="customerEditContractNumber" class="form-control" />
@@ -426,6 +440,12 @@
                 <input type="text" name="passport_number" class="form-control" placeholder="1234567" />
               </div>
             </div>
+            <div class="row g-2" id="customerPassportIssuedDateRow">
+              <div class="col-md-6">
+                <label class="form-label">Дата выдачи паспорта</label>
+                <input type="date" name="passport_issued_date" class="form-control" />
+              </div>
+            </div>
             <div id="customerPinflGroup">
               <label class="form-label">ПИНФЛ</label>
               <input type="text" name="pinfl" class="form-control" placeholder="Необязательно" />
@@ -523,6 +543,7 @@
     const customerNameLabel = document.getElementById('customerNameLabel');
     const customerNameInput = document.getElementById('customerNameInput');
     const customerPassportRow = document.getElementById('customerPassportRow');
+    const customerPassportIssuedDateRow = document.getElementById('customerPassportIssuedDateRow');
     const customerPinflGroup = document.getElementById('customerPinflGroup');
     const customerPassportIssuedGroup = document.getElementById('customerPassportIssuedGroup');
 
@@ -541,6 +562,9 @@
       }
       if (customerPassportRow) {
         customerPassportRow.classList.toggle('d-none', isLegal);
+      }
+      if (customerPassportIssuedDateRow) {
+        customerPassportIssuedDateRow.classList.toggle('d-none', isLegal);
       }
       if (customerPinflGroup) {
         customerPinflGroup.classList.toggle('d-none', isLegal);
@@ -624,6 +648,7 @@
         setText('customerDetailsAddress', button.dataset.customerAddress);
         setText('customerDetailsPassportSeries', button.dataset.customerPassportSeries);
         setText('customerDetailsPassportNumber', button.dataset.customerPassportNumber);
+        setText('customerDetailsPassportIssuedDate', button.dataset.customerPassportIssuedDateDisplay);
         setText('customerDetailsPinfl', button.dataset.customerPinfl);
         setText('customerDetailsPassportIssued', button.dataset.customerPassportIssued);
         setText('customerDetailsNotes', button.dataset.customerNotes);
@@ -715,6 +740,7 @@
         setValue('customerEditPinfl', button.dataset.customerPinfl);
         setValue('customerEditPassportSeries', button.dataset.customerPassportSeries);
         setValue('customerEditPassportNumber', button.dataset.customerPassportNumber);
+        setValue('customerEditPassportIssuedDate', button.dataset.customerPassportIssuedDate);
         setValue('customerEditPassportIssued', button.dataset.customerPassportIssued);
         setValue('customerEditAddress', button.dataset.customerAddress);
         setValue('customerEditNotes', button.dataset.customerNotes);

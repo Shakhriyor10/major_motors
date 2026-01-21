@@ -1878,6 +1878,7 @@
                       data-phone="{{ customer.phone }}"
                       data-passport-series="{{ customer.passport_series|default:'' }}"
                       data-passport-number="{{ customer.passport_number|default:'' }}"
+                      data-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
                       data-passport-issued="{{ customer.passport_issued_by|default:'' }}"
                       data-address="{{ customer.address|default:'' }}"
                     >
@@ -2001,6 +2002,7 @@
                       data-phone="{{ customer.phone }}"
                       data-passport-series="{{ customer.passport_series|default:'' }}"
                       data-passport-number="{{ customer.passport_number|default:'' }}"
+                      data-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
                       data-passport-issued="{{ customer.passport_issued_by|default:'' }}"
                       data-address="{{ customer.address|default:'' }}"
                     >
@@ -2164,6 +2166,7 @@
         data-phone="{{ customer.phone }}"
         data-passport-series="{{ customer.passport_series|default:'' }}"
         data-passport-number="{{ customer.passport_number|default:'' }}"
+        data-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
         data-passport-issued="{{ customer.passport_issued_by|default:'' }}"
         data-address="{{ customer.address|default:'' }}"
       ></option>
@@ -2431,6 +2434,7 @@
           phone: '',
           passportSeries: '',
           passportNumber: '',
+          passportIssuedDate: '',
           passportIssued: '',
           address: '',
         };
@@ -2441,6 +2445,7 @@
         phone: option.dataset.phone || '',
         passportSeries: option.dataset.passportSeries || '',
         passportNumber: option.dataset.passportNumber || '',
+        passportIssuedDate: option.dataset.passportIssuedDate || '',
         passportIssued: option.dataset.passportIssued || '',
         address: option.dataset.address || '',
       };
@@ -3133,6 +3138,9 @@
         if (attorneyPassportInput) {
           const passportValue = [data.passportSeries, data.passportNumber].filter(Boolean).join(' ');
           attorneyPassportInput.value = passportValue;
+        }
+        if (attorneyPassportIssuedDateInput) {
+          attorneyPassportIssuedDateInput.value = data.passportIssuedDate || '';
         }
         if (attorneyPassportIssuedInput) {
           attorneyPassportIssuedInput.value = data.passportIssued || '';
