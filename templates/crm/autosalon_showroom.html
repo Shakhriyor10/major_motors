@@ -1246,6 +1246,10 @@
                   <input type="number" class="form-control" id="attorney-model-year" placeholder="2024">
                 </div>
               </div>
+              <div>
+                <label class="form-label" for="attorney-engine-kind">ДВС</label>
+                <input type="text" class="form-control" id="attorney-engine-kind" placeholder="ДВС" value="ДВС">
+              </div>
               <div class="row g-2">
                 <div class="col-12 col-md-6">
                   <label class="form-label" for="attorney-body-number">Номер кузова</label>
@@ -1333,7 +1337,8 @@
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large" id="attorney-company-preview">
               000 «AUTOCENTER» в лице директора <span id="attorney-director-preview">Primboyeva Gulnoza Ravshanovna</span>
               являясь собственником автомобиля марки «<span id="attorney-make-inline">—</span>». Модель
-              <span id="attorney-model-inline">—</span>. Модельный год <span id="attorney-model-year-inline">—</span>, ДВС,
+              <span id="attorney-model-inline">—</span>. Модельный год <span id="attorney-model-year-inline">—</span>,
+              <span id="attorney-engine-kind-inline">ДВС</span>,
               новый, Состоит из: <span id="attorney-skd-inline">—</span>, № кузова:
               <span id="attorney-body-inline">—</span>, № двиг.: <span id="attorney-engine-inline">—</span>, об. дв.
               <span id="attorney-engine-volume-inline">—</span>см3, цвет <span id="attorney-color-inline">—</span>,
@@ -2192,6 +2197,7 @@
     const attorneyVehicleNameInput = document.getElementById('attorney-vehicle-name');
     const attorneyMakeInput = document.getElementById('attorney-make');
     const attorneyModelYearInput = document.getElementById('attorney-model-year');
+    const attorneyEngineKindInput = document.getElementById('attorney-engine-kind');
     const attorneyBodyNumberInput = document.getElementById('attorney-body-number');
     const attorneyEngineNumberInput = document.getElementById('attorney-engine-number');
     const attorneyEngineTypeInput = document.getElementById('attorney-engine-type');
@@ -2222,6 +2228,7 @@
     const attorneyMakeInlinePreview = document.getElementById('attorney-make-inline');
     const attorneyModelInlinePreview = document.getElementById('attorney-model-inline');
     const attorneyModelYearInlinePreview = document.getElementById('attorney-model-year-inline');
+    const attorneyEngineKindInlinePreview = document.getElementById('attorney-engine-kind-inline');
     const attorneyBodyInlinePreview = document.getElementById('attorney-body-inline');
     const attorneyEngineInlinePreview = document.getElementById('attorney-engine-inline');
     const attorneyColorInlinePreview = document.getElementById('attorney-color-inline');
@@ -2392,6 +2399,7 @@
       setText(attorneyMakeInlinePreview, attorneyMakeInput?.value);
       setText(attorneyModelInlinePreview, attorneyVehicleNameInput?.value);
       setText(attorneyModelYearInlinePreview, attorneyModelYearInput?.value);
+      setText(attorneyEngineKindInlinePreview, attorneyEngineKindInput?.value, 'ДВС');
       setText(attorneyBodyInlinePreview, attorneyBodyNumberInput?.value);
       setText(attorneyEngineInlinePreview, attorneyEngineNumberInput?.value);
       setText(attorneyColorInlinePreview, attorneyColorInput?.value);
