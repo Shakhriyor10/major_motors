@@ -2660,7 +2660,9 @@
         const passport = `${attorneyPassportInputs[index]?.value ?? ''}`.trim() || '—';
         const issuedDate = formatAttorneyIssueDate(attorneyPassportIssuedDateInputs[index]?.value);
         const issuedBy = `${attorneyPassportIssuedInputs[index]?.value ?? ''}`.trim() || '—';
-        item.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issuedDate} ${issuedBy})`;
+        const issuedParts = [issuedDate, issuedBy].filter((part) => part && part !== '—');
+        const issuedText = issuedParts.length ? issuedParts.join(' ') : '—';
+        item.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issuedText})`;
         item.classList.remove('d-none');
       });
     };
