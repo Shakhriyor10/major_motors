@@ -191,18 +191,35 @@
       color: #111;
       font-family: "Times New Roman", Times, serif;
       position: relative;
+      --attorney-logo-width: 120mm;
+      --attorney-logo-align: center;
+      --attorney-logo-margin-top: 0mm;
+      --attorney-logo-margin-bottom: 0mm;
+      --attorney-logo-text-size: 18px;
+      --attorney-doc-image-width: 90mm;
+      --attorney-doc-text-size: 16px;
+      --attorney-doc-text-align: left;
+      --attorney-doc-justify: space-between;
+      --attorney-doc-margin-top: 8mm;
     }
 
     .attorney-logo {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 0;
+      text-align: var(--attorney-logo-align);
+      margin-top: var(--attorney-logo-margin-top);
+      margin-bottom: var(--attorney-logo-margin-bottom);
     }
 
     .attorney-logo img {
-      max-width: 120mm;
+      width: var(--attorney-logo-width);
+      max-width: 100%;
       height: auto;
       object-fit: contain;
+    }
+
+    .attorney-logo-text {
+      font-size: var(--attorney-logo-text-size);
+      font-weight: 700;
+      letter-spacing: 0.2px;
     }
 
     .attorney-address {
@@ -314,17 +331,31 @@
 
     .attorney-doc {
       display: flex;
-      justify-content: space-between;
+      justify-content: var(--attorney-doc-justify);
       align-items: center;
       gap: 12mm;
-      margin-top: 8mm;
+      margin-top: var(--attorney-doc-margin-top);
     }
 
     .attorney-doc img {
-      max-width: 90mm;
-      width: 100%;
+      width: var(--attorney-doc-image-width);
+      max-width: 100%;
       height: auto;
       object-fit: contain;
+    }
+
+    .attorney-doc-media {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .attorney-doc-text {
+      font-size: var(--attorney-doc-text-size);
+      text-align: var(--attorney-doc-text-align);
+      font-weight: 600;
+      white-space: pre-line;
     }
 
     .attorney-director-sign {
@@ -1245,6 +1276,100 @@
                 <label class="form-label" for="attorney-trustor-name">ФИО директора</label>
                 <input type="text" class="form-control" id="attorney-trustor-name" placeholder="Например, Primboyeva Gulnoza Ravshanovna">
               </div>
+              <div class="border rounded-3 p-3 bg-body-tertiary">
+                <div class="fw-semibold mb-2">Логотип и печать</div>
+                <div class="vstack gap-3">
+                  <div>
+                    <label class="form-label" for="attorney-logo-src">Логотип (URL или путь)</label>
+                    <input type="text" class="form-control" id="attorney-logo-src" placeholder="{% static 'img/logoavto3.png' %}">
+                    <div class="form-text">Оставьте пустым, чтобы использовать стандартное изображение.</div>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="attorney-logo-show-image" checked>
+                    <label class="form-check-label" for="attorney-logo-show-image">Показывать изображение логотипа</label>
+                  </div>
+                  <div>
+                    <label class="form-label" for="attorney-logo-text-input">Текст вместо логотипа</label>
+                    <input type="text" class="form-control" id="attorney-logo-text-input" placeholder="Например, Major Motors">
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="attorney-logo-width">Ширина логотипа</label>
+                      <input type="text" class="form-control" id="attorney-logo-width" placeholder="120mm">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="attorney-logo-font-size">Размер шрифта логотипа</label>
+                      <input type="text" class="form-control" id="attorney-logo-font-size" placeholder="18px">
+                    </div>
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="attorney-logo-align">Выравнивание логотипа</label>
+                      <select class="form-select" id="attorney-logo-align">
+                        <option value="left">Слева</option>
+                        <option value="center" selected>По центру</option>
+                        <option value="right">Справа</option>
+                      </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label" for="attorney-logo-margin-top">Отступ сверху</label>
+                      <input type="text" class="form-control" id="attorney-logo-margin-top" placeholder="0mm">
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label" for="attorney-logo-margin-bottom">Отступ снизу</label>
+                      <input type="text" class="form-control" id="attorney-logo-margin-bottom" placeholder="0mm">
+                    </div>
+                  </div>
+                  <hr class="my-2">
+                  <div>
+                    <label class="form-label" for="attorney-doc-src">Печать/подпись (URL или путь)</label>
+                    <input type="text" class="form-control" id="attorney-doc-src" placeholder="{% static 'img/doc2.png' %}">
+                    <div class="form-text">Можно оставить пустым или заменить на новое изображение.</div>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="attorney-doc-show-image" checked>
+                    <label class="form-check-label" for="attorney-doc-show-image">Показывать изображение печати/подписи</label>
+                  </div>
+                  <div>
+                    <label class="form-label" for="attorney-doc-text-input">Текст вместо печати/подписи</label>
+                    <input type="text" class="form-control" id="attorney-doc-text-input" placeholder="Например, Печать компании">
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="attorney-doc-image-width">Ширина печати/подписи</label>
+                      <input type="text" class="form-control" id="attorney-doc-image-width" placeholder="90mm">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="attorney-doc-font-size">Размер шрифта текста печати</label>
+                      <input type="text" class="form-control" id="attorney-doc-font-size" placeholder="16px">
+                    </div>
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="attorney-doc-justify">Расположение блока подписи</label>
+                      <select class="form-select" id="attorney-doc-justify">
+                        <option value="flex-start">Слева</option>
+                        <option value="center">По центру</option>
+                        <option value="space-between" selected>По краям</option>
+                        <option value="flex-end">Справа</option>
+                      </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label" for="attorney-doc-margin-top">Отступ сверху</label>
+                      <input type="text" class="form-control" id="attorney-doc-margin-top" placeholder="8mm">
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label" for="attorney-doc-text-align">Выравнивание текста</label>
+                      <select class="form-select" id="attorney-doc-text-align">
+                        <option value="left" selected>Слева</option>
+                        <option value="center">По центру</option>
+                        <option value="right">Справа</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-text">Для размеров используйте любые CSS-единицы (например, mm, px, %, em).</div>
+                </div>
+              </div>
               <div>
                 <label class="form-label" for="attorney-company-full-text">Полный текст абзаца про автомобиль</label>
                 <textarea
@@ -1401,7 +1526,8 @@
         <div class="attorney-preview">
           <section class="attorney-page print-receipt-area" id="attorney-print-area">
             <div class="attorney-logo">
-              <img src="{% static 'img/logoavto3.png' %}" alt="Major Motors">
+              <img id="attorney-logo-image" src="{% static 'img/logoavto3.png' %}" alt="Major Motors" data-default-src="{% static 'img/logoavto3.png' %}">
+              <div class="attorney-logo-text d-none" id="attorney-logo-text">Major Motors</div>
             </div>
             <div class="attorney-address">
               Адрес: г. Ташкент., Сергелийский р-н, Бунёбод МФЙ, д54, P/c: 20208000207157007001<br>
@@ -1449,7 +1575,10 @@
               Доверенность выдан сроком до <span id="attorney-expiry-preview">«__» ______ 20__ г.</span>
             </div>
             <div class="attorney-doc">
-              <img src="{% static 'img/doc2.png' %}" alt="Подпись и печать">
+              <div class="attorney-doc-media">
+                <img id="attorney-doc-image" src="{% static 'img/doc2.png' %}" alt="Подпись и печать" data-default-src="{% static 'img/doc2.png' %}">
+                <div class="attorney-doc-text d-none" id="attorney-doc-text">Печать компании</div>
+              </div>
               <div class="attorney-director-sign" id="attorney-director-sign">Primboyeva Gulnoza Ravshanovna</div>
             </div>
           </section>
@@ -2338,6 +2467,22 @@
     const attorneyPrintButton = document.getElementById('print-attorney');
     const attorneyPrintArea = document.getElementById('attorney-print-area');
     const attorneyTrustorInput = document.getElementById('attorney-trustor-name');
+    const attorneyLogoSrcInput = document.getElementById('attorney-logo-src');
+    const attorneyLogoShowImageInput = document.getElementById('attorney-logo-show-image');
+    const attorneyLogoTextInput = document.getElementById('attorney-logo-text-input');
+    const attorneyLogoWidthInput = document.getElementById('attorney-logo-width');
+    const attorneyLogoFontSizeInput = document.getElementById('attorney-logo-font-size');
+    const attorneyLogoAlignInput = document.getElementById('attorney-logo-align');
+    const attorneyLogoMarginTopInput = document.getElementById('attorney-logo-margin-top');
+    const attorneyLogoMarginBottomInput = document.getElementById('attorney-logo-margin-bottom');
+    const attorneyDocSrcInput = document.getElementById('attorney-doc-src');
+    const attorneyDocShowImageInput = document.getElementById('attorney-doc-show-image');
+    const attorneyDocTextInput = document.getElementById('attorney-doc-text-input');
+    const attorneyDocImageWidthInput = document.getElementById('attorney-doc-image-width');
+    const attorneyDocFontSizeInput = document.getElementById('attorney-doc-font-size');
+    const attorneyDocJustifyInput = document.getElementById('attorney-doc-justify');
+    const attorneyDocMarginTopInput = document.getElementById('attorney-doc-margin-top');
+    const attorneyDocTextAlignInput = document.getElementById('attorney-doc-text-align');
     const attorneyCompanyFullTextInput = document.getElementById('attorney-company-full-text');
     const attorneyVehicleNameInput = document.getElementById('attorney-vehicle-name');
     const attorneyMakeInput = document.getElementById('attorney-make');
@@ -2402,6 +2547,10 @@
     const attorneyEngineVolumeInlinePreview = document.getElementById('attorney-engine-volume-inline');
     const attorneyEuroInlinePreview = document.getElementById('attorney-euro-inline');
     const attorneyYearInlinePreview = document.getElementById('attorney-year-inline');
+    const attorneyLogoImage = document.getElementById('attorney-logo-image');
+    const attorneyLogoText = document.getElementById('attorney-logo-text');
+    const attorneyDocImage = document.getElementById('attorney-doc-image');
+    const attorneyDocText = document.getElementById('attorney-doc-text');
     const attorneyAuthorizedPreviewItems = [
       document.getElementById('attorney-authorized-preview-1'),
       document.getElementById('attorney-authorized-preview-2'),
@@ -2592,6 +2741,50 @@
     const updateAttorneyPreview = () => {
       if (!attorneyPrintArea) {
         return;
+      }
+      const setStyleVar = (name, value, fallback) => {
+        const normalized = `${value ?? ''}`.trim();
+        attorneyPrintArea.style.setProperty(name, normalized || fallback);
+      };
+      setStyleVar('--attorney-logo-width', attorneyLogoWidthInput?.value, '120mm');
+      setStyleVar('--attorney-logo-align', attorneyLogoAlignInput?.value, 'center');
+      setStyleVar('--attorney-logo-margin-top', attorneyLogoMarginTopInput?.value, '0mm');
+      setStyleVar('--attorney-logo-margin-bottom', attorneyLogoMarginBottomInput?.value, '0mm');
+      setStyleVar('--attorney-logo-text-size', attorneyLogoFontSizeInput?.value, '18px');
+      setStyleVar('--attorney-doc-image-width', attorneyDocImageWidthInput?.value, '90mm');
+      setStyleVar('--attorney-doc-text-size', attorneyDocFontSizeInput?.value, '16px');
+      setStyleVar('--attorney-doc-text-align', attorneyDocTextAlignInput?.value, 'left');
+      setStyleVar('--attorney-doc-justify', attorneyDocJustifyInput?.value, 'space-between');
+      setStyleVar('--attorney-doc-margin-top', attorneyDocMarginTopInput?.value, '8mm');
+
+      const logoSrcRaw = `${attorneyLogoSrcInput?.value ?? ''}`.trim();
+      const logoSrc = logoSrcRaw || attorneyLogoImage?.dataset.defaultSrc || '';
+      const logoTextValue = `${attorneyLogoTextInput?.value ?? ''}`.trim();
+      const showLogoImage = Boolean(logoSrc) && Boolean(attorneyLogoShowImageInput?.checked) && !logoTextValue;
+      if (attorneyLogoImage) {
+        if (logoSrc) {
+          attorneyLogoImage.src = logoSrc;
+        }
+        attorneyLogoImage.classList.toggle('d-none', !showLogoImage);
+      }
+      if (attorneyLogoText) {
+        attorneyLogoText.textContent = logoTextValue || '';
+        attorneyLogoText.classList.toggle('d-none', !logoTextValue);
+      }
+
+      const docSrcRaw = `${attorneyDocSrcInput?.value ?? ''}`.trim();
+      const docSrc = docSrcRaw || attorneyDocImage?.dataset.defaultSrc || '';
+      const docTextValue = `${attorneyDocTextInput?.value ?? ''}`.trim();
+      const showDocImage = Boolean(docSrc) && Boolean(attorneyDocShowImageInput?.checked) && !docTextValue;
+      if (attorneyDocImage) {
+        if (docSrc) {
+          attorneyDocImage.src = docSrc;
+        }
+        attorneyDocImage.classList.toggle('d-none', !showDocImage);
+      }
+      if (attorneyDocText) {
+        attorneyDocText.textContent = docTextValue || '';
+        attorneyDocText.classList.toggle('d-none', !docTextValue);
       }
       const companyText = `${attorneyCompanyFullTextInput?.value ?? ''}`.trim();
       if (attorneyCompanyPreview && attorneyCompanyCustomPreview) {
@@ -3311,6 +3504,22 @@
       attorneyEngineVolumeInput,
       attorneyEuroInput,
       attorneyYearInput,
+      attorneyLogoSrcInput,
+      attorneyLogoShowImageInput,
+      attorneyLogoTextInput,
+      attorneyLogoWidthInput,
+      attorneyLogoFontSizeInput,
+      attorneyLogoAlignInput,
+      attorneyLogoMarginTopInput,
+      attorneyLogoMarginBottomInput,
+      attorneyDocSrcInput,
+      attorneyDocShowImageInput,
+      attorneyDocTextInput,
+      attorneyDocImageWidthInput,
+      attorneyDocFontSizeInput,
+      attorneyDocJustifyInput,
+      attorneyDocMarginTopInput,
+      attorneyDocTextAlignInput,
       ...attorneyAuthorizedNameInputs,
       ...attorneyPassportInputs,
       ...attorneyPassportIssuedDateInputs,
