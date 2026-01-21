@@ -1229,6 +1229,17 @@
             </div>
             <div class="vstack gap-3">
               <div>
+                <label class="form-label" for="attorney-customer-search">Клиент из базы (доверенное лицо)</label>
+                <input
+                  type="search"
+                  class="form-control"
+                  id="attorney-customer-search"
+                  placeholder="Поиск клиента"
+                  list="customer-datalist"
+                  data-attorney-customer-search
+                >
+              </div>
+              <div>
                 <label class="form-label" for="attorney-trustor-name">ФИО директора</label>
                 <input type="text" class="form-control" id="attorney-trustor-name" placeholder="Например, Primboyeva Gulnoza Ravshanovna">
               </div>
@@ -1854,10 +1865,29 @@
             <div class="row g-3">
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="customer_id" class="form-label">Клиент из базы</label>
+                <input
+                  id="customer_search"
+                  type="search"
+                  class="form-control mb-2"
+                  placeholder="Поиск клиента"
+                  list="customer-datalist"
+                  data-customer-search
+                  data-target-select="customer_id"
+                >
                 <select id="customer_id" name="customer_id" class="form-select">
                   <option value="">Новый клиент</option>
                   {% for customer in customers %}
-                    <option value="{{ customer.id }}">{{ customer.full_name }} · {{ customer.phone }}</option>
+                    <option
+                      value="{{ customer.id }}"
+                      data-full-name="{{ customer.full_name }}"
+                      data-phone="{{ customer.phone }}"
+                      data-passport-series="{{ customer.passport_series|default:'' }}"
+                      data-passport-number="{{ customer.passport_number|default:'' }}"
+                      data-passport-issued="{{ customer.passport_issued_by|default:'' }}"
+                      data-address="{{ customer.address|default:'' }}"
+                    >
+                      {{ customer.full_name }} · {{ customer.phone }}
+                    </option>
                   {% endfor %}
                 </select>
               </div>
@@ -1958,10 +1988,29 @@
             <div class="row g-3">
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="reserve_customer_id" class="form-label">Клиент из базы</label>
+                <input
+                  id="reserve_customer_search"
+                  type="search"
+                  class="form-control mb-2"
+                  placeholder="Поиск клиента"
+                  list="customer-datalist"
+                  data-customer-search
+                  data-target-select="reserve_customer_id"
+                >
                 <select id="reserve_customer_id" name="customer_id" class="form-select">
                   <option value="">Новый клиент</option>
                   {% for customer in customers %}
-                    <option value="{{ customer.id }}">{{ customer.full_name }} · {{ customer.phone }}</option>
+                    <option
+                      value="{{ customer.id }}"
+                      data-full-name="{{ customer.full_name }}"
+                      data-phone="{{ customer.phone }}"
+                      data-passport-series="{{ customer.passport_series|default:'' }}"
+                      data-passport-number="{{ customer.passport_number|default:'' }}"
+                      data-passport-issued="{{ customer.passport_issued_by|default:'' }}"
+                      data-address="{{ customer.address|default:'' }}"
+                    >
+                      {{ customer.full_name }} · {{ customer.phone }}
+                    </option>
                   {% endfor %}
                 </select>
               </div>
@@ -2110,6 +2159,21 @@
       </div>
     </div>
   </div>
+
+  <datalist id="customer-datalist">
+    {% for customer in customers %}
+      <option
+        value="{{ customer.full_name }} · {{ customer.phone }}"
+        data-id="{{ customer.id }}"
+        data-full-name="{{ customer.full_name }}"
+        data-phone="{{ customer.phone }}"
+        data-passport-series="{{ customer.passport_series|default:'' }}"
+        data-passport-number="{{ customer.passport_number|default:'' }}"
+        data-passport-issued="{{ customer.passport_issued_by|default:'' }}"
+        data-address="{{ customer.address|default:'' }}"
+      ></option>
+    {% endfor %}
+  </datalist>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -2127,6 +2191,8 @@
     const saleBankRateInput = document.getElementById('sale-bank-rate');
     const closeButtons = document.querySelectorAll('[data-close-sale]');
     const customerSelect = document.getElementById('customer_id');
+    const customerSearchInputs = document.querySelectorAll('[data-customer-search]');
+    const customerDataList = document.getElementById('customer-datalist');
     const customerFields = ['full_name', 'phone', 'passport_series', 'passport_number', 'passport_issued_by', 'address'];
     const printButton = document.getElementById('print-receipt');
     const saleModalInstance = saleModal ? bootstrap.Modal.getOrCreateInstance(saleModal) : null;
@@ -2210,6 +2276,7 @@
     const attorneyPassportIssuedDateInput = document.getElementById('attorney-passport-issued-date');
     const attorneyPassportIssuedInput = document.getElementById('attorney-passport-issued');
     const attorneyExpiryInput = document.getElementById('attorney-expiry');
+    const attorneyCustomerSearch = document.getElementById('attorney-customer-search');
     const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
     const attorneyVehicleNamePreview = document.getElementById('attorney-vehicle-name-preview');
     const attorneyMakePreview = document.getElementById('attorney-make-preview');
@@ -2360,6 +2427,62 @@
         return;
       }
       input.value = formatMoneyInputValue(input.value);
+    };
+
+    const getCustomerDataFromOption = (option) => {
+      if (!option) {
+        return {
+          id: '',
+          fullName: '',
+          phone: '',
+          passportSeries: '',
+          passportNumber: '',
+          passportIssued: '',
+          address: '',
+        };
+      }
+      return {
+        id: option.dataset.id || option.value || '',
+        fullName: option.dataset.fullName || '',
+        phone: option.dataset.phone || '',
+        passportSeries: option.dataset.passportSeries || '',
+        passportNumber: option.dataset.passportNumber || '',
+        passportIssued: option.dataset.passportIssued || '',
+        address: option.dataset.address || '',
+      };
+    };
+
+    const findCustomerOptionByValue = (value) => {
+      if (!customerDataList || !value) {
+        return null;
+      }
+      return Array.from(customerDataList.options).find((option) => option.value === value) || null;
+    };
+
+    const fillCustomerFields = (fieldMap, data) => {
+      Object.entries(fieldMap).forEach(([fieldId, key]) => {
+        const field = document.getElementById(fieldId);
+        if (!field) {
+          return;
+        }
+        field.value = data?.[key] || '';
+      });
+    };
+
+    const syncCustomerSearchValue = (select) => {
+      if (!select) {
+        return;
+      }
+      const searchInput = document.querySelector(`[data-target-select="${select.id}"]`);
+      if (!searchInput) {
+        return;
+      }
+      if (!select.value) {
+        searchInput.value = '';
+        return;
+      }
+      const option = select.options[select.selectedIndex];
+      searchInput.value = option ? option.textContent.trim() : '';
     };
 
     const updateAttorneyPreview = () => {
@@ -2755,6 +2878,38 @@
       });
     };
 
+    const customerFieldMap = {
+      full_name: 'fullName',
+      phone: 'phone',
+      passport_series: 'passportSeries',
+      passport_number: 'passportNumber',
+      passport_issued_by: 'passportIssued',
+      address: 'address',
+    };
+
+    const reserveCustomerFieldMap = {
+      reserve_full_name: 'fullName',
+      reserve_phone: 'phone',
+      reserve_passport_series: 'passportSeries',
+      reserve_passport_number: 'passportNumber',
+      reserve_passport_issued_by: 'passportIssued',
+      reserve_address: 'address',
+    };
+
+    const syncCustomerSelection = (select, fieldMap) => {
+      if (!select) {
+        return;
+      }
+      if (select.value) {
+        const option = select.options[select.selectedIndex];
+        const data = getCustomerDataFromOption(option);
+        fillCustomerFields(fieldMap, data);
+      } else {
+        fillCustomerFields(fieldMap, {});
+      }
+      syncCustomerSearchValue(select);
+    };
+
     const lockSaleCustomer = (button) => {
       const reservedCustomerId = button.dataset.reservationCustomerId;
       const reservedCustomerName = button.dataset.reservationCustomerName;
@@ -2763,6 +2918,7 @@
         if (customerSelect) {
           customerSelect.value = reservedCustomerId;
           customerSelect.disabled = true;
+          syncCustomerSelection(customerSelect, customerFieldMap);
         }
         const nameField = document.getElementById('full_name');
         const phoneField = document.getElementById('phone');
@@ -2775,6 +2931,7 @@
       if (customerSelect) {
         customerSelect.disabled = false;
         customerSelect.value = '';
+        syncCustomerSelection(customerSelect, customerFieldMap);
       }
       toggleCustomerFields(false);
       saleModalTitle.textContent = `Оформление продажи: ${button.dataset.vehicleName}`;
@@ -2845,6 +3002,7 @@
         reserveModalTitle.textContent = `Оформление брони: ${button.dataset.vehicleName}`;
         if (reserveCustomerSelect) {
           reserveCustomerSelect.value = '';
+          syncCustomerSelection(reserveCustomerSelect, reserveCustomerFieldMap);
         }
         toggleReserveCustomerFields(false);
       });
@@ -2896,9 +3054,34 @@
       });
     });
 
+    customerSearchInputs.forEach((input) => {
+      const handleCustomerSearch = () => {
+        const value = input.value.trim();
+        const targetId = input.dataset.targetSelect;
+        const targetSelect = targetId ? document.getElementById(targetId) : null;
+        if (!targetSelect) {
+          return;
+        }
+        if (!value) {
+          targetSelect.value = '';
+          targetSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          return;
+        }
+        const option = findCustomerOptionByValue(value);
+        if (!option) {
+          return;
+        }
+        targetSelect.value = option.dataset.id || '';
+        targetSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+      input.addEventListener('input', handleCustomerSearch);
+      input.addEventListener('change', handleCustomerSearch);
+    });
+
     if (customerSelect) {
       customerSelect.addEventListener('change', () => {
         toggleCustomerFields(Boolean(customerSelect.value));
+        syncCustomerSelection(customerSelect, customerFieldMap);
       });
     }
 
@@ -2939,6 +3122,33 @@
       });
     }
 
+    if (attorneyCustomerSearch) {
+      const handleAttorneyCustomerSearch = () => {
+        const value = attorneyCustomerSearch.value.trim();
+        if (!value) {
+          return;
+        }
+        const option = findCustomerOptionByValue(value);
+        if (!option) {
+          return;
+        }
+        const data = getCustomerDataFromOption(option);
+        if (attorneyAuthorizedNameInput) {
+          attorneyAuthorizedNameInput.value = data.fullName || '';
+        }
+        if (attorneyPassportInput) {
+          const passportValue = [data.passportSeries, data.passportNumber].filter(Boolean).join(' ');
+          attorneyPassportInput.value = passportValue;
+        }
+        if (attorneyPassportIssuedInput) {
+          attorneyPassportIssuedInput.value = data.passportIssued || '';
+        }
+        updateAttorneyPreview();
+      };
+      attorneyCustomerSearch.addEventListener('input', handleAttorneyCustomerSearch);
+      attorneyCustomerSearch.addEventListener('change', handleAttorneyCustomerSearch);
+    }
+
     const attorneyInputs = [
       attorneyTrustorInput,
       attorneyVehicleNameInput,
@@ -2976,6 +3186,7 @@
     if (reserveCustomerSelect) {
       reserveCustomerSelect.addEventListener('change', () => {
         toggleReserveCustomerFields(Boolean(reserveCustomerSelect.value));
+        syncCustomerSelection(reserveCustomerSelect, reserveCustomerFieldMap);
       });
     }
 
