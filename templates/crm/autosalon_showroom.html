@@ -298,6 +298,10 @@
       font-size: 18.5px;
     }
 
+    .attorney-paragraph--custom {
+      white-space: pre-line;
+    }
+
     .attorney-warning-title {
       font-weight: 700;
       text-decoration: underline;
@@ -1233,6 +1237,16 @@
                 <input type="text" class="form-control" id="attorney-trustor-name" placeholder="Например, Primboyeva Gulnoza Ravshanovna">
               </div>
               <div>
+                <label class="form-label" for="attorney-company-full-text">Полный текст абзаца про автомобиль</label>
+                <textarea
+                  class="form-control"
+                  id="attorney-company-full-text"
+                  rows="4"
+                  placeholder="Если заполнить, этот текст полностью заменит абзац про автомобиль."
+                ></textarea>
+                <div class="form-text">Заполните, если хотите вставить собственный текст целиком.</div>
+              </div>
+              <div>
                 <label class="form-label" for="attorney-vehicle-name">Имя машины</label>
                 <input type="text" class="form-control" id="attorney-vehicle-name" placeholder="Например, Chevrolet Onix">
               </div>
@@ -1350,6 +1364,7 @@
               <span id="attorney-engine-type-inline">—</span>, <span id="attorney-euro-inline">—</span>,
               <span id="attorney-year-inline">—</span>г.в.» настоящим доверяет в лице
             </p>
+            <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large attorney-paragraph--custom d-none" id="attorney-company-custom-preview"></p>
             <p class="attorney-paragraph attorney-paragraph--indent attorney-paragraph--large" id="attorney-authorized-preview">
               — (паспорт серия: —, выдан —)
             </p>
@@ -2257,6 +2272,7 @@
     const attorneyPrintButton = document.getElementById('print-attorney');
     const attorneyPrintArea = document.getElementById('attorney-print-area');
     const attorneyTrustorInput = document.getElementById('attorney-trustor-name');
+    const attorneyCompanyFullTextInput = document.getElementById('attorney-company-full-text');
     const attorneyVehicleNameInput = document.getElementById('attorney-vehicle-name');
     const attorneyMakeInput = document.getElementById('attorney-make');
     const attorneyModelYearInput = document.getElementById('attorney-model-year');
@@ -2293,6 +2309,8 @@
     const attorneyModelYearInlinePreview = document.getElementById('attorney-model-year-inline');
     const attorneyDvsBlock = document.getElementById('attorney-dvs-block');
     const attorneyDvsInlinePreview = document.getElementById('attorney-dvs-inline');
+    const attorneyCompanyPreview = document.getElementById('attorney-company-preview');
+    const attorneyCompanyCustomPreview = document.getElementById('attorney-company-custom-preview');
     const attorneyBodyInlinePreview = document.getElementById('attorney-body-inline');
     const attorneyEngineInlinePreview = document.getElementById('attorney-engine-inline');
     const attorneyColorInlinePreview = document.getElementById('attorney-color-inline');
@@ -2487,6 +2505,18 @@
     const updateAttorneyPreview = () => {
       if (!attorneyPrintArea) {
         return;
+      }
+      const companyText = `${attorneyCompanyFullTextInput?.value ?? ''}`.trim();
+      if (attorneyCompanyPreview && attorneyCompanyCustomPreview) {
+        if (companyText) {
+          attorneyCompanyCustomPreview.textContent = companyText;
+          attorneyCompanyCustomPreview.classList.remove('d-none');
+          attorneyCompanyPreview.classList.add('d-none');
+        } else {
+          attorneyCompanyCustomPreview.textContent = '';
+          attorneyCompanyCustomPreview.classList.add('d-none');
+          attorneyCompanyPreview.classList.remove('d-none');
+        }
       }
       const setText = (element, value, fallback = '—') => {
         if (!element) {
@@ -3153,6 +3183,7 @@
 
     const attorneyInputs = [
       attorneyTrustorInput,
+      attorneyCompanyFullTextInput,
       attorneyVehicleNameInput,
       attorneyMakeInput,
       attorneyModelYearInput,
