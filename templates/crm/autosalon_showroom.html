@@ -196,6 +196,9 @@
       --attorney-logo-margin-top: 0mm;
       --attorney-logo-margin-bottom: 0mm;
       --attorney-logo-text-size: 18px;
+      --attorney-logo-text-weight: 700;
+      --attorney-logo-text-style: normal;
+      --attorney-logo-text-decoration: none;
       --attorney-doc-image-width: 90mm;
       --attorney-doc-text-size: 16px;
       --attorney-doc-text-align: left;
@@ -218,7 +221,9 @@
 
     .attorney-logo-text {
       font-size: var(--attorney-logo-text-size);
-      font-weight: 700;
+      font-weight: var(--attorney-logo-text-weight);
+      font-style: var(--attorney-logo-text-style);
+      text-decoration: var(--attorney-logo-text-decoration);
       letter-spacing: 0.2px;
     }
 
@@ -1296,6 +1301,25 @@
                   <div>
                     <label class="form-label" for="attorney-logo-text-input">Текст вместо логотипа</label>
                     <input type="text" class="form-control" id="attorney-logo-text-input" placeholder="Например, Major Motors">
+                  </div>
+                  <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label" for="attorney-logo-text-style">Оформление текста логотипа</label>
+                      <div class="d-flex flex-wrap gap-3">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-bold" checked>
+                          <label class="form-check-label" for="attorney-logo-text-bold">Жирный</label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-italic">
+                          <label class="form-check-label" for="attorney-logo-text-italic">Курсив</label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-underline">
+                          <label class="form-check-label" for="attorney-logo-text-underline">Подчеркнутый</label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div class="row g-2">
                     <div class="col-12 col-md-6">
@@ -2481,6 +2505,9 @@
     const attorneyLogoUploadInput = document.getElementById('attorney-logo-upload');
     const attorneyLogoShowImageInput = document.getElementById('attorney-logo-show-image');
     const attorneyLogoTextInput = document.getElementById('attorney-logo-text-input');
+    const attorneyLogoTextBoldInput = document.getElementById('attorney-logo-text-bold');
+    const attorneyLogoTextItalicInput = document.getElementById('attorney-logo-text-italic');
+    const attorneyLogoTextUnderlineInput = document.getElementById('attorney-logo-text-underline');
     const attorneyLogoWidthInput = document.getElementById('attorney-logo-width');
     const attorneyLogoFontSizeInput = document.getElementById('attorney-logo-font-size');
     const attorneyLogoAlignInput = document.getElementById('attorney-logo-align');
@@ -2763,6 +2790,12 @@
       setStyleVar('--attorney-logo-margin-top', attorneyLogoMarginTopInput?.value, '0mm');
       setStyleVar('--attorney-logo-margin-bottom', attorneyLogoMarginBottomInput?.value, '0mm');
       setStyleVar('--attorney-logo-text-size', attorneyLogoFontSizeInput?.value, '18px');
+      const isLogoBold = attorneyLogoTextBoldInput?.checked ?? true;
+      const isLogoItalic = Boolean(attorneyLogoTextItalicInput?.checked);
+      const isLogoUnderline = Boolean(attorneyLogoTextUnderlineInput?.checked);
+      setStyleVar('--attorney-logo-text-weight', isLogoBold ? '700' : '400', '700');
+      setStyleVar('--attorney-logo-text-style', isLogoItalic ? 'italic' : 'normal', 'normal');
+      setStyleVar('--attorney-logo-text-decoration', isLogoUnderline ? 'underline' : 'none', 'none');
       setStyleVar('--attorney-doc-image-width', attorneyDocImageWidthInput?.value, '90mm');
       setStyleVar('--attorney-doc-text-size', attorneyDocFontSizeInput?.value, '16px');
       setStyleVar('--attorney-doc-text-align', attorneyDocTextAlignInput?.value, 'left');
@@ -3522,6 +3555,9 @@
       attorneyLogoUploadInput,
       attorneyLogoShowImageInput,
       attorneyLogoTextInput,
+      attorneyLogoTextBoldInput,
+      attorneyLogoTextItalicInput,
+      attorneyLogoTextUnderlineInput,
       attorneyLogoWidthInput,
       attorneyLogoFontSizeInput,
       attorneyLogoAlignInput,
