@@ -1450,7 +1450,7 @@
             </div>
             <div class="attorney-doc">
               <img src="{% static 'img/doc2.png' %}" alt="Подпись и печать">
-              <div class="attorney-director-sign">Primboyeva Gulnoza Ravshanovna</div>
+              <div class="attorney-director-sign" id="attorney-director-sign">Primboyeva Gulnoza Ravshanovna</div>
             </div>
           </section>
         </div>
@@ -2373,6 +2373,7 @@
     ];
     const attorneyExpiryInput = document.getElementById('attorney-expiry');
     const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
+    const attorneyDirectorSign = document.getElementById('attorney-director-sign');
     const attorneyVehicleNamePreview = document.getElementById('attorney-vehicle-name-preview');
     const attorneyMakePreview = document.getElementById('attorney-make-preview');
     const attorneyModelYearPreview = document.getElementById('attorney-model-year-preview');
@@ -2611,9 +2612,15 @@
         const normalized = `${value ?? ''}`.trim();
         element.textContent = normalized || fallback;
       };
-      if (attorneyDirectorPreview) {
+      if (attorneyDirectorPreview || attorneyDirectorSign) {
         const directorValue = `${attorneyTrustorInput?.value ?? ''}`.trim();
-        attorneyDirectorPreview.textContent = directorValue || 'Primboyeva Gulnoza Ravshanovna';
+        const resolvedDirector = directorValue || 'Primboyeva Gulnoza Ravshanovna';
+        if (attorneyDirectorPreview) {
+          attorneyDirectorPreview.textContent = resolvedDirector;
+        }
+        if (attorneyDirectorSign) {
+          attorneyDirectorSign.textContent = resolvedDirector;
+        }
       }
       setText(attorneyVehicleNamePreview, attorneyVehicleNameInput?.value);
       setText(attorneyMakePreview, attorneyMakeInput?.value);
