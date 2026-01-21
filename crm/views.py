@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import parse_date, parse_datetime
 from django.views.decorators.http import require_POST
 
 from .models import (
@@ -93,6 +93,9 @@ def customers(request):
                 update_fields.append('passport_series')
                 customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
                 update_fields.append('passport_number')
+                passport_issued_date_value = request.POST.get('passport_issued_date')
+                customer.passport_issued_date = parse_date(passport_issued_date_value) if passport_issued_date_value else None
+                update_fields.append('passport_issued_date')
                 customer.passport_issued_by = request.POST.get(
                     'passport_issued_by',
                     customer.passport_issued_by,
@@ -173,6 +176,7 @@ def customers(request):
             passport_series=request.POST.get('passport_series', '').strip(),
             passport_number=request.POST.get('passport_number', '').strip(),
             pinfl=request.POST.get('pinfl', '').strip(),
+            passport_issued_date=parse_date(request.POST.get('passport_issued_date') or ''),
             passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
             address=request.POST.get('address', '').strip(),
             lead_source=lead_source,
@@ -347,6 +351,9 @@ def autosalon(request):
                         customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
                         customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
                         customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                        passport_issued_date_value = request.POST.get('passport_issued_date')
+                        if passport_issued_date_value:
+                            customer.passport_issued_date = parse_date(passport_issued_date_value)
                         customer.passport_issued_by = request.POST.get('passport_issued_by', customer.passport_issued_by).strip()
                         customer.address = request.POST.get('address', customer.address).strip()
                         customer.save(
@@ -355,6 +362,7 @@ def autosalon(request):
                                 'phone',
                                 'passport_series',
                                 'passport_number',
+                                'passport_issued_date',
                                 'passport_issued_by',
                                 'address',
                             ],
@@ -365,6 +373,7 @@ def autosalon(request):
                             phone=request.POST.get('phone', '').strip(),
                             passport_series=request.POST.get('passport_series', '').strip(),
                             passport_number=request.POST.get('passport_number', '').strip(),
+                            passport_issued_date=parse_date(request.POST.get('passport_issued_date') or ''),
                             passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
                             address=request.POST.get('address', '').strip(),
                         )
@@ -492,6 +501,9 @@ def autosalon(request):
                     customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
                     customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
                     customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                    passport_issued_date_value = request.POST.get('passport_issued_date')
+                    if passport_issued_date_value:
+                        customer.passport_issued_date = parse_date(passport_issued_date_value)
                     customer.passport_issued_by = request.POST.get('passport_issued_by', customer.passport_issued_by).strip()
                     customer.address = request.POST.get('address', customer.address).strip()
                     customer.save(
@@ -500,6 +512,7 @@ def autosalon(request):
                             'phone',
                             'passport_series',
                             'passport_number',
+                            'passport_issued_date',
                             'passport_issued_by',
                             'address',
                         ],
@@ -510,6 +523,7 @@ def autosalon(request):
                         phone=request.POST.get('phone', '').strip(),
                         passport_series=request.POST.get('passport_series', '').strip(),
                         passport_number=request.POST.get('passport_number', '').strip(),
+                        passport_issued_date=parse_date(request.POST.get('passport_issued_date') or ''),
                         passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
                         address=request.POST.get('address', '').strip(),
                     )

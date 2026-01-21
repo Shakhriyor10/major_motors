@@ -121,6 +121,7 @@ class Customer(TimeStampedModel):
     passport_series = models.CharField(max_length=16, blank=True)
     passport_number = models.CharField(max_length=32, blank=True)
     pinfl = models.CharField(max_length=32, blank=True)
+    passport_issued_date = models.DateField(blank=True, null=True)
     passport_issued_by = models.CharField(max_length=255, blank=True)
     address = models.CharField(max_length=255, blank=True)
     telegram = models.CharField(max_length=64, blank=True)
