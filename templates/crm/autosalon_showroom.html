@@ -3564,6 +3564,12 @@
           if (typeof reader.result === 'string') {
             attorneyDocUploadInput.dataset.uploadedSrc = reader.result;
           }
+          if (attorneyDocTextInput) {
+            attorneyDocTextInput.value = '';
+          }
+          if (attorneyDocShowImageInput) {
+            attorneyDocShowImageInput.checked = true;
+          }
           updateAttorneyPreview();
         };
         reader.readAsDataURL(file);
@@ -3582,6 +3588,12 @@
         reader.onload = () => {
           if (typeof reader.result === 'string') {
             attorneyLogoUploadInput.dataset.uploadedSrc = reader.result;
+          }
+          if (attorneyLogoTextInput) {
+            attorneyLogoTextInput.value = '';
+          }
+          if (attorneyLogoShowImageInput) {
+            attorneyLogoShowImageInput.checked = true;
           }
           updateAttorneyPreview();
         };
