@@ -1229,17 +1229,6 @@
             </div>
             <div class="vstack gap-3">
               <div>
-                <label class="form-label" for="attorney-customer-search">Клиент из базы (доверенное лицо)</label>
-                <input
-                  type="search"
-                  class="form-control"
-                  id="attorney-customer-search"
-                  placeholder="Поиск клиента"
-                  list="customer-datalist"
-                  data-attorney-customer-search
-                >
-              </div>
-              <div>
                 <label class="form-label" for="attorney-trustor-name">ФИО директора</label>
                 <input type="text" class="form-control" id="attorney-trustor-name" placeholder="Например, Primboyeva Gulnoza Ravshanovna">
               </div>
@@ -1304,7 +1293,13 @@
               <div class="row g-2">
                 <div class="col-12">
                   <label class="form-label" for="attorney-authorized-name">Доверенное лицо (ФИО)</label>
-                  <input type="text" class="form-control" id="attorney-authorized-name" placeholder="Например, Петров Петр Петрович">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="attorney-authorized-name"
+                    placeholder="Например, Петров Петр Петрович"
+                    list="customer-datalist"
+                  >
                 </div>
                 <div class="col-12 col-md-6">
                   <label class="form-label" for="attorney-passport">Паспорт серия и номер</label>
@@ -2276,7 +2271,6 @@
     const attorneyPassportIssuedDateInput = document.getElementById('attorney-passport-issued-date');
     const attorneyPassportIssuedInput = document.getElementById('attorney-passport-issued');
     const attorneyExpiryInput = document.getElementById('attorney-expiry');
-    const attorneyCustomerSearch = document.getElementById('attorney-customer-search');
     const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
     const attorneyVehicleNamePreview = document.getElementById('attorney-vehicle-name-preview');
     const attorneyMakePreview = document.getElementById('attorney-make-preview');
@@ -3122,9 +3116,9 @@
       });
     }
 
-    if (attorneyCustomerSearch) {
-      const handleAttorneyCustomerSearch = () => {
-        const value = attorneyCustomerSearch.value.trim();
+    if (attorneyAuthorizedNameInput) {
+      const handleAttorneyCustomerMatch = () => {
+        const value = attorneyAuthorizedNameInput.value.trim();
         if (!value) {
           return;
         }
@@ -3145,8 +3139,8 @@
         }
         updateAttorneyPreview();
       };
-      attorneyCustomerSearch.addEventListener('input', handleAttorneyCustomerSearch);
-      attorneyCustomerSearch.addEventListener('change', handleAttorneyCustomerSearch);
+      attorneyAuthorizedNameInput.addEventListener('input', handleAttorneyCustomerMatch);
+      attorneyAuthorizedNameInput.addEventListener('change', handleAttorneyCustomerMatch);
     }
 
     const attorneyInputs = [
