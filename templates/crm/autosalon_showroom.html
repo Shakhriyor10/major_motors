@@ -1306,28 +1306,80 @@
               </div>
               <div class="row g-2">
                 <div class="col-12">
-                  <label class="form-label" for="attorney-authorized-name">Доверенное лицо (ФИО)</label>
+                  <label class="form-label" for="attorney-authorized-name-1">Доверенное лицо (ФИО)</label>
                   <input
                     type="text"
                     class="form-control"
-                    id="attorney-authorized-name"
+                    id="attorney-authorized-name-1"
                     placeholder="Например, Петров Петр Петрович"
                     list="customer-datalist"
                   >
                 </div>
                 <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport">Паспорт серия и номер</label>
-                  <input type="text" class="form-control" id="attorney-passport" placeholder="AB 1234567">
+                  <label class="form-label" for="attorney-passport-1">Паспорт серия и номер</label>
+                  <input type="text" class="form-control" id="attorney-passport-1" placeholder="AB 1234567">
                 </div>
                 <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport-issued-date">Дата выдачи</label>
-                  <input type="date" class="form-control" id="attorney-passport-issued-date">
+                  <label class="form-label" for="attorney-passport-issued-date-1">Дата выдачи</label>
+                  <input type="date" class="form-control" id="attorney-passport-issued-date-1">
                 </div>
               </div>
               <div class="row g-2">
                 <div class="col-12">
-                  <label class="form-label" for="attorney-passport-issued">Кем выдан</label>
-                  <input type="text" class="form-control" id="attorney-passport-issued" placeholder="ОВД г. Самарканд">
+                  <label class="form-label" for="attorney-passport-issued-1">Кем выдан</label>
+                  <input type="text" class="form-control" id="attorney-passport-issued-1" placeholder="ОВД г. Самарканд">
+                </div>
+              </div>
+              <div class="row g-2 mt-1">
+                <div class="col-12">
+                  <label class="form-label" for="attorney-authorized-name-2">Доверенное лицо (ФИО) 2</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="attorney-authorized-name-2"
+                    placeholder="Например, Иванов Иван Иванович"
+                    list="customer-datalist"
+                  >
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-passport-2">Паспорт серия и номер 2</label>
+                  <input type="text" class="form-control" id="attorney-passport-2" placeholder="AB 1234567">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-passport-issued-date-2">Дата выдачи 2</label>
+                  <input type="date" class="form-control" id="attorney-passport-issued-date-2">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12">
+                  <label class="form-label" for="attorney-passport-issued-2">Кем выдан 2</label>
+                  <input type="text" class="form-control" id="attorney-passport-issued-2" placeholder="ОВД г. Самарканд">
+                </div>
+              </div>
+              <div class="row g-2 mt-1">
+                <div class="col-12">
+                  <label class="form-label" for="attorney-authorized-name-3">Доверенное лицо (ФИО) 3</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="attorney-authorized-name-3"
+                    placeholder="Например, Сидоров Сидор Сидорович"
+                    list="customer-datalist"
+                  >
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-passport-3">Паспорт серия и номер 3</label>
+                  <input type="text" class="form-control" id="attorney-passport-3" placeholder="AB 1234567">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-passport-issued-date-3">Дата выдачи 3</label>
+                  <input type="date" class="form-control" id="attorney-passport-issued-date-3">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12">
+                  <label class="form-label" for="attorney-passport-issued-3">Кем выдан 3</label>
+                  <input type="text" class="form-control" id="attorney-passport-issued-3" placeholder="ОВД г. Самарканд">
                 </div>
               </div>
               <div>
@@ -1365,9 +1417,13 @@
               <span id="attorney-year-inline">—</span>г.в.» настоящим доверяет в лице
             </p>
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large attorney-paragraph--custom d-none" id="attorney-company-custom-preview"></p>
-            <p class="attorney-paragraph attorney-paragraph--indent attorney-paragraph--large" id="attorney-authorized-preview">
-              — (паспорт серия: —, выдан —)
-            </p>
+            <div id="attorney-authorized-preview">
+              <p class="attorney-paragraph attorney-paragraph--indent attorney-paragraph--large" id="attorney-authorized-preview-1">
+                — (паспорт серия: —, выдан —)
+              </p>
+              <p class="attorney-paragraph attorney-paragraph--indent attorney-paragraph--large d-none" id="attorney-authorized-preview-2"></p>
+              <p class="attorney-paragraph attorney-paragraph--indent attorney-paragraph--large d-none" id="attorney-authorized-preview-3"></p>
+            </div>
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--indent attorney-paragraph--large fw-bold">
               управлять вышеуказанным транспортным средством, следить за его техническим состоянием,
               представлять интересы, связанные с временной эксплуатацией автомобиля, производить текущие ремонты и ТО
@@ -2285,10 +2341,26 @@
     const attorneyEngineVolumeInput = document.getElementById('attorney-engine-volume');
     const attorneyEuroInput = document.getElementById('attorney-euro');
     const attorneyYearInput = document.getElementById('attorney-year');
-    const attorneyAuthorizedNameInput = document.getElementById('attorney-authorized-name');
-    const attorneyPassportInput = document.getElementById('attorney-passport');
-    const attorneyPassportIssuedDateInput = document.getElementById('attorney-passport-issued-date');
-    const attorneyPassportIssuedInput = document.getElementById('attorney-passport-issued');
+    const attorneyAuthorizedNameInputs = [
+      document.getElementById('attorney-authorized-name-1'),
+      document.getElementById('attorney-authorized-name-2'),
+      document.getElementById('attorney-authorized-name-3'),
+    ];
+    const attorneyPassportInputs = [
+      document.getElementById('attorney-passport-1'),
+      document.getElementById('attorney-passport-2'),
+      document.getElementById('attorney-passport-3'),
+    ];
+    const attorneyPassportIssuedDateInputs = [
+      document.getElementById('attorney-passport-issued-date-1'),
+      document.getElementById('attorney-passport-issued-date-2'),
+      document.getElementById('attorney-passport-issued-date-3'),
+    ];
+    const attorneyPassportIssuedInputs = [
+      document.getElementById('attorney-passport-issued-1'),
+      document.getElementById('attorney-passport-issued-2'),
+      document.getElementById('attorney-passport-issued-3'),
+    ];
     const attorneyExpiryInput = document.getElementById('attorney-expiry');
     const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
     const attorneyVehicleNamePreview = document.getElementById('attorney-vehicle-name-preview');
@@ -2319,7 +2391,11 @@
     const attorneyEngineVolumeInlinePreview = document.getElementById('attorney-engine-volume-inline');
     const attorneyEuroInlinePreview = document.getElementById('attorney-euro-inline');
     const attorneyYearInlinePreview = document.getElementById('attorney-year-inline');
-    const attorneyAuthorizedPreview = document.getElementById('attorney-authorized-preview');
+    const attorneyAuthorizedPreviewItems = [
+      document.getElementById('attorney-authorized-preview-1'),
+      document.getElementById('attorney-authorized-preview-2'),
+      document.getElementById('attorney-authorized-preview-3'),
+    ];
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
     let currentCreditCurrencyLabel = 'UZS';
@@ -2536,12 +2612,12 @@
       setText(attorneyEngineNumberPreview, attorneyEngineNumberInput?.value);
       setText(attorneyEngineTypePreview, attorneyEngineTypeInput?.value);
       setText(attorneyColorPreview, attorneyColorInput?.value);
-      setText(attorneyAuthorizedNamePreview, attorneyAuthorizedNameInput?.value);
-      setText(attorneyPassportPreview, attorneyPassportInput?.value);
+      setText(attorneyAuthorizedNamePreview, attorneyAuthorizedNameInputs[0]?.value);
+      setText(attorneyPassportPreview, attorneyPassportInputs[0]?.value);
       if (attorneyPassportIssuedDatePreview) {
-        attorneyPassportIssuedDatePreview.textContent = formatAttorneyIssueDate(attorneyPassportIssuedDateInput?.value);
+        attorneyPassportIssuedDatePreview.textContent = formatAttorneyIssueDate(attorneyPassportIssuedDateInputs[0]?.value);
       }
-      setText(attorneyPassportIssuedPreview, attorneyPassportIssuedInput?.value);
+      setText(attorneyPassportIssuedPreview, attorneyPassportIssuedInputs[0]?.value);
       if (attorneyExpiryPreview) {
         attorneyExpiryPreview.textContent = formatAttorneyDate(attorneyExpiryInput?.value);
       }
@@ -2564,13 +2640,29 @@
       setText(attorneyEngineVolumeInlinePreview, attorneyEngineVolumeInput?.value);
       setText(attorneyEuroInlinePreview, attorneyEuroInput?.value);
       setText(attorneyYearInlinePreview, attorneyYearInput?.value);
-      if (attorneyAuthorizedPreview) {
-        const authorizedName = `${attorneyAuthorizedNameInput?.value ?? ''}`.trim() || '—';
-        const passport = `${attorneyPassportInput?.value ?? ''}`.trim() || '—';
-        const issuedDate = formatAttorneyIssueDate(attorneyPassportIssuedDateInput?.value);
-        const issuedBy = `${attorneyPassportIssuedInput?.value ?? ''}`.trim() || '—';
-        attorneyAuthorizedPreview.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issuedDate} ${issuedBy})`;
-      }
+      const hasAuthorizedValue = (index) => {
+        const nameValue = `${attorneyAuthorizedNameInputs[index]?.value ?? ''}`.trim();
+        const passportValue = `${attorneyPassportInputs[index]?.value ?? ''}`.trim();
+        const issuedDateValue = `${attorneyPassportIssuedDateInputs[index]?.value ?? ''}`.trim();
+        const issuedByValue = `${attorneyPassportIssuedInputs[index]?.value ?? ''}`.trim();
+        return Boolean(nameValue || passportValue || issuedDateValue || issuedByValue);
+      };
+      attorneyAuthorizedPreviewItems.forEach((item, index) => {
+        if (!item) {
+          return;
+        }
+        if (index > 0 && !hasAuthorizedValue(index)) {
+          item.textContent = '';
+          item.classList.add('d-none');
+          return;
+        }
+        const authorizedName = `${attorneyAuthorizedNameInputs[index]?.value ?? ''}`.trim() || '—';
+        const passport = `${attorneyPassportInputs[index]?.value ?? ''}`.trim() || '—';
+        const issuedDate = formatAttorneyIssueDate(attorneyPassportIssuedDateInputs[index]?.value);
+        const issuedBy = `${attorneyPassportIssuedInputs[index]?.value ?? ''}`.trim() || '—';
+        item.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issuedDate} ${issuedBy})`;
+        item.classList.remove('d-none');
+      });
     };
 
     const maybeFormatDownPaymentValue = () => {
@@ -3151,9 +3243,12 @@
       });
     }
 
-    if (attorneyAuthorizedNameInput) {
+    attorneyAuthorizedNameInputs.forEach((input, index) => {
+      if (!input) {
+        return;
+      }
       const handleAttorneyCustomerMatch = () => {
-        const value = attorneyAuthorizedNameInput.value.trim();
+        const value = input.value.trim();
         if (!value) {
           return;
         }
@@ -3162,24 +3257,25 @@
           return;
         }
         const data = getCustomerDataFromOption(option);
-        if (attorneyAuthorizedNameInput) {
-          attorneyAuthorizedNameInput.value = data.fullName || '';
-        }
-        if (attorneyPassportInput) {
+        input.value = data.fullName || '';
+        const passportInput = attorneyPassportInputs[index];
+        if (passportInput) {
           const passportValue = [data.passportSeries, data.passportNumber].filter(Boolean).join(' ');
-          attorneyPassportInput.value = passportValue;
+          passportInput.value = passportValue;
         }
-        if (attorneyPassportIssuedDateInput) {
-          attorneyPassportIssuedDateInput.value = data.passportIssuedDate || '';
+        const passportDateInput = attorneyPassportIssuedDateInputs[index];
+        if (passportDateInput) {
+          passportDateInput.value = data.passportIssuedDate || '';
         }
-        if (attorneyPassportIssuedInput) {
-          attorneyPassportIssuedInput.value = data.passportIssued || '';
+        const passportIssuedInput = attorneyPassportIssuedInputs[index];
+        if (passportIssuedInput) {
+          passportIssuedInput.value = data.passportIssued || '';
         }
         updateAttorneyPreview();
       };
-      attorneyAuthorizedNameInput.addEventListener('input', handleAttorneyCustomerMatch);
-      attorneyAuthorizedNameInput.addEventListener('change', handleAttorneyCustomerMatch);
-    }
+      input.addEventListener('input', handleAttorneyCustomerMatch);
+      input.addEventListener('change', handleAttorneyCustomerMatch);
+    });
 
     const attorneyInputs = [
       attorneyTrustorInput,
@@ -3196,10 +3292,10 @@
       attorneyEngineVolumeInput,
       attorneyEuroInput,
       attorneyYearInput,
-      attorneyAuthorizedNameInput,
-      attorneyPassportInput,
-      attorneyPassportIssuedDateInput,
-      attorneyPassportIssuedInput,
+      ...attorneyAuthorizedNameInputs,
+      ...attorneyPassportInputs,
+      ...attorneyPassportIssuedDateInputs,
+      ...attorneyPassportIssuedInputs,
       attorneyExpiryInput,
     ];
 
