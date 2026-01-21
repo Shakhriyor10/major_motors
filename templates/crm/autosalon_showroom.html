@@ -1326,6 +1326,11 @@
                     <input type="text" class="form-control" id="attorney-doc-src" placeholder="{% static 'img/doc2.png' %}">
                     <div class="form-text">Можно оставить пустым или заменить на новое изображение.</div>
                   </div>
+                  <div>
+                    <label class="form-label" for="attorney-doc-upload">Загрузить фото печати/подписи</label>
+                    <input type="file" class="form-control" id="attorney-doc-upload" accept="image/*">
+                    <div class="form-text">Файл будет показан только в предпросмотре.</div>
+                  </div>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="attorney-doc-show-image" checked>
                     <label class="form-check-label" for="attorney-doc-show-image">Показывать изображение печати/подписи</label>
@@ -2476,6 +2481,7 @@
     const attorneyLogoMarginTopInput = document.getElementById('attorney-logo-margin-top');
     const attorneyLogoMarginBottomInput = document.getElementById('attorney-logo-margin-bottom');
     const attorneyDocSrcInput = document.getElementById('attorney-doc-src');
+    const attorneyDocUploadInput = document.getElementById('attorney-doc-upload');
     const attorneyDocShowImageInput = document.getElementById('attorney-doc-show-image');
     const attorneyDocTextInput = document.getElementById('attorney-doc-text-input');
     const attorneyDocImageWidthInput = document.getElementById('attorney-doc-image-width');
@@ -2772,8 +2778,9 @@
         attorneyLogoText.classList.toggle('d-none', !logoTextValue);
       }
 
+      const uploadedDocSrc = attorneyDocUploadInput?.dataset.uploadedSrc || '';
       const docSrcRaw = `${attorneyDocSrcInput?.value ?? ''}`.trim();
-      const docSrc = docSrcRaw || attorneyDocImage?.dataset.defaultSrc || '';
+      const docSrc = uploadedDocSrc || docSrcRaw || attorneyDocImage?.dataset.defaultSrc || '';
       const docTextValue = `${attorneyDocTextInput?.value ?? ''}`.trim();
       const showDocImage = Boolean(docSrc) && Boolean(attorneyDocShowImageInput?.checked) && !docTextValue;
       if (attorneyDocImage) {
@@ -3513,6 +3520,7 @@
       attorneyLogoMarginTopInput,
       attorneyLogoMarginBottomInput,
       attorneyDocSrcInput,
+      attorneyDocUploadInput,
       attorneyDocShowImageInput,
       attorneyDocTextInput,
       attorneyDocImageWidthInput,
@@ -3534,6 +3542,25 @@
       input.addEventListener('input', updateAttorneyPreview);
       input.addEventListener('change', updateAttorneyPreview);
     });
+
+    if (attorneyDocUploadInput) {
+      attorneyDocUploadInput.addEventListener('change', () => {
+        const [file] = attorneyDocUploadInput.files || [];
+        if (!file) {
+          delete attorneyDocUploadInput.dataset.uploadedSrc;
+          updateAttorneyPreview();
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') {
+            attorneyDocUploadInput.dataset.uploadedSrc = reader.result;
+          }
+          updateAttorneyPreview();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
 
     if (financingTypeSelect) {
       financingTypeSelect.addEventListener('change', updateDownPaymentVisibility);
