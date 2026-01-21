@@ -199,6 +199,10 @@
       --attorney-logo-text-weight: 700;
       --attorney-logo-text-style: normal;
       --attorney-logo-text-decoration: none;
+      --attorney-address-font-size: 13px;
+      --attorney-address-font-weight: 400;
+      --attorney-address-font-style: italic;
+      --attorney-address-text-decoration: none;
       --attorney-doc-image-width: 90mm;
       --attorney-doc-text-size: 16px;
       --attorney-doc-text-align: left;
@@ -229,10 +233,13 @@
 
     .attorney-address {
       text-align: center;
-      font-size: 13px;
+      font-size: var(--attorney-address-font-size);
       line-height: 1.4;
       color: #000;
-      font-style: italic;
+      font-weight: var(--attorney-address-font-weight);
+      font-style: var(--attorney-address-font-style);
+      text-decoration: var(--attorney-address-text-decoration);
+      white-space: pre-line;
       margin-top: 1mm;
       margin-bottom: 4mm;
     }
@@ -1404,6 +1411,44 @@
                   <div class="form-text">Для размеров используйте любые CSS-единицы (например, mm, px, %, em).</div>
                 </div>
               </div>
+              <div class="border rounded-3 p-3 bg-body-tertiary">
+                <div class="fw-semibold mb-2">Адрес в доверенности</div>
+                <div class="vstack gap-3">
+                  <div>
+                    <label class="form-label" for="attorney-address-text">Текст адреса</label>
+                    <textarea
+                      class="form-control"
+                      id="attorney-address-text"
+                      rows="2"
+                      placeholder="Введите текст адреса"
+                    ></textarea>
+                    <div class="form-text">Оставьте пустым, чтобы использовать стандартный адрес.</div>
+                  </div>
+                  <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-4">
+                      <label class="form-label" for="attorney-address-font-size">Размер шрифта адреса</label>
+                      <input type="text" class="form-control" id="attorney-address-font-size" placeholder="13px">
+                    </div>
+                    <div class="col-12 col-md-8">
+                      <label class="form-label">Оформление текста адреса</label>
+                      <div class="d-flex flex-wrap gap-3">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="attorney-address-bold">
+                          <label class="form-check-label" for="attorney-address-bold">Жирный</label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="attorney-address-italic" checked>
+                          <label class="form-check-label" for="attorney-address-italic">Курсив</label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="attorney-address-underline">
+                          <label class="form-check-label" for="attorney-address-underline">Подчеркнутый</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div>
                 <label class="form-label" for="attorney-company-full-text">Полный текст абзаца про автомобиль</label>
                 <textarea
@@ -1563,7 +1608,11 @@
               <img id="attorney-logo-image" src="{% static 'img/logoavto3.png' %}" alt="Major Motors" data-default-src="{% static 'img/logoavto3.png' %}">
               <div class="attorney-logo-text d-none" id="attorney-logo-text">Major Motors</div>
             </div>
-            <div class="attorney-address">
+            <div
+              class="attorney-address"
+              id="attorney-address-preview"
+              data-default-text="Адрес: г. Ташкент., Сергелийский р-н, Бунёбод МФЙ, д54, P/c: 20208000207157007001\nБанк: АКБ «Hamkorbank» Сергелийский филиал. ИНН 311 648 151"
+            >
               Адрес: г. Ташкент., Сергелийский р-н, Бунёбод МФЙ, д54, P/c: 20208000207157007001<br>
               Банк: АКБ «Hamkorbank» Сергелийский филиал. ИНН 311 648 151
             </div>
@@ -2513,6 +2562,11 @@
     const attorneyLogoAlignInput = document.getElementById('attorney-logo-align');
     const attorneyLogoMarginTopInput = document.getElementById('attorney-logo-margin-top');
     const attorneyLogoMarginBottomInput = document.getElementById('attorney-logo-margin-bottom');
+    const attorneyAddressTextInput = document.getElementById('attorney-address-text');
+    const attorneyAddressFontSizeInput = document.getElementById('attorney-address-font-size');
+    const attorneyAddressBoldInput = document.getElementById('attorney-address-bold');
+    const attorneyAddressItalicInput = document.getElementById('attorney-address-italic');
+    const attorneyAddressUnderlineInput = document.getElementById('attorney-address-underline');
     const attorneyDocSrcInput = document.getElementById('attorney-doc-src');
     const attorneyDocUploadInput = document.getElementById('attorney-doc-upload');
     const attorneyDocShowImageInput = document.getElementById('attorney-doc-show-image');
@@ -2586,6 +2640,7 @@
     const attorneyEngineVolumeInlinePreview = document.getElementById('attorney-engine-volume-inline');
     const attorneyEuroInlinePreview = document.getElementById('attorney-euro-inline');
     const attorneyYearInlinePreview = document.getElementById('attorney-year-inline');
+    const attorneyAddressPreview = document.getElementById('attorney-address-preview');
     const attorneyLogoImage = document.getElementById('attorney-logo-image');
     const attorneyLogoText = document.getElementById('attorney-logo-text');
     const attorneyDocImage = document.getElementById('attorney-doc-image');
@@ -2796,6 +2851,13 @@
       setStyleVar('--attorney-logo-text-weight', isLogoBold ? '700' : '400', '700');
       setStyleVar('--attorney-logo-text-style', isLogoItalic ? 'italic' : 'normal', 'normal');
       setStyleVar('--attorney-logo-text-decoration', isLogoUnderline ? 'underline' : 'none', 'none');
+      setStyleVar('--attorney-address-font-size', attorneyAddressFontSizeInput?.value, '13px');
+      const isAddressBold = Boolean(attorneyAddressBoldInput?.checked);
+      const isAddressItalic = attorneyAddressItalicInput?.checked ?? true;
+      const isAddressUnderline = Boolean(attorneyAddressUnderlineInput?.checked);
+      setStyleVar('--attorney-address-font-weight', isAddressBold ? '700' : '400', '400');
+      setStyleVar('--attorney-address-font-style', isAddressItalic ? 'italic' : 'normal', 'italic');
+      setStyleVar('--attorney-address-text-decoration', isAddressUnderline ? 'underline' : 'none', 'none');
       setStyleVar('--attorney-doc-image-width', attorneyDocImageWidthInput?.value, '90mm');
       setStyleVar('--attorney-doc-text-size', attorneyDocFontSizeInput?.value, '16px');
       setStyleVar('--attorney-doc-text-align', attorneyDocTextAlignInput?.value, 'left');
@@ -2816,6 +2878,13 @@
       if (attorneyLogoText) {
         attorneyLogoText.textContent = logoTextValue || '';
         attorneyLogoText.classList.toggle('d-none', !logoTextValue);
+      }
+
+      if (attorneyAddressPreview) {
+        const addressValue = `${attorneyAddressTextInput?.value ?? ''}`.trim();
+        const fallbackText = attorneyAddressPreview.dataset.defaultText || '';
+        const resolvedText = addressValue || fallbackText;
+        attorneyAddressPreview.textContent = resolvedText;
       }
 
       const uploadedDocSrc = attorneyDocUploadInput?.dataset.uploadedSrc || '';
@@ -3563,6 +3632,11 @@
       attorneyLogoAlignInput,
       attorneyLogoMarginTopInput,
       attorneyLogoMarginBottomInput,
+      attorneyAddressTextInput,
+      attorneyAddressFontSizeInput,
+      attorneyAddressBoldInput,
+      attorneyAddressItalicInput,
+      attorneyAddressUnderlineInput,
       attorneyDocSrcInput,
       attorneyDocUploadInput,
       attorneyDocShowImageInput,
