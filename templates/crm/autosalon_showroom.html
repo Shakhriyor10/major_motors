@@ -1293,8 +1293,13 @@
                 <input type="text" class="form-control" id="attorney-trustor-name" placeholder="Например, Primboyeva Gulnoza Ravshanovna">
               </div>
               <div class="border rounded-3 p-3 bg-body-tertiary">
-                <div class="fw-semibold mb-2">Логотип и печать</div>
-                <div class="vstack gap-3">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                  <div class="fw-semibold">Логотип и печать</div>
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="attorney-logo-toggle" aria-expanded="false">
+                    Показать
+                  </button>
+                </div>
+                <div class="vstack gap-3 d-none" id="attorney-logo-section">
                   <div>
                     <label class="form-label" for="attorney-logo-upload">Загрузить фото логотипа</label>
                     <input type="file" class="form-control" id="attorney-logo-upload" accept="image/*">
@@ -1367,7 +1372,12 @@
                   </div>
                   <div>
                     <label class="form-label" for="attorney-doc-text-input">Текст вместо печати/подписи</label>
-                    <input type="text" class="form-control" id="attorney-doc-text-input" placeholder="Например, Печать компании">
+                    <textarea
+                      class="form-control"
+                      id="attorney-doc-text-input"
+                      rows="2"
+                      placeholder="Например, Печать компании"
+                    ></textarea>
                   </div>
                   <div class="row g-2">
                     <div class="col-12 col-md-6">
@@ -1406,8 +1416,13 @@
                 </div>
               </div>
               <div class="border rounded-3 p-3 bg-body-tertiary">
-                <div class="fw-semibold mb-2">Адрес в доверенности</div>
-                <div class="vstack gap-3">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                  <div class="fw-semibold">Адрес в доверенности</div>
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="attorney-address-toggle" aria-expanded="false">
+                    Показать
+                  </button>
+                </div>
+                <div class="vstack gap-3 d-none" id="attorney-address-section">
                   <div>
                     <label class="form-label" for="attorney-address-text">Текст адреса</label>
                     <textarea
@@ -1537,56 +1552,70 @@
                   <input type="text" class="form-control" id="attorney-passport-issued-1" placeholder="ОВД г. Самарканд">
                 </div>
               </div>
-              <div class="row g-2 mt-1">
-                <div class="col-12">
-                  <label class="form-label" for="attorney-authorized-name-2">Доверенное лицо (ФИО) 2</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="attorney-authorized-name-2"
-                    placeholder="Например, Иванов Иван Иванович"
-                    list="customer-datalist"
-                  >
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="attorney-authorized-add-2" disabled>
+                  Добавить доверенное лицо 2
+                </button>
+              </div>
+              <div id="attorney-authorized-section-2" class="d-none">
+                <div class="row g-2 mt-1">
+                  <div class="col-12">
+                    <label class="form-label" for="attorney-authorized-name-2">Доверенное лицо (ФИО) 2</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="attorney-authorized-name-2"
+                      placeholder="Например, Иванов Иван Иванович"
+                      list="customer-datalist"
+                    >
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label" for="attorney-passport-2">Паспорт серия и номер 2</label>
+                    <input type="text" class="form-control" id="attorney-passport-2" placeholder="AB 1234567">
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label" for="attorney-passport-issued-date-2">Дата выдачи 2</label>
+                    <input type="date" class="form-control" id="attorney-passport-issued-date-2">
+                  </div>
                 </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport-2">Паспорт серия и номер 2</label>
-                  <input type="text" class="form-control" id="attorney-passport-2" placeholder="AB 1234567">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport-issued-date-2">Дата выдачи 2</label>
-                  <input type="date" class="form-control" id="attorney-passport-issued-date-2">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label" for="attorney-passport-issued-2">Кем выдан 2</label>
+                    <input type="text" class="form-control" id="attorney-passport-issued-2" placeholder="ОВД г. Самарканд">
+                  </div>
                 </div>
               </div>
-              <div class="row g-2">
-                <div class="col-12">
-                  <label class="form-label" for="attorney-passport-issued-2">Кем выдан 2</label>
-                  <input type="text" class="form-control" id="attorney-passport-issued-2" placeholder="ОВД г. Самарканд">
-                </div>
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="attorney-authorized-add-3" disabled>
+                  Добавить доверенное лицо 3
+                </button>
               </div>
-              <div class="row g-2 mt-1">
-                <div class="col-12">
-                  <label class="form-label" for="attorney-authorized-name-3">Доверенное лицо (ФИО) 3</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="attorney-authorized-name-3"
-                    placeholder="Например, Сидоров Сидор Сидорович"
-                    list="customer-datalist"
-                  >
+              <div id="attorney-authorized-section-3" class="d-none">
+                <div class="row g-2 mt-1">
+                  <div class="col-12">
+                    <label class="form-label" for="attorney-authorized-name-3">Доверенное лицо (ФИО) 3</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="attorney-authorized-name-3"
+                      placeholder="Например, Сидоров Сидор Сидорович"
+                      list="customer-datalist"
+                    >
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label" for="attorney-passport-3">Паспорт серия и номер 3</label>
+                    <input type="text" class="form-control" id="attorney-passport-3" placeholder="AB 1234567">
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label" for="attorney-passport-issued-date-3">Дата выдачи 3</label>
+                    <input type="date" class="form-control" id="attorney-passport-issued-date-3">
+                  </div>
                 </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport-3">Паспорт серия и номер 3</label>
-                  <input type="text" class="form-control" id="attorney-passport-3" placeholder="AB 1234567">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport-issued-date-3">Дата выдачи 3</label>
-                  <input type="date" class="form-control" id="attorney-passport-issued-date-3">
-                </div>
-              </div>
-              <div class="row g-2">
-                <div class="col-12">
-                  <label class="form-label" for="attorney-passport-issued-3">Кем выдан 3</label>
-                  <input type="text" class="form-control" id="attorney-passport-issued-3" placeholder="ОВД г. Самарканд">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label" for="attorney-passport-issued-3">Кем выдан 3</label>
+                    <input type="text" class="form-control" id="attorney-passport-issued-3" placeholder="ОВД г. Самарканд">
+                  </div>
                 </div>
               </div>
               <div>
@@ -1620,13 +1649,21 @@
             </div>
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large" id="attorney-company-preview">
               000 «AUTOCENTER» в лице директора <span id="attorney-director-preview">Primboyeva Gulnoza Ravshanovna</span>
-              являясь собственником автомобиля марки «<span id="attorney-make-inline">—</span>». Модель
-              <span id="attorney-model-inline">—</span>. Модельный год <span id="attorney-model-year-inline">—</span><span id="attorney-dvs-block">, <span id="attorney-dvs-inline">ДВС</span></span>, новый, Состоит из:
-              <span id="attorney-skd-inline">—</span>, № кузова:
-              <span id="attorney-body-inline">—</span>, № двиг.: <span id="attorney-engine-inline">—</span>, об. дв.
-              <span id="attorney-engine-volume-inline">—</span>см3, цвет <span id="attorney-color-inline">—</span>,
-              <span id="attorney-engine-type-inline">—</span>, <span id="attorney-euro-inline">—</span>,
-              <span id="attorney-year-inline">—</span>г.в.» настоящим доверяет в лице
+              являясь собственником автомобиля
+              <span class="d-none" id="attorney-make-block"> марки «<span id="attorney-make-inline">—</span>».</span>
+              <span class="d-none" id="attorney-model-block"> Модель <span id="attorney-model-inline">—</span></span>
+              <span class="d-none" id="attorney-model-year-block">. Модельный год <span id="attorney-model-year-inline">—</span></span>
+              <span class="d-none" id="attorney-dvs-block">, <span id="attorney-dvs-inline">ДВС</span></span>
+              <span class="d-none" id="attorney-new-block">, новый</span>
+              <span class="d-none" id="attorney-skd-block">, Состоит из: <span id="attorney-skd-inline">—</span></span>
+              <span class="d-none" id="attorney-body-block">, № кузова: <span id="attorney-body-inline">—</span></span>
+              <span class="d-none" id="attorney-engine-block">, № двиг.: <span id="attorney-engine-inline">—</span></span>
+              <span class="d-none" id="attorney-engine-volume-block">, об. дв. <span id="attorney-engine-volume-inline">—</span>см3</span>
+              <span class="d-none" id="attorney-color-block">, цвет <span id="attorney-color-inline">—</span></span>
+              <span class="d-none" id="attorney-engine-type-block">, <span id="attorney-engine-type-inline">—</span></span>
+              <span class="d-none" id="attorney-euro-block">, <span id="attorney-euro-inline">—</span></span>
+              <span class="d-none" id="attorney-year-block">, <span id="attorney-year-inline">—</span>г.в.»</span>
+              настоящим доверяет в лице
             </p>
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large attorney-paragraph--custom d-none" id="attorney-company-custom-preview"></p>
             <div id="attorney-authorized-preview">
@@ -2622,7 +2659,19 @@
     const attorneyMakeInlinePreview = document.getElementById('attorney-make-inline');
     const attorneyModelInlinePreview = document.getElementById('attorney-model-inline');
     const attorneyModelYearInlinePreview = document.getElementById('attorney-model-year-inline');
+    const attorneyMakeBlock = document.getElementById('attorney-make-block');
+    const attorneyModelBlock = document.getElementById('attorney-model-block');
+    const attorneyModelYearBlock = document.getElementById('attorney-model-year-block');
     const attorneyDvsBlock = document.getElementById('attorney-dvs-block');
+    const attorneyNewBlock = document.getElementById('attorney-new-block');
+    const attorneySkdBlock = document.getElementById('attorney-skd-block');
+    const attorneyBodyBlock = document.getElementById('attorney-body-block');
+    const attorneyEngineBlock = document.getElementById('attorney-engine-block');
+    const attorneyEngineVolumeBlock = document.getElementById('attorney-engine-volume-block');
+    const attorneyColorBlock = document.getElementById('attorney-color-block');
+    const attorneyEngineTypeBlock = document.getElementById('attorney-engine-type-block');
+    const attorneyEuroBlock = document.getElementById('attorney-euro-block');
+    const attorneyYearBlock = document.getElementById('attorney-year-block');
     const attorneyDvsInlinePreview = document.getElementById('attorney-dvs-inline');
     const attorneyCompanyPreview = document.getElementById('attorney-company-preview');
     const attorneyCompanyCustomPreview = document.getElementById('attorney-company-custom-preview');
@@ -2644,6 +2693,14 @@
       document.getElementById('attorney-authorized-preview-2'),
       document.getElementById('attorney-authorized-preview-3'),
     ];
+    const attorneyAuthorizedSection2 = document.getElementById('attorney-authorized-section-2');
+    const attorneyAuthorizedSection3 = document.getElementById('attorney-authorized-section-3');
+    const attorneyAuthorizedAdd2 = document.getElementById('attorney-authorized-add-2');
+    const attorneyAuthorizedAdd3 = document.getElementById('attorney-authorized-add-3');
+    const attorneyLogoToggle = document.getElementById('attorney-logo-toggle');
+    const attorneyLogoSection = document.getElementById('attorney-logo-section');
+    const attorneyAddressToggle = document.getElementById('attorney-address-toggle');
+    const attorneyAddressSection = document.getElementById('attorney-address-section');
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
     let currentCreditCurrencyLabel = 'UZS';
@@ -2759,6 +2816,54 @@
       }
       const formattedDecimal = decimalPart.replace(/\D/g, '').slice(0, 2);
       return formattedDecimal ? `${formattedInteger}.${formattedDecimal}` : formattedInteger;
+    };
+
+    const bindToggleSection = (button, section) => {
+      if (!button || !section) {
+        return;
+      }
+      const updateState = (isExpanded) => {
+        section.classList.toggle('d-none', !isExpanded);
+        button.textContent = isExpanded ? 'Скрыть' : 'Показать';
+        button.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      };
+      updateState(false);
+      button.addEventListener('click', () => {
+        const isExpanded = section.classList.contains('d-none');
+        updateState(isExpanded);
+      });
+    };
+
+    const isAuthorizedFilled = (index) => {
+      const nameValue = `${attorneyAuthorizedNameInputs[index]?.value ?? ''}`.trim();
+      const passportValue = `${attorneyPassportInputs[index]?.value ?? ''}`.trim();
+      const issuedDateValue = `${attorneyPassportIssuedDateInputs[index]?.value ?? ''}`.trim();
+      const issuedByValue = `${attorneyPassportIssuedInputs[index]?.value ?? ''}`.trim();
+      return Boolean(nameValue || passportValue || issuedDateValue || issuedByValue);
+    };
+
+    const updateAuthorizedSections = () => {
+      const firstFilled = isAuthorizedFilled(0);
+      const secondFilled = isAuthorizedFilled(1);
+      const thirdFilled = isAuthorizedFilled(2);
+      const secondRevealed = attorneyAuthorizedSection2?.dataset.revealed === 'true';
+      const thirdRevealed = attorneyAuthorizedSection3?.dataset.revealed === 'true';
+      if (attorneyAuthorizedSection2) {
+        attorneyAuthorizedSection2.classList.toggle('d-none', !(secondFilled || secondRevealed));
+      }
+      if (attorneyAuthorizedSection3) {
+        attorneyAuthorizedSection3.classList.toggle('d-none', !(thirdFilled || thirdRevealed));
+      }
+      if (attorneyAuthorizedAdd2) {
+        const canAddSecond = firstFilled && !secondFilled && !secondRevealed;
+        attorneyAuthorizedAdd2.disabled = !canAddSecond;
+        attorneyAuthorizedAdd2.classList.toggle('d-none', !firstFilled || secondFilled || secondRevealed);
+      }
+      if (attorneyAuthorizedAdd3) {
+        const canAddThird = secondFilled && !thirdFilled && !thirdRevealed;
+        attorneyAuthorizedAdd3.disabled = !canAddThird;
+        attorneyAuthorizedAdd3.classList.toggle('d-none', !secondFilled || thirdFilled || thirdRevealed);
+      }
     };
 
     const applyMoneyFormatting = (input) => {
@@ -2915,6 +3020,12 @@
         const normalized = `${value ?? ''}`.trim();
         element.textContent = normalized || fallback;
       };
+      const toggleInlineBlock = (element, hasValue) => {
+        if (!element) {
+          return;
+        }
+        element.classList.toggle('d-none', !hasValue);
+      };
       if (attorneyDirectorPreview || attorneyDirectorSign) {
         const directorValue = `${attorneyTrustorInput?.value ?? ''}`.trim();
         const resolvedDirector = directorValue || 'Primboyeva Gulnoza Ravshanovna';
@@ -2944,34 +3055,62 @@
       if (attorneyHeaderDatePreview) {
         attorneyHeaderDatePreview.textContent = formatAttorneyHeaderDate();
       }
-      setText(attorneyMakeInlinePreview, attorneyMakeInput?.value);
-      setText(attorneyModelInlinePreview, attorneyVehicleNameInput?.value);
-      setText(attorneyModelYearInlinePreview, attorneyModelYearInput?.value);
+      const makeValue = `${attorneyMakeInput?.value ?? ''}`.trim();
+      const modelValue = `${attorneyVehicleNameInput?.value ?? ''}`.trim();
+      const modelYearValue = `${attorneyModelYearInput?.value ?? ''}`.trim();
+      setText(attorneyMakeInlinePreview, makeValue);
+      setText(attorneyModelInlinePreview, modelValue);
+      setText(attorneyModelYearInlinePreview, modelYearValue);
+      toggleInlineBlock(attorneyMakeBlock, Boolean(makeValue));
+      toggleInlineBlock(attorneyModelBlock, Boolean(modelValue));
+      toggleInlineBlock(attorneyModelYearBlock, Boolean(modelYearValue));
       const dvsValue = `${attorneyDvsInput?.value ?? ''}`.trim();
       setText(attorneyDvsInlinePreview, dvsValue, '');
-      if (attorneyDvsBlock) {
-        attorneyDvsBlock.style.display = dvsValue ? '' : 'none';
-      }
-      setText(attorneyBodyInlinePreview, attorneyBodyNumberInput?.value);
-      setText(attorneyEngineInlinePreview, attorneyEngineNumberInput?.value);
-      setText(attorneyColorInlinePreview, attorneyColorInput?.value);
-      setText(attorneyEngineTypeInlinePreview, attorneyEngineTypeInput?.value);
-      setText(attorneySkdInlinePreview, attorneySkdInput?.value);
-      setText(attorneyEngineVolumeInlinePreview, attorneyEngineVolumeInput?.value);
-      setText(attorneyEuroInlinePreview, attorneyEuroInput?.value);
-      setText(attorneyYearInlinePreview, attorneyYearInput?.value);
-      const hasAuthorizedValue = (index) => {
-        const nameValue = `${attorneyAuthorizedNameInputs[index]?.value ?? ''}`.trim();
-        const passportValue = `${attorneyPassportInputs[index]?.value ?? ''}`.trim();
-        const issuedDateValue = `${attorneyPassportIssuedDateInputs[index]?.value ?? ''}`.trim();
-        const issuedByValue = `${attorneyPassportIssuedInputs[index]?.value ?? ''}`.trim();
-        return Boolean(nameValue || passportValue || issuedDateValue || issuedByValue);
-      };
+      toggleInlineBlock(attorneyDvsBlock, Boolean(dvsValue));
+      const skdValue = `${attorneySkdInput?.value ?? ''}`.trim();
+      const bodyValue = `${attorneyBodyNumberInput?.value ?? ''}`.trim();
+      const engineValue = `${attorneyEngineNumberInput?.value ?? ''}`.trim();
+      const engineVolumeValue = `${attorneyEngineVolumeInput?.value ?? ''}`.trim();
+      const colorValue = `${attorneyColorInput?.value ?? ''}`.trim();
+      const engineTypeValue = `${attorneyEngineTypeInput?.value ?? ''}`.trim();
+      const euroValue = `${attorneyEuroInput?.value ?? ''}`.trim();
+      const yearValue = `${attorneyYearInput?.value ?? ''}`.trim();
+      const hasVehicleDetails = Boolean(
+        makeValue
+        || modelValue
+        || modelYearValue
+        || dvsValue
+        || skdValue
+        || bodyValue
+        || engineValue
+        || engineVolumeValue
+        || colorValue
+        || engineTypeValue
+        || euroValue
+        || yearValue,
+      );
+      toggleInlineBlock(attorneyNewBlock, hasVehicleDetails);
+      setText(attorneySkdInlinePreview, skdValue);
+      setText(attorneyBodyInlinePreview, bodyValue);
+      setText(attorneyEngineInlinePreview, engineValue);
+      setText(attorneyEngineVolumeInlinePreview, engineVolumeValue);
+      setText(attorneyColorInlinePreview, colorValue);
+      setText(attorneyEngineTypeInlinePreview, engineTypeValue);
+      setText(attorneyEuroInlinePreview, euroValue);
+      setText(attorneyYearInlinePreview, yearValue);
+      toggleInlineBlock(attorneySkdBlock, Boolean(skdValue));
+      toggleInlineBlock(attorneyBodyBlock, Boolean(bodyValue));
+      toggleInlineBlock(attorneyEngineBlock, Boolean(engineValue));
+      toggleInlineBlock(attorneyEngineVolumeBlock, Boolean(engineVolumeValue));
+      toggleInlineBlock(attorneyColorBlock, Boolean(colorValue));
+      toggleInlineBlock(attorneyEngineTypeBlock, Boolean(engineTypeValue));
+      toggleInlineBlock(attorneyEuroBlock, Boolean(euroValue));
+      toggleInlineBlock(attorneyYearBlock, Boolean(yearValue));
       attorneyAuthorizedPreviewItems.forEach((item, index) => {
         if (!item) {
           return;
         }
-        if (index > 0 && !hasAuthorizedValue(index)) {
+        if (index > 0 && !isAuthorizedFilled(index)) {
           item.textContent = '';
           item.classList.add('d-none');
           return;
@@ -2985,6 +3124,7 @@
         item.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issuedText})`;
         item.classList.remove('d-none');
       });
+      updateAuthorizedSections();
     };
 
     const maybeFormatDownPaymentValue = () => {
@@ -3654,6 +3794,36 @@
       input.addEventListener('input', updateAttorneyPreview);
       input.addEventListener('change', updateAttorneyPreview);
     });
+
+    bindToggleSection(attorneyLogoToggle, attorneyLogoSection);
+    bindToggleSection(attorneyAddressToggle, attorneyAddressSection);
+    updateAuthorizedSections();
+
+    if (attorneyAuthorizedAdd2) {
+      attorneyAuthorizedAdd2.addEventListener('click', () => {
+        if (attorneyAuthorizedSection2) {
+          attorneyAuthorizedSection2.dataset.revealed = 'true';
+          attorneyAuthorizedSection2.classList.remove('d-none');
+        }
+        if (attorneyAuthorizedNameInputs[1]) {
+          attorneyAuthorizedNameInputs[1].focus();
+        }
+        updateAuthorizedSections();
+      });
+    }
+
+    if (attorneyAuthorizedAdd3) {
+      attorneyAuthorizedAdd3.addEventListener('click', () => {
+        if (attorneyAuthorizedSection3) {
+          attorneyAuthorizedSection3.dataset.revealed = 'true';
+          attorneyAuthorizedSection3.classList.remove('d-none');
+        }
+        if (attorneyAuthorizedNameInputs[2]) {
+          attorneyAuthorizedNameInputs[2].focus();
+        }
+        updateAuthorizedSections();
+      });
+    }
 
     if (attorneyDocUploadInput) {
       attorneyDocUploadInput.addEventListener('change', () => {
