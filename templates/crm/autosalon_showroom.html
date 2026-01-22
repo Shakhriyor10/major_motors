@@ -1642,10 +1642,6 @@
                 </div>
               </div>
               <div>
-                <label class="form-label" for="attorney-start-date">Дата начала доверенности</label>
-                <input type="date" class="form-control" id="attorney-start-date" name="attorney_start_date">
-              </div>
-              <div>
                 <label class="form-label" for="attorney-expiry">Срок доверенности (до)</label>
                 <input type="date" class="form-control" id="attorney-expiry" name="attorney_expiry">
               </div>
@@ -1760,7 +1756,6 @@
                 <tr class="small">
                   <th>ID</th>
                   <th>Создано</th>
-                  <th>Дата начала</th>
                   <th>Дата окончания</th>
                   <th>Марка</th>
                   <th>Модель</th>
@@ -1779,7 +1774,6 @@
                   >
                     <td>{{ attorney.id }}</td>
                     <td>{{ attorney.created_at|date:"d.m.Y" }}</td>
-                    <td>{{ attorney.start_date|date:"d.m.Y"|default:"—" }}</td>
                     <td>{{ attorney.expiry_date|date:"d.m.Y"|default:"—" }}</td>
                     <td>{{ attorney.make|default:"—" }}</td>
                     <td>{{ attorney.vehicle_name|default:"—" }}</td>
@@ -1802,7 +1796,7 @@
                   </tr>
                 {% empty %}
                   <tr>
-                    <td colspan="9" class="text-muted text-center">Сохраненных доверенностей пока нет.</td>
+                    <td colspan="8" class="text-muted text-center">Сохраненных доверенностей пока нет.</td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -2767,7 +2761,6 @@
       document.getElementById('attorney-passport-issued-2'),
       document.getElementById('attorney-passport-issued-3'),
     ];
-    const attorneyStartDateInput = document.getElementById('attorney-start-date');
     const attorneyExpiryInput = document.getElementById('attorney-expiry');
     const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
     const attorneyDirectorSign = document.getElementById('attorney-director-sign');
@@ -3053,7 +3046,6 @@
       setInputValue(attorneyPassportInputs[2], record.passport_3);
       setInputValue(attorneyPassportIssuedDateInputs[2], record.passport_issued_date_3);
       setInputValue(attorneyPassportIssuedInputs[2], record.passport_issued_by_3);
-      setInputValue(attorneyStartDateInput, record.start_date);
       setInputValue(attorneyExpiryInput, record.expiry_date);
 
       setInputValue(attorneyLogoTextInput, record.logo_text);
@@ -4091,7 +4083,6 @@
       ...attorneyPassportInputs,
       ...attorneyPassportIssuedDateInputs,
       ...attorneyPassportIssuedInputs,
-      attorneyStartDateInput,
       attorneyExpiryInput,
     ];
 
