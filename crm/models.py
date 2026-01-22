@@ -153,6 +153,70 @@ class Customer(TimeStampedModel):
         return self.full_name
 
 
+class PowerOfAttorney(TimeStampedModel):
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='powers_of_attorney',
+    )
+    trustor_name = models.CharField(max_length=255, blank=True)
+    company_full_text = models.TextField(blank=True)
+    vehicle_name = models.CharField(max_length=255, blank=True)
+    make = models.CharField(max_length=255, blank=True)
+    model_year = models.CharField(max_length=64, blank=True)
+    dvs = models.CharField(max_length=64, blank=True)
+    body_number = models.CharField(max_length=255, blank=True)
+    engine_number = models.CharField(max_length=255, blank=True)
+    engine_type = models.CharField(max_length=255, blank=True)
+    color = models.CharField(max_length=255, blank=True)
+    skd = models.CharField(max_length=255, blank=True)
+    engine_volume = models.CharField(max_length=64, blank=True)
+    euro = models.CharField(max_length=64, blank=True)
+    year = models.CharField(max_length=64, blank=True)
+    authorized_name_1 = models.CharField(max_length=255, blank=True)
+    passport_1 = models.CharField(max_length=255, blank=True)
+    passport_issued_date_1 = models.DateField(null=True, blank=True)
+    passport_issued_by_1 = models.CharField(max_length=255, blank=True)
+    authorized_name_2 = models.CharField(max_length=255, blank=True)
+    passport_2 = models.CharField(max_length=255, blank=True)
+    passport_issued_date_2 = models.DateField(null=True, blank=True)
+    passport_issued_by_2 = models.CharField(max_length=255, blank=True)
+    authorized_name_3 = models.CharField(max_length=255, blank=True)
+    passport_3 = models.CharField(max_length=255, blank=True)
+    passport_issued_date_3 = models.DateField(null=True, blank=True)
+    passport_issued_by_3 = models.CharField(max_length=255, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    logo_text = models.CharField(max_length=255, blank=True)
+    logo_text_bold = models.BooleanField(default=True)
+    logo_text_italic = models.BooleanField(default=False)
+    logo_text_underline = models.BooleanField(default=False)
+    logo_width = models.CharField(max_length=64, blank=True)
+    logo_font_size = models.CharField(max_length=64, blank=True)
+    logo_align = models.CharField(max_length=32, blank=True)
+    logo_margin_top = models.CharField(max_length=64, blank=True)
+    logo_margin_bottom = models.CharField(max_length=64, blank=True)
+    logo_show_image = models.BooleanField(default=True)
+    logo_image_data = models.TextField(blank=True)
+    address_text = models.TextField(blank=True)
+    address_font_size = models.CharField(max_length=64, blank=True)
+    address_bold = models.BooleanField(default=False)
+    address_italic = models.BooleanField(default=True)
+    address_underline = models.BooleanField(default=False)
+    doc_text = models.TextField(blank=True)
+    doc_show_image = models.BooleanField(default=True)
+    doc_image_width = models.CharField(max_length=64, blank=True)
+    doc_font_size = models.CharField(max_length=64, blank=True)
+    doc_justify = models.CharField(max_length=32, blank=True)
+    doc_margin_top = models.CharField(max_length=64, blank=True)
+    doc_text_align = models.CharField(max_length=32, blank=True)
+    doc_image_data = models.TextField(blank=True)
+
+    def __str__(self):
+        return f'Доверенность #{self.pk}'
+
+
 class CustomerDocument(TimeStampedModel):
     class DocumentType(models.TextChoices):
         PASSPORT = 'passport', 'Паспорт'
