@@ -2841,21 +2841,23 @@
       const firstFilled = isAuthorizedFilled(0);
       const secondFilled = isAuthorizedFilled(1);
       const thirdFilled = isAuthorizedFilled(2);
+      const secondRevealed = attorneyAuthorizedSection2?.dataset.revealed === 'true';
+      const thirdRevealed = attorneyAuthorizedSection3?.dataset.revealed === 'true';
       if (attorneyAuthorizedSection2) {
-        attorneyAuthorizedSection2.classList.toggle('d-none', !secondFilled);
+        attorneyAuthorizedSection2.classList.toggle('d-none', !(secondFilled || secondRevealed));
       }
       if (attorneyAuthorizedSection3) {
-        attorneyAuthorizedSection3.classList.toggle('d-none', !thirdFilled);
+        attorneyAuthorizedSection3.classList.toggle('d-none', !(thirdFilled || thirdRevealed));
       }
       if (attorneyAuthorizedAdd2) {
-        const canAddSecond = firstFilled && !secondFilled;
+        const canAddSecond = firstFilled && !secondFilled && !secondRevealed;
         attorneyAuthorizedAdd2.disabled = !canAddSecond;
-        attorneyAuthorizedAdd2.classList.toggle('d-none', !firstFilled || secondFilled);
+        attorneyAuthorizedAdd2.classList.toggle('d-none', !firstFilled || secondFilled || secondRevealed);
       }
       if (attorneyAuthorizedAdd3) {
-        const canAddThird = secondFilled && !thirdFilled;
+        const canAddThird = secondFilled && !thirdFilled && !thirdRevealed;
         attorneyAuthorizedAdd3.disabled = !canAddThird;
-        attorneyAuthorizedAdd3.classList.toggle('d-none', !secondFilled || thirdFilled);
+        attorneyAuthorizedAdd3.classList.toggle('d-none', !secondFilled || thirdFilled || thirdRevealed);
       }
     };
 
@@ -3795,6 +3797,7 @@
     if (attorneyAuthorizedAdd2) {
       attorneyAuthorizedAdd2.addEventListener('click', () => {
         if (attorneyAuthorizedSection2) {
+          attorneyAuthorizedSection2.dataset.revealed = 'true';
           attorneyAuthorizedSection2.classList.remove('d-none');
         }
         if (attorneyAuthorizedNameInputs[1]) {
@@ -3807,6 +3810,7 @@
     if (attorneyAuthorizedAdd3) {
       attorneyAuthorizedAdd3.addEventListener('click', () => {
         if (attorneyAuthorizedSection3) {
+          attorneyAuthorizedSection3.dataset.revealed = 'true';
           attorneyAuthorizedSection3.classList.remove('d-none');
         }
         if (attorneyAuthorizedNameInputs[2]) {
