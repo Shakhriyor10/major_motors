@@ -187,6 +187,7 @@ class PowerOfAttorney(TimeStampedModel):
     passport_3 = models.CharField(max_length=255, blank=True)
     passport_issued_date_3 = models.DateField(null=True, blank=True)
     passport_issued_by_3 = models.CharField(max_length=255, blank=True)
+    start_date = models.DateField(null=True, blank=True)
     expiry_date = models.DateField(null=True, blank=True)
     logo_text = models.CharField(max_length=255, blank=True)
     logo_text_bold = models.BooleanField(default=True)

@@ -368,6 +368,7 @@ def autosalon(request):
                 'passport_3': request.POST.get('attorney_passport_3', '').strip(),
                 'passport_issued_date_3': parse_date(request.POST.get('attorney_passport_issued_date_3') or ''),
                 'passport_issued_by_3': request.POST.get('attorney_passport_issued_3', '').strip(),
+                'start_date': parse_date(request.POST.get('attorney_start_date') or ''),
                 'expiry_date': parse_date(request.POST.get('attorney_expiry') or ''),
                 'logo_text': request.POST.get('attorney_logo_text', '').strip(),
                 'logo_text_bold': parse_bool(request.POST.get('attorney_logo_text_bold')),
@@ -721,6 +722,7 @@ def autosalon(request):
                 if record.passport_issued_date_3
                 else '',
                 'passport_issued_by_3': record.passport_issued_by_3,
+                'start_date': record.start_date.isoformat() if record.start_date else '',
                 'expiry_date': record.expiry_date.isoformat() if record.expiry_date else '',
                 'logo_text': record.logo_text,
                 'logo_text_bold': record.logo_text_bold,

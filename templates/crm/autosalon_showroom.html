@@ -1642,6 +1642,10 @@
                 </div>
               </div>
               <div>
+                <label class="form-label" for="attorney-start-date">Дата начала доверенности</label>
+                <input type="date" class="form-control" id="attorney-start-date" name="attorney_start_date">
+              </div>
+              <div>
                 <label class="form-label" for="attorney-expiry">Срок доверенности (до)</label>
                 <input type="date" class="form-control" id="attorney-expiry" name="attorney_expiry">
               </div>
@@ -1728,7 +1732,26 @@
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
             <div>
               <h3 class="h6 mb-1">Сохраненные доверенности</h3>
-              <p class="text-muted mb-0">Таблица со всеми полями доверенности для просмотра, редактирования и печати.</p>
+              <p class="text-muted mb-0">Таблица для поиска и повторной печати доверенностей.</p>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-12 col-lg-6">
+              <label class="form-label">Поиск по доверенности</label>
+              <input
+                type="text"
+                class="form-control"
+                id="attorneySearchInput"
+                placeholder="Введите ФИО доверенного лица, марку или модель"
+              >
+            </div>
+            <div class="col-6 col-lg-3">
+              <label class="form-label">Создано с</label>
+              <input type="date" class="form-control" id="attorneyCreatedFrom">
+            </div>
+            <div class="col-6 col-lg-3">
+              <label class="form-label">Создано по</label>
+              <input type="date" class="form-control" id="attorneyCreatedTo">
             </div>
           </div>
           <div class="table-responsive">
@@ -1736,115 +1759,33 @@
               <thead class="table-light">
                 <tr class="small">
                   <th>ID</th>
-                  <th>Обновлено</th>
-                  <th>ФИО директора</th>
-                  <th>Имя машины</th>
+                  <th>Создано</th>
+                  <th>Дата начала</th>
+                  <th>Дата окончания</th>
                   <th>Марка</th>
-                  <th>Модельный год</th>
-                  <th>ДВС</th>
-                  <th>Номер кузова</th>
-                  <th>Номер двигателя</th>
-                  <th>Тип двигателя</th>
-                  <th>Цвет</th>
-                  <th>Состоит из</th>
-                  <th>Объем двигателя</th>
-                  <th>Экокласс</th>
-                  <th>Год выпуска</th>
+                  <th>Модель</th>
                   <th>Доверенное лицо 1</th>
-                  <th>Паспорт 1</th>
-                  <th>Дата выдачи 1</th>
-                  <th>Кем выдан 1</th>
                   <th>Доверенное лицо 2</th>
-                  <th>Паспорт 2</th>
-                  <th>Дата выдачи 2</th>
-                  <th>Кем выдан 2</th>
                   <th>Доверенное лицо 3</th>
-                  <th>Паспорт 3</th>
-                  <th>Дата выдачи 3</th>
-                  <th>Кем выдан 3</th>
-                  <th>Срок доверенности</th>
-                  <th>Текст адреса</th>
-                  <th>Размер шрифта адреса</th>
-                  <th>Адрес жирный</th>
-                  <th>Адрес курсив</th>
-                  <th>Адрес подчеркнутый</th>
-                  <th>Текст логотипа</th>
-                  <th>Логотип жирный</th>
-                  <th>Логотип курсив</th>
-                  <th>Логотип подчеркнутый</th>
-                  <th>Ширина логотипа</th>
-                  <th>Размер шрифта логотипа</th>
-                  <th>Выравнивание логотипа</th>
-                  <th>Отступ логотипа сверху</th>
-                  <th>Отступ логотипа снизу</th>
-                  <th>Показывать логотип</th>
-                  <th>Данные логотипа</th>
-                  <th>Текст печати</th>
-                  <th>Показывать печать</th>
-                  <th>Ширина печати</th>
-                  <th>Размер шрифта печати</th>
-                  <th>Расположение подписи</th>
-                  <th>Отступ подписи сверху</th>
-                  <th>Выравнивание текста подписи</th>
-                  <th>Данные печати</th>
                   <th>Действия</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="attorneyTableBody">
                 {% for attorney in power_of_attorneys %}
-                  <tr class="small">
+                  <tr
+                    class="small"
+                    data-search-text="{{ attorney.authorized_name_1|default:''|lower }} {{ attorney.authorized_name_2|default:''|lower }} {{ attorney.authorized_name_3|default:''|lower }} {{ attorney.make|default:''|lower }} {{ attorney.vehicle_name|default:''|lower }}"
+                    data-created-date="{{ attorney.created_at|date:'Y-m-d' }}"
+                  >
                     <td>{{ attorney.id }}</td>
-                    <td>{{ attorney.updated_at|date:"d.m.Y H:i" }}</td>
-                    <td>{{ attorney.trustor_name|default:"—" }}</td>
-                    <td>{{ attorney.vehicle_name|default:"—" }}</td>
-                    <td>{{ attorney.make|default:"—" }}</td>
-                    <td>{{ attorney.model_year|default:"—" }}</td>
-                    <td>{{ attorney.dvs|default:"—" }}</td>
-                    <td>{{ attorney.body_number|default:"—" }}</td>
-                    <td>{{ attorney.engine_number|default:"—" }}</td>
-                    <td>{{ attorney.engine_type|default:"—" }}</td>
-                    <td>{{ attorney.color|default:"—" }}</td>
-                    <td>{{ attorney.skd|default:"—" }}</td>
-                    <td>{{ attorney.engine_volume|default:"—" }}</td>
-                    <td>{{ attorney.euro|default:"—" }}</td>
-                    <td>{{ attorney.year|default:"—" }}</td>
-                    <td>{{ attorney.authorized_name_1|default:"—" }}</td>
-                    <td>{{ attorney.passport_1|default:"—" }}</td>
-                    <td>{{ attorney.passport_issued_date_1|date:"d.m.Y"|default:"—" }}</td>
-                    <td>{{ attorney.passport_issued_by_1|default:"—" }}</td>
-                    <td>{{ attorney.authorized_name_2|default:"—" }}</td>
-                    <td>{{ attorney.passport_2|default:"—" }}</td>
-                    <td>{{ attorney.passport_issued_date_2|date:"d.m.Y"|default:"—" }}</td>
-                    <td>{{ attorney.passport_issued_by_2|default:"—" }}</td>
-                    <td>{{ attorney.authorized_name_3|default:"—" }}</td>
-                    <td>{{ attorney.passport_3|default:"—" }}</td>
-                    <td>{{ attorney.passport_issued_date_3|date:"d.m.Y"|default:"—" }}</td>
-                    <td>{{ attorney.passport_issued_by_3|default:"—" }}</td>
+                    <td>{{ attorney.created_at|date:"d.m.Y" }}</td>
+                    <td>{{ attorney.start_date|date:"d.m.Y"|default:"—" }}</td>
                     <td>{{ attorney.expiry_date|date:"d.m.Y"|default:"—" }}</td>
-                    <td>{{ attorney.address_text|default:"—" }}</td>
-                    <td>{{ attorney.address_font_size|default:"—" }}</td>
-                    <td>{{ attorney.address_bold|yesno:"Да,Нет" }}</td>
-                    <td>{{ attorney.address_italic|yesno:"Да,Нет" }}</td>
-                    <td>{{ attorney.address_underline|yesno:"Да,Нет" }}</td>
-                    <td>{{ attorney.logo_text|default:"—" }}</td>
-                    <td>{{ attorney.logo_text_bold|yesno:"Да,Нет" }}</td>
-                    <td>{{ attorney.logo_text_italic|yesno:"Да,Нет" }}</td>
-                    <td>{{ attorney.logo_text_underline|yesno:"Да,Нет" }}</td>
-                    <td>{{ attorney.logo_width|default:"—" }}</td>
-                    <td>{{ attorney.logo_font_size|default:"—" }}</td>
-                    <td>{{ attorney.logo_align|default:"—" }}</td>
-                    <td>{{ attorney.logo_margin_top|default:"—" }}</td>
-                    <td>{{ attorney.logo_margin_bottom|default:"—" }}</td>
-                    <td>{{ attorney.logo_show_image|yesno:"Да,Нет" }}</td>
-                    <td>{{ attorney.logo_image_data|yesno:"Есть,Нет" }}</td>
-                    <td>{{ attorney.doc_text|default:"—" }}</td>
-                    <td>{{ attorney.doc_show_image|yesno:"Да,Нет" }}</td>
-                    <td>{{ attorney.doc_image_width|default:"—" }}</td>
-                    <td>{{ attorney.doc_font_size|default:"—" }}</td>
-                    <td>{{ attorney.doc_justify|default:"—" }}</td>
-                    <td>{{ attorney.doc_margin_top|default:"—" }}</td>
-                    <td>{{ attorney.doc_text_align|default:"—" }}</td>
-                    <td>{{ attorney.doc_image_data|yesno:"Есть,Нет" }}</td>
+                    <td>{{ attorney.make|default:"—" }}</td>
+                    <td>{{ attorney.vehicle_name|default:"—" }}</td>
+                    <td>{{ attorney.authorized_name_1|default:"—" }}</td>
+                    <td>{{ attorney.authorized_name_2|default:"—" }}</td>
+                    <td>{{ attorney.authorized_name_3|default:"—" }}</td>
                     <td>
                       <div class="d-flex flex-column gap-1">
                         <button class="btn btn-outline-primary btn-sm" type="button" data-attorney-action="view" data-attorney-id="{{ attorney.id }}">
@@ -1861,7 +1802,7 @@
                   </tr>
                 {% empty %}
                   <tr>
-                    <td colspan="53" class="text-muted text-center">Сохраненных доверенностей пока нет.</td>
+                    <td colspan="9" class="text-muted text-center">Сохраненных доверенностей пока нет.</td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -2762,6 +2703,10 @@
     const attorneyDataScript = document.getElementById('attorney-data');
     const attorneyDataList = attorneyDataScript ? JSON.parse(attorneyDataScript.textContent) : [];
     const attorneyDataMap = new Map(attorneyDataList.map((record) => [String(record.id), record]));
+    const attorneySearchInput = document.getElementById('attorneySearchInput');
+    const attorneyCreatedFromInput = document.getElementById('attorneyCreatedFrom');
+    const attorneyCreatedToInput = document.getElementById('attorneyCreatedTo');
+    const attorneyTableBody = document.getElementById('attorneyTableBody');
     const attorneyTrustorInput = document.getElementById('attorney-trustor-name');
     const attorneyLogoSrcInput = document.getElementById('attorney-logo-src');
     const attorneyLogoUploadInput = document.getElementById('attorney-logo-upload');
@@ -2822,6 +2767,7 @@
       document.getElementById('attorney-passport-issued-2'),
       document.getElementById('attorney-passport-issued-3'),
     ];
+    const attorneyStartDateInput = document.getElementById('attorney-start-date');
     const attorneyExpiryInput = document.getElementById('attorney-expiry');
     const attorneyDirectorPreview = document.getElementById('attorney-director-preview');
     const attorneyDirectorSign = document.getElementById('attorney-director-sign');
@@ -3107,6 +3053,7 @@
       setInputValue(attorneyPassportInputs[2], record.passport_3);
       setInputValue(attorneyPassportIssuedDateInputs[2], record.passport_issued_date_3);
       setInputValue(attorneyPassportIssuedInputs[2], record.passport_issued_by_3);
+      setInputValue(attorneyStartDateInput, record.start_date);
       setInputValue(attorneyExpiryInput, record.expiry_date);
 
       setInputValue(attorneyLogoTextInput, record.logo_text);
@@ -4144,6 +4091,7 @@
       ...attorneyPassportInputs,
       ...attorneyPassportIssuedDateInputs,
       ...attorneyPassportIssuedInputs,
+      attorneyStartDateInput,
       attorneyExpiryInput,
     ];
 
@@ -4403,6 +4351,37 @@
         showAttorneyTab();
         loadAttorneyRecord(selectedRecord);
       }
+    }
+
+    const applyAttorneyFilters = () => {
+      if (!attorneyTableBody) {
+        return;
+      }
+      const query = attorneySearchInput ? attorneySearchInput.value.trim().toLowerCase() : '';
+      const fromValue = attorneyCreatedFromInput ? attorneyCreatedFromInput.value : '';
+      const toValue = attorneyCreatedToInput ? attorneyCreatedToInput.value : '';
+      const fromDate = fromValue ? new Date(`${fromValue}T00:00:00`) : null;
+      const toDate = toValue ? new Date(`${toValue}T23:59:59`) : null;
+      const rows = attorneyTableBody.querySelectorAll('tr[data-search-text]');
+      rows.forEach((row) => {
+        const haystack = row.dataset.searchText || '';
+        const createdDateValue = row.dataset.createdDate || '';
+        const createdDate = createdDateValue ? new Date(`${createdDateValue}T00:00:00`) : null;
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesFrom = !fromDate || (createdDate && createdDate >= fromDate);
+        const matchesTo = !toDate || (createdDate && createdDate <= toDate);
+        row.classList.toggle('d-none', !(matchesQuery && matchesFrom && matchesTo));
+      });
+    };
+
+    if (attorneySearchInput) {
+      attorneySearchInput.addEventListener('input', applyAttorneyFilters);
+    }
+    if (attorneyCreatedFromInput) {
+      attorneyCreatedFromInput.addEventListener('change', applyAttorneyFilters);
+    }
+    if (attorneyCreatedToInput) {
+      attorneyCreatedToInput.addEventListener('change', applyAttorneyFilters);
     }
 
     const soldSearchInput = document.getElementById('soldSearch');
