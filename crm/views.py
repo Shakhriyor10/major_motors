@@ -22,6 +22,7 @@ from .models import (
     Deal,
     Lead,
     LeadSource,
+    PowerOfAttorney,
     Reservation,
     Role,
     Vehicle,
@@ -319,6 +320,11 @@ def autosalon(request):
             return timezone.make_aware(parsed, timezone.get_current_timezone())
         return parsed
 
+    def parse_bool(value, default=False):
+        if value is None:
+            return default
+        return str(value).lower() in {'1', 'true', 'on', 'yes'}
+
     default_options = [
         'Кондиционер',
         'Климат-контроль',
@@ -333,6 +339,75 @@ def autosalon(request):
 
     if request.method == 'POST':
         action = request.POST.get('action')
+        if action == 'save_attorney':
+            attorney_id = request.POST.get('attorney_id')
+            attorney_data = {
+                'trustor_name': request.POST.get('attorney_trustor_name', '').strip(),
+                'company_full_text': request.POST.get('attorney_company_full_text', '').strip(),
+                'vehicle_name': request.POST.get('attorney_vehicle_name', '').strip(),
+                'make': request.POST.get('attorney_make', '').strip(),
+                'model_year': request.POST.get('attorney_model_year', '').strip(),
+                'dvs': request.POST.get('attorney_dvs', '').strip(),
+                'body_number': request.POST.get('attorney_body_number', '').strip(),
+                'engine_number': request.POST.get('attorney_engine_number', '').strip(),
+                'engine_type': request.POST.get('attorney_engine_type', '').strip(),
+                'color': request.POST.get('attorney_color', '').strip(),
+                'skd': request.POST.get('attorney_skd', '').strip(),
+                'engine_volume': request.POST.get('attorney_engine_volume', '').strip(),
+                'euro': request.POST.get('attorney_euro', '').strip(),
+                'year': request.POST.get('attorney_year', '').strip(),
+                'authorized_name_1': request.POST.get('attorney_authorized_name_1', '').strip(),
+                'passport_1': request.POST.get('attorney_passport_1', '').strip(),
+                'passport_issued_date_1': parse_date(request.POST.get('attorney_passport_issued_date_1') or ''),
+                'passport_issued_by_1': request.POST.get('attorney_passport_issued_1', '').strip(),
+                'authorized_name_2': request.POST.get('attorney_authorized_name_2', '').strip(),
+                'passport_2': request.POST.get('attorney_passport_2', '').strip(),
+                'passport_issued_date_2': parse_date(request.POST.get('attorney_passport_issued_date_2') or ''),
+                'passport_issued_by_2': request.POST.get('attorney_passport_issued_2', '').strip(),
+                'authorized_name_3': request.POST.get('attorney_authorized_name_3', '').strip(),
+                'passport_3': request.POST.get('attorney_passport_3', '').strip(),
+                'passport_issued_date_3': parse_date(request.POST.get('attorney_passport_issued_date_3') or ''),
+                'passport_issued_by_3': request.POST.get('attorney_passport_issued_3', '').strip(),
+                'start_date': parse_date(request.POST.get('attorney_start_date') or ''),
+                'expiry_date': parse_date(request.POST.get('attorney_expiry') or ''),
+                'logo_text': request.POST.get('attorney_logo_text', '').strip(),
+                'logo_text_bold': parse_bool(request.POST.get('attorney_logo_text_bold')),
+                'logo_text_italic': parse_bool(request.POST.get('attorney_logo_text_italic')),
+                'logo_text_underline': parse_bool(request.POST.get('attorney_logo_text_underline')),
+                'logo_width': request.POST.get('attorney_logo_width', '').strip(),
+                'logo_font_size': request.POST.get('attorney_logo_font_size', '').strip(),
+                'logo_align': request.POST.get('attorney_logo_align', '').strip(),
+                'logo_margin_top': request.POST.get('attorney_logo_margin_top', '').strip(),
+                'logo_margin_bottom': request.POST.get('attorney_logo_margin_bottom', '').strip(),
+                'logo_show_image': parse_bool(request.POST.get('attorney_logo_show_image')),
+                'logo_image_data': request.POST.get('attorney_logo_image_data', '').strip(),
+                'address_text': request.POST.get('attorney_address_text', '').strip(),
+                'address_font_size': request.POST.get('attorney_address_font_size', '').strip(),
+                'address_bold': parse_bool(request.POST.get('attorney_address_bold')),
+                'address_italic': parse_bool(request.POST.get('attorney_address_italic')),
+                'address_underline': parse_bool(request.POST.get('attorney_address_underline')),
+                'doc_text': request.POST.get('attorney_doc_text', '').strip(),
+                'doc_show_image': parse_bool(request.POST.get('attorney_doc_show_image')),
+                'doc_image_width': request.POST.get('attorney_doc_image_width', '').strip(),
+                'doc_font_size': request.POST.get('attorney_doc_font_size', '').strip(),
+                'doc_justify': request.POST.get('attorney_doc_justify', '').strip(),
+                'doc_margin_top': request.POST.get('attorney_doc_margin_top', '').strip(),
+                'doc_text_align': request.POST.get('attorney_doc_text_align', '').strip(),
+                'doc_image_data': request.POST.get('attorney_doc_image_data', '').strip(),
+            }
+            attorney = PowerOfAttorney.objects.filter(pk=attorney_id).first() if attorney_id else None
+            if attorney:
+                for field, value in attorney_data.items():
+                    setattr(attorney, field, value)
+                if request.user.is_authenticated and attorney.created_by_id is None:
+                    attorney.created_by = request.user
+                attorney.save()
+            else:
+                attorney = PowerOfAttorney.objects.create(
+                    created_by=request.user if request.user.is_authenticated else None,
+                    **attorney_data,
+                )
+            return redirect(f"{reverse('autosalon')}?attorney_id={attorney.pk}#autosalon-attorney")
         if action == 'sell_vehicle':
             vehicle_id = request.POST.get('vehicle_id')
             if vehicle_id:
@@ -609,9 +684,76 @@ def autosalon(request):
         .filter(status=Deal.DealStatus.COMPLETED)
         .order_by('-signed_at', '-created_at')
     )
+    power_of_attorneys = PowerOfAttorney.objects.order_by('-updated_at')
+    attorney_data = []
+    for record in power_of_attorneys:
+        attorney_data.append(
+            {
+                'id': record.pk,
+                'trustor_name': record.trustor_name,
+                'company_full_text': record.company_full_text,
+                'vehicle_name': record.vehicle_name,
+                'make': record.make,
+                'model_year': record.model_year,
+                'dvs': record.dvs,
+                'body_number': record.body_number,
+                'engine_number': record.engine_number,
+                'engine_type': record.engine_type,
+                'color': record.color,
+                'skd': record.skd,
+                'engine_volume': record.engine_volume,
+                'euro': record.euro,
+                'year': record.year,
+                'authorized_name_1': record.authorized_name_1,
+                'passport_1': record.passport_1,
+                'passport_issued_date_1': record.passport_issued_date_1.isoformat()
+                if record.passport_issued_date_1
+                else '',
+                'passport_issued_by_1': record.passport_issued_by_1,
+                'authorized_name_2': record.authorized_name_2,
+                'passport_2': record.passport_2,
+                'passport_issued_date_2': record.passport_issued_date_2.isoformat()
+                if record.passport_issued_date_2
+                else '',
+                'passport_issued_by_2': record.passport_issued_by_2,
+                'authorized_name_3': record.authorized_name_3,
+                'passport_3': record.passport_3,
+                'passport_issued_date_3': record.passport_issued_date_3.isoformat()
+                if record.passport_issued_date_3
+                else '',
+                'passport_issued_by_3': record.passport_issued_by_3,
+                'start_date': record.start_date.isoformat() if record.start_date else '',
+                'expiry_date': record.expiry_date.isoformat() if record.expiry_date else '',
+                'logo_text': record.logo_text,
+                'logo_text_bold': record.logo_text_bold,
+                'logo_text_italic': record.logo_text_italic,
+                'logo_text_underline': record.logo_text_underline,
+                'logo_width': record.logo_width,
+                'logo_font_size': record.logo_font_size,
+                'logo_align': record.logo_align,
+                'logo_margin_top': record.logo_margin_top,
+                'logo_margin_bottom': record.logo_margin_bottom,
+                'logo_show_image': record.logo_show_image,
+                'logo_image_data': record.logo_image_data,
+                'address_text': record.address_text,
+                'address_font_size': record.address_font_size,
+                'address_bold': record.address_bold,
+                'address_italic': record.address_italic,
+                'address_underline': record.address_underline,
+                'doc_text': record.doc_text,
+                'doc_show_image': record.doc_show_image,
+                'doc_image_width': record.doc_image_width,
+                'doc_font_size': record.doc_font_size,
+                'doc_justify': record.doc_justify,
+                'doc_margin_top': record.doc_margin_top,
+                'doc_text_align': record.doc_text_align,
+                'doc_image_data': record.doc_image_data,
+            },
+        )
     for vehicle in vehicles_qs:
         vehicle.primary_photo = next((media for media in vehicle.media.all() if media.media_type == 'photo'), None)
         vehicle.active_reservation = next(iter(getattr(vehicle, 'active_reservations', [])), None)
+    selected_attorney_id = request.GET.get('attorney_id')
     return render(
         request,
         'crm/autosalon_showroom.html',
@@ -620,6 +762,9 @@ def autosalon(request):
             'customers': customers_qs,
             'receipt': receipt_deal,
             'sold_deals': sold_deals,
+            'power_of_attorneys': power_of_attorneys,
+            'attorney_data': attorney_data,
+            'selected_attorney_id': selected_attorney_id,
         },
     )
 
