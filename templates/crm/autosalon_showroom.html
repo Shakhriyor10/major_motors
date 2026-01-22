@@ -1293,8 +1293,13 @@
                 <input type="text" class="form-control" id="attorney-trustor-name" placeholder="Например, Primboyeva Gulnoza Ravshanovna">
               </div>
               <div class="border rounded-3 p-3 bg-body-tertiary">
-                <div class="fw-semibold mb-2">Логотип и печать</div>
-                <div class="vstack gap-3">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                  <div class="fw-semibold">Логотип и печать</div>
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="attorney-logo-toggle" aria-expanded="false">
+                    Показать
+                  </button>
+                </div>
+                <div class="vstack gap-3 d-none" id="attorney-logo-section">
                   <div>
                     <label class="form-label" for="attorney-logo-upload">Загрузить фото логотипа</label>
                     <input type="file" class="form-control" id="attorney-logo-upload" accept="image/*">
@@ -1406,8 +1411,13 @@
                 </div>
               </div>
               <div class="border rounded-3 p-3 bg-body-tertiary">
-                <div class="fw-semibold mb-2">Адрес в доверенности</div>
-                <div class="vstack gap-3">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                  <div class="fw-semibold">Адрес в доверенности</div>
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="attorney-address-toggle" aria-expanded="false">
+                    Показать
+                  </button>
+                </div>
+                <div class="vstack gap-3 d-none" id="attorney-address-section">
                   <div>
                     <label class="form-label" for="attorney-address-text">Текст адреса</label>
                     <textarea
@@ -2664,6 +2674,10 @@
       document.getElementById('attorney-authorized-preview-2'),
       document.getElementById('attorney-authorized-preview-3'),
     ];
+    const attorneyLogoToggle = document.getElementById('attorney-logo-toggle');
+    const attorneyLogoSection = document.getElementById('attorney-logo-section');
+    const attorneyAddressToggle = document.getElementById('attorney-address-toggle');
+    const attorneyAddressSection = document.getElementById('attorney-address-section');
     let currentPrintTarget = null;
     let currentCreditSchedule = [];
     let currentCreditCurrencyLabel = 'UZS';
@@ -2779,6 +2793,22 @@
       }
       const formattedDecimal = decimalPart.replace(/\D/g, '').slice(0, 2);
       return formattedDecimal ? `${formattedInteger}.${formattedDecimal}` : formattedInteger;
+    };
+
+    const bindToggleSection = (button, section) => {
+      if (!button || !section) {
+        return;
+      }
+      const updateState = (isExpanded) => {
+        section.classList.toggle('d-none', !isExpanded);
+        button.textContent = isExpanded ? 'Скрыть' : 'Показать';
+        button.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      };
+      updateState(false);
+      button.addEventListener('click', () => {
+        const isExpanded = section.classList.contains('d-none');
+        updateState(isExpanded);
+      });
     };
 
     const applyMoneyFormatting = (input) => {
@@ -3715,6 +3745,9 @@
       input.addEventListener('input', updateAttorneyPreview);
       input.addEventListener('change', updateAttorneyPreview);
     });
+
+    bindToggleSection(attorneyLogoToggle, attorneyLogoSection);
+    bindToggleSection(attorneyAddressToggle, attorneyAddressSection);
 
     if (attorneyDocUploadInput) {
       attorneyDocUploadInput.addEventListener('change', () => {
