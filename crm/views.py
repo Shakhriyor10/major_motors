@@ -722,7 +722,9 @@ def autosalon(request):
                 if record.passport_issued_date_3
                 else '',
                 'passport_issued_by_3': record.passport_issued_by_3,
-                'start_date': record.start_date.isoformat() if record.start_date else '',
+                'start_date': getattr(record, 'start_date', None).isoformat()
+                if getattr(record, 'start_date', None)
+                else '',
                 'expiry_date': record.expiry_date.isoformat() if record.expiry_date else '',
                 'logo_text': record.logo_text,
                 'logo_text_bold': record.logo_text_bold,
