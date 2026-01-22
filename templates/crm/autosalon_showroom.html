@@ -1547,56 +1547,70 @@
                   <input type="text" class="form-control" id="attorney-passport-issued-1" placeholder="ОВД г. Самарканд">
                 </div>
               </div>
-              <div class="row g-2 mt-1">
-                <div class="col-12">
-                  <label class="form-label" for="attorney-authorized-name-2">Доверенное лицо (ФИО) 2</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="attorney-authorized-name-2"
-                    placeholder="Например, Иванов Иван Иванович"
-                    list="customer-datalist"
-                  >
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="attorney-authorized-add-2" disabled>
+                  Добавить доверенное лицо 2
+                </button>
+              </div>
+              <div id="attorney-authorized-section-2" class="d-none">
+                <div class="row g-2 mt-1">
+                  <div class="col-12">
+                    <label class="form-label" for="attorney-authorized-name-2">Доверенное лицо (ФИО) 2</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="attorney-authorized-name-2"
+                      placeholder="Например, Иванов Иван Иванович"
+                      list="customer-datalist"
+                    >
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label" for="attorney-passport-2">Паспорт серия и номер 2</label>
+                    <input type="text" class="form-control" id="attorney-passport-2" placeholder="AB 1234567">
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label" for="attorney-passport-issued-date-2">Дата выдачи 2</label>
+                    <input type="date" class="form-control" id="attorney-passport-issued-date-2">
+                  </div>
                 </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport-2">Паспорт серия и номер 2</label>
-                  <input type="text" class="form-control" id="attorney-passport-2" placeholder="AB 1234567">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport-issued-date-2">Дата выдачи 2</label>
-                  <input type="date" class="form-control" id="attorney-passport-issued-date-2">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label" for="attorney-passport-issued-2">Кем выдан 2</label>
+                    <input type="text" class="form-control" id="attorney-passport-issued-2" placeholder="ОВД г. Самарканд">
+                  </div>
                 </div>
               </div>
-              <div class="row g-2">
-                <div class="col-12">
-                  <label class="form-label" for="attorney-passport-issued-2">Кем выдан 2</label>
-                  <input type="text" class="form-control" id="attorney-passport-issued-2" placeholder="ОВД г. Самарканд">
-                </div>
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="attorney-authorized-add-3" disabled>
+                  Добавить доверенное лицо 3
+                </button>
               </div>
-              <div class="row g-2 mt-1">
-                <div class="col-12">
-                  <label class="form-label" for="attorney-authorized-name-3">Доверенное лицо (ФИО) 3</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="attorney-authorized-name-3"
-                    placeholder="Например, Сидоров Сидор Сидорович"
-                    list="customer-datalist"
-                  >
+              <div id="attorney-authorized-section-3" class="d-none">
+                <div class="row g-2 mt-1">
+                  <div class="col-12">
+                    <label class="form-label" for="attorney-authorized-name-3">Доверенное лицо (ФИО) 3</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="attorney-authorized-name-3"
+                      placeholder="Например, Сидоров Сидор Сидорович"
+                      list="customer-datalist"
+                    >
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label" for="attorney-passport-3">Паспорт серия и номер 3</label>
+                    <input type="text" class="form-control" id="attorney-passport-3" placeholder="AB 1234567">
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label" for="attorney-passport-issued-date-3">Дата выдачи 3</label>
+                    <input type="date" class="form-control" id="attorney-passport-issued-date-3">
+                  </div>
                 </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport-3">Паспорт серия и номер 3</label>
-                  <input type="text" class="form-control" id="attorney-passport-3" placeholder="AB 1234567">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="attorney-passport-issued-date-3">Дата выдачи 3</label>
-                  <input type="date" class="form-control" id="attorney-passport-issued-date-3">
-                </div>
-              </div>
-              <div class="row g-2">
-                <div class="col-12">
-                  <label class="form-label" for="attorney-passport-issued-3">Кем выдан 3</label>
-                  <input type="text" class="form-control" id="attorney-passport-issued-3" placeholder="ОВД г. Самарканд">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label" for="attorney-passport-issued-3">Кем выдан 3</label>
+                    <input type="text" class="form-control" id="attorney-passport-issued-3" placeholder="ОВД г. Самарканд">
+                  </div>
                 </div>
               </div>
               <div>
@@ -2674,6 +2688,10 @@
       document.getElementById('attorney-authorized-preview-2'),
       document.getElementById('attorney-authorized-preview-3'),
     ];
+    const attorneyAuthorizedSection2 = document.getElementById('attorney-authorized-section-2');
+    const attorneyAuthorizedSection3 = document.getElementById('attorney-authorized-section-3');
+    const attorneyAuthorizedAdd2 = document.getElementById('attorney-authorized-add-2');
+    const attorneyAuthorizedAdd3 = document.getElementById('attorney-authorized-add-3');
     const attorneyLogoToggle = document.getElementById('attorney-logo-toggle');
     const attorneyLogoSection = document.getElementById('attorney-logo-section');
     const attorneyAddressToggle = document.getElementById('attorney-address-toggle');
@@ -2809,6 +2827,36 @@
         const isExpanded = section.classList.contains('d-none');
         updateState(isExpanded);
       });
+    };
+
+    const isAuthorizedFilled = (index) => {
+      const nameValue = `${attorneyAuthorizedNameInputs[index]?.value ?? ''}`.trim();
+      const passportValue = `${attorneyPassportInputs[index]?.value ?? ''}`.trim();
+      const issuedDateValue = `${attorneyPassportIssuedDateInputs[index]?.value ?? ''}`.trim();
+      const issuedByValue = `${attorneyPassportIssuedInputs[index]?.value ?? ''}`.trim();
+      return Boolean(nameValue || passportValue || issuedDateValue || issuedByValue);
+    };
+
+    const updateAuthorizedSections = () => {
+      const firstFilled = isAuthorizedFilled(0);
+      const secondFilled = isAuthorizedFilled(1);
+      const thirdFilled = isAuthorizedFilled(2);
+      if (attorneyAuthorizedSection2) {
+        attorneyAuthorizedSection2.classList.toggle('d-none', !secondFilled);
+      }
+      if (attorneyAuthorizedSection3) {
+        attorneyAuthorizedSection3.classList.toggle('d-none', !thirdFilled);
+      }
+      if (attorneyAuthorizedAdd2) {
+        const canAddSecond = firstFilled && !secondFilled;
+        attorneyAuthorizedAdd2.disabled = !canAddSecond;
+        attorneyAuthorizedAdd2.classList.toggle('d-none', !firstFilled || secondFilled);
+      }
+      if (attorneyAuthorizedAdd3) {
+        const canAddThird = secondFilled && !thirdFilled;
+        attorneyAuthorizedAdd3.disabled = !canAddThird;
+        attorneyAuthorizedAdd3.classList.toggle('d-none', !secondFilled || thirdFilled);
+      }
     };
 
     const applyMoneyFormatting = (input) => {
@@ -3051,18 +3099,11 @@
       toggleInlineBlock(attorneyEngineTypeBlock, Boolean(engineTypeValue));
       toggleInlineBlock(attorneyEuroBlock, Boolean(euroValue));
       toggleInlineBlock(attorneyYearBlock, Boolean(yearValue));
-      const hasAuthorizedValue = (index) => {
-        const nameValue = `${attorneyAuthorizedNameInputs[index]?.value ?? ''}`.trim();
-        const passportValue = `${attorneyPassportInputs[index]?.value ?? ''}`.trim();
-        const issuedDateValue = `${attorneyPassportIssuedDateInputs[index]?.value ?? ''}`.trim();
-        const issuedByValue = `${attorneyPassportIssuedInputs[index]?.value ?? ''}`.trim();
-        return Boolean(nameValue || passportValue || issuedDateValue || issuedByValue);
-      };
       attorneyAuthorizedPreviewItems.forEach((item, index) => {
         if (!item) {
           return;
         }
-        if (index > 0 && !hasAuthorizedValue(index)) {
+        if (index > 0 && !isAuthorizedFilled(index)) {
           item.textContent = '';
           item.classList.add('d-none');
           return;
@@ -3076,6 +3117,7 @@
         item.textContent = `${authorizedName} (паспорт серия: ${passport}, выдан ${issuedText})`;
         item.classList.remove('d-none');
       });
+      updateAuthorizedSections();
     };
 
     const maybeFormatDownPaymentValue = () => {
@@ -3748,6 +3790,31 @@
 
     bindToggleSection(attorneyLogoToggle, attorneyLogoSection);
     bindToggleSection(attorneyAddressToggle, attorneyAddressSection);
+    updateAuthorizedSections();
+
+    if (attorneyAuthorizedAdd2) {
+      attorneyAuthorizedAdd2.addEventListener('click', () => {
+        if (attorneyAuthorizedSection2) {
+          attorneyAuthorizedSection2.classList.remove('d-none');
+        }
+        if (attorneyAuthorizedNameInputs[1]) {
+          attorneyAuthorizedNameInputs[1].focus();
+        }
+        updateAuthorizedSections();
+      });
+    }
+
+    if (attorneyAuthorizedAdd3) {
+      attorneyAuthorizedAdd3.addEventListener('click', () => {
+        if (attorneyAuthorizedSection3) {
+          attorneyAuthorizedSection3.classList.remove('d-none');
+        }
+        if (attorneyAuthorizedNameInputs[2]) {
+          attorneyAuthorizedNameInputs[2].focus();
+        }
+        updateAuthorizedSections();
+      });
+    }
 
     if (attorneyDocUploadInput) {
       attorneyDocUploadInput.addEventListener('change', () => {
