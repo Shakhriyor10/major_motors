@@ -1620,13 +1620,21 @@
             </div>
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large" id="attorney-company-preview">
               000 «AUTOCENTER» в лице директора <span id="attorney-director-preview">Primboyeva Gulnoza Ravshanovna</span>
-              являясь собственником автомобиля марки «<span id="attorney-make-inline">—</span>». Модель
-              <span id="attorney-model-inline">—</span>. Модельный год <span id="attorney-model-year-inline">—</span><span id="attorney-dvs-block">, <span id="attorney-dvs-inline">ДВС</span></span>, новый, Состоит из:
-              <span id="attorney-skd-inline">—</span>, № кузова:
-              <span id="attorney-body-inline">—</span>, № двиг.: <span id="attorney-engine-inline">—</span>, об. дв.
-              <span id="attorney-engine-volume-inline">—</span>см3, цвет <span id="attorney-color-inline">—</span>,
-              <span id="attorney-engine-type-inline">—</span>, <span id="attorney-euro-inline">—</span>,
-              <span id="attorney-year-inline">—</span>г.в.» настоящим доверяет в лице
+              являясь собственником автомобиля
+              <span class="d-none" id="attorney-make-block"> марки «<span id="attorney-make-inline">—</span>».</span>
+              <span class="d-none" id="attorney-model-block"> Модель <span id="attorney-model-inline">—</span></span>
+              <span class="d-none" id="attorney-model-year-block">. Модельный год <span id="attorney-model-year-inline">—</span></span>
+              <span class="d-none" id="attorney-dvs-block">, <span id="attorney-dvs-inline">ДВС</span></span>
+              <span class="d-none" id="attorney-new-block">, новый</span>
+              <span class="d-none" id="attorney-skd-block">, Состоит из: <span id="attorney-skd-inline">—</span></span>
+              <span class="d-none" id="attorney-body-block">, № кузова: <span id="attorney-body-inline">—</span></span>
+              <span class="d-none" id="attorney-engine-block">, № двиг.: <span id="attorney-engine-inline">—</span></span>
+              <span class="d-none" id="attorney-engine-volume-block">, об. дв. <span id="attorney-engine-volume-inline">—</span>см3</span>
+              <span class="d-none" id="attorney-color-block">, цвет <span id="attorney-color-inline">—</span></span>
+              <span class="d-none" id="attorney-engine-type-block">, <span id="attorney-engine-type-inline">—</span></span>
+              <span class="d-none" id="attorney-euro-block">, <span id="attorney-euro-inline">—</span></span>
+              <span class="d-none" id="attorney-year-block">, <span id="attorney-year-inline">—</span>г.в.»</span>
+              настоящим доверяет в лице
             </p>
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large attorney-paragraph--custom d-none" id="attorney-company-custom-preview"></p>
             <div id="attorney-authorized-preview">
@@ -2622,7 +2630,19 @@
     const attorneyMakeInlinePreview = document.getElementById('attorney-make-inline');
     const attorneyModelInlinePreview = document.getElementById('attorney-model-inline');
     const attorneyModelYearInlinePreview = document.getElementById('attorney-model-year-inline');
+    const attorneyMakeBlock = document.getElementById('attorney-make-block');
+    const attorneyModelBlock = document.getElementById('attorney-model-block');
+    const attorneyModelYearBlock = document.getElementById('attorney-model-year-block');
     const attorneyDvsBlock = document.getElementById('attorney-dvs-block');
+    const attorneyNewBlock = document.getElementById('attorney-new-block');
+    const attorneySkdBlock = document.getElementById('attorney-skd-block');
+    const attorneyBodyBlock = document.getElementById('attorney-body-block');
+    const attorneyEngineBlock = document.getElementById('attorney-engine-block');
+    const attorneyEngineVolumeBlock = document.getElementById('attorney-engine-volume-block');
+    const attorneyColorBlock = document.getElementById('attorney-color-block');
+    const attorneyEngineTypeBlock = document.getElementById('attorney-engine-type-block');
+    const attorneyEuroBlock = document.getElementById('attorney-euro-block');
+    const attorneyYearBlock = document.getElementById('attorney-year-block');
     const attorneyDvsInlinePreview = document.getElementById('attorney-dvs-inline');
     const attorneyCompanyPreview = document.getElementById('attorney-company-preview');
     const attorneyCompanyCustomPreview = document.getElementById('attorney-company-custom-preview');
@@ -2915,6 +2935,12 @@
         const normalized = `${value ?? ''}`.trim();
         element.textContent = normalized || fallback;
       };
+      const toggleInlineBlock = (element, hasValue) => {
+        if (!element) {
+          return;
+        }
+        element.classList.toggle('d-none', !hasValue);
+      };
       if (attorneyDirectorPreview || attorneyDirectorSign) {
         const directorValue = `${attorneyTrustorInput?.value ?? ''}`.trim();
         const resolvedDirector = directorValue || 'Primboyeva Gulnoza Ravshanovna';
@@ -2944,22 +2970,57 @@
       if (attorneyHeaderDatePreview) {
         attorneyHeaderDatePreview.textContent = formatAttorneyHeaderDate();
       }
-      setText(attorneyMakeInlinePreview, attorneyMakeInput?.value);
-      setText(attorneyModelInlinePreview, attorneyVehicleNameInput?.value);
-      setText(attorneyModelYearInlinePreview, attorneyModelYearInput?.value);
+      const makeValue = `${attorneyMakeInput?.value ?? ''}`.trim();
+      const modelValue = `${attorneyVehicleNameInput?.value ?? ''}`.trim();
+      const modelYearValue = `${attorneyModelYearInput?.value ?? ''}`.trim();
+      setText(attorneyMakeInlinePreview, makeValue);
+      setText(attorneyModelInlinePreview, modelValue);
+      setText(attorneyModelYearInlinePreview, modelYearValue);
+      toggleInlineBlock(attorneyMakeBlock, Boolean(makeValue));
+      toggleInlineBlock(attorneyModelBlock, Boolean(modelValue));
+      toggleInlineBlock(attorneyModelYearBlock, Boolean(modelYearValue));
       const dvsValue = `${attorneyDvsInput?.value ?? ''}`.trim();
       setText(attorneyDvsInlinePreview, dvsValue, '');
-      if (attorneyDvsBlock) {
-        attorneyDvsBlock.style.display = dvsValue ? '' : 'none';
-      }
-      setText(attorneyBodyInlinePreview, attorneyBodyNumberInput?.value);
-      setText(attorneyEngineInlinePreview, attorneyEngineNumberInput?.value);
-      setText(attorneyColorInlinePreview, attorneyColorInput?.value);
-      setText(attorneyEngineTypeInlinePreview, attorneyEngineTypeInput?.value);
-      setText(attorneySkdInlinePreview, attorneySkdInput?.value);
-      setText(attorneyEngineVolumeInlinePreview, attorneyEngineVolumeInput?.value);
-      setText(attorneyEuroInlinePreview, attorneyEuroInput?.value);
-      setText(attorneyYearInlinePreview, attorneyYearInput?.value);
+      toggleInlineBlock(attorneyDvsBlock, Boolean(dvsValue));
+      const skdValue = `${attorneySkdInput?.value ?? ''}`.trim();
+      const bodyValue = `${attorneyBodyNumberInput?.value ?? ''}`.trim();
+      const engineValue = `${attorneyEngineNumberInput?.value ?? ''}`.trim();
+      const engineVolumeValue = `${attorneyEngineVolumeInput?.value ?? ''}`.trim();
+      const colorValue = `${attorneyColorInput?.value ?? ''}`.trim();
+      const engineTypeValue = `${attorneyEngineTypeInput?.value ?? ''}`.trim();
+      const euroValue = `${attorneyEuroInput?.value ?? ''}`.trim();
+      const yearValue = `${attorneyYearInput?.value ?? ''}`.trim();
+      const hasVehicleDetails = Boolean(
+        makeValue
+        || modelValue
+        || modelYearValue
+        || dvsValue
+        || skdValue
+        || bodyValue
+        || engineValue
+        || engineVolumeValue
+        || colorValue
+        || engineTypeValue
+        || euroValue
+        || yearValue,
+      );
+      toggleInlineBlock(attorneyNewBlock, hasVehicleDetails);
+      setText(attorneySkdInlinePreview, skdValue);
+      setText(attorneyBodyInlinePreview, bodyValue);
+      setText(attorneyEngineInlinePreview, engineValue);
+      setText(attorneyEngineVolumeInlinePreview, engineVolumeValue);
+      setText(attorneyColorInlinePreview, colorValue);
+      setText(attorneyEngineTypeInlinePreview, engineTypeValue);
+      setText(attorneyEuroInlinePreview, euroValue);
+      setText(attorneyYearInlinePreview, yearValue);
+      toggleInlineBlock(attorneySkdBlock, Boolean(skdValue));
+      toggleInlineBlock(attorneyBodyBlock, Boolean(bodyValue));
+      toggleInlineBlock(attorneyEngineBlock, Boolean(engineValue));
+      toggleInlineBlock(attorneyEngineVolumeBlock, Boolean(engineVolumeValue));
+      toggleInlineBlock(attorneyColorBlock, Boolean(colorValue));
+      toggleInlineBlock(attorneyEngineTypeBlock, Boolean(engineTypeValue));
+      toggleInlineBlock(attorneyEuroBlock, Boolean(euroValue));
+      toggleInlineBlock(attorneyYearBlock, Boolean(yearValue));
       const hasAuthorizedValue = (index) => {
         const nameValue = `${attorneyAuthorizedNameInputs[index]?.value ?? ''}`.trim();
         const passportValue = `${attorneyPassportInputs[index]?.value ?? ''}`.trim();
