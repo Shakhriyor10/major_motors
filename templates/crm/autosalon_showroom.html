@@ -195,10 +195,10 @@
       --attorney-logo-align: center;
       --attorney-logo-margin-top: 0mm;
       --attorney-logo-margin-bottom: 0mm;
-      --attorney-logo-text-size: 18px;
+      --attorney-logo-text-size: 30px;
       --attorney-logo-text-weight: 700;
-      --attorney-logo-text-style: normal;
-      --attorney-logo-text-decoration: none;
+      --attorney-logo-text-style: italic;
+      --attorney-logo-text-decoration: underline;
       --attorney-address-font-size: 13px;
       --attorney-address-font-weight: 400;
       --attorney-address-font-style: italic;
@@ -1324,12 +1324,19 @@
                     <div class="form-text">Файл будет показан только в предпросмотре.</div>
                   </div>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="attorney-logo-show-image" name="attorney_logo_show_image" checked>
+                    <input class="form-check-input" type="checkbox" id="attorney-logo-show-image" name="attorney_logo_show_image">
                     <label class="form-check-label" for="attorney-logo-show-image">Показывать изображение логотипа</label>
                   </div>
                   <div>
                     <label class="form-label" for="attorney-logo-text-input">Текст вместо логотипа</label>
-                    <input type="text" class="form-control" id="attorney-logo-text-input" name="attorney_logo_text" placeholder="Например, Major Motors">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="attorney-logo-text-input"
+                      name="attorney_logo_text"
+                      placeholder="Например, OOO «MAJOR MOTORS SAM»"
+                      value="OOO «MAJOR MOTORS SAM»"
+                    >
                   </div>
                   <div class="row g-2 align-items-end">
                     <div class="col-12 col-md-6">
@@ -1340,11 +1347,11 @@
                           <label class="form-check-label" for="attorney-logo-text-bold">Жирный</label>
                         </div>
                         <div class="form-check">
-                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-italic" name="attorney_logo_text_italic">
+                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-italic" name="attorney_logo_text_italic" checked>
                           <label class="form-check-label" for="attorney-logo-text-italic">Курсив</label>
                         </div>
                         <div class="form-check">
-                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-underline" name="attorney_logo_text_underline">
+                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-underline" name="attorney_logo_text_underline" checked>
                           <label class="form-check-label" for="attorney-logo-text-underline">Подчеркнутый</label>
                         </div>
                       </div>
@@ -1357,7 +1364,7 @@
                     </div>
                     <div class="col-12 col-md-6">
                       <label class="form-label" for="attorney-logo-font-size">Размер шрифта логотипа</label>
-                      <input type="text" class="form-control" id="attorney-logo-font-size" name="attorney_logo_font_size" placeholder="18px">
+                      <input type="text" class="form-control" id="attorney-logo-font-size" name="attorney_logo_font_size" placeholder="30px" value="30px">
                     </div>
                   </div>
                   <div class="row g-2">
@@ -1655,7 +1662,7 @@ OOO «MAJOR MOTORS SAM»</textarea>
           <section class="attorney-page print-receipt-area" id="attorney-print-area">
             <div class="attorney-logo">
               <img id="attorney-logo-image" src="{% static 'img/logoavto3.png' %}" alt="Major Motors" data-default-src="{% static 'img/logoavto3.png' %}">
-              <div class="attorney-logo-text d-none" id="attorney-logo-text">Major Motors</div>
+              <div class="attorney-logo-text" id="attorney-logo-text">OOO «MAJOR MOTORS SAM»</div>
             </div>
             <div
               class="attorney-address"
@@ -3053,8 +3060,8 @@ OOO «MAJOR MOTORS SAM»</div>
 
       setInputValue(attorneyLogoTextInput, record.logo_text);
       setCheckboxValue(attorneyLogoTextBoldInput, record.logo_text_bold, true);
-      setCheckboxValue(attorneyLogoTextItalicInput, record.logo_text_italic, false);
-      setCheckboxValue(attorneyLogoTextUnderlineInput, record.logo_text_underline, false);
+      setCheckboxValue(attorneyLogoTextItalicInput, record.logo_text_italic, true);
+      setCheckboxValue(attorneyLogoTextUnderlineInput, record.logo_text_underline, true);
       setInputValue(attorneyLogoWidthInput, record.logo_width);
       setInputValue(attorneyLogoFontSizeInput, record.logo_font_size);
       setInputValue(attorneyLogoAlignInput, record.logo_align || 'center');
@@ -3213,13 +3220,13 @@ OOO «MAJOR MOTORS SAM»</div>
       setStyleVar('--attorney-logo-align', attorneyLogoAlignInput?.value, 'center');
       setStyleVar('--attorney-logo-margin-top', attorneyLogoMarginTopInput?.value, '0mm');
       setStyleVar('--attorney-logo-margin-bottom', attorneyLogoMarginBottomInput?.value, '0mm');
-      setStyleVar('--attorney-logo-text-size', attorneyLogoFontSizeInput?.value, '18px');
+      setStyleVar('--attorney-logo-text-size', attorneyLogoFontSizeInput?.value, '30px');
       const isLogoBold = attorneyLogoTextBoldInput?.checked ?? true;
-      const isLogoItalic = Boolean(attorneyLogoTextItalicInput?.checked);
-      const isLogoUnderline = Boolean(attorneyLogoTextUnderlineInput?.checked);
+      const isLogoItalic = attorneyLogoTextItalicInput?.checked ?? true;
+      const isLogoUnderline = attorneyLogoTextUnderlineInput?.checked ?? true;
       setStyleVar('--attorney-logo-text-weight', isLogoBold ? '700' : '400', '700');
-      setStyleVar('--attorney-logo-text-style', isLogoItalic ? 'italic' : 'normal', 'normal');
-      setStyleVar('--attorney-logo-text-decoration', isLogoUnderline ? 'underline' : 'none', 'none');
+      setStyleVar('--attorney-logo-text-style', isLogoItalic ? 'italic' : 'normal', 'italic');
+      setStyleVar('--attorney-logo-text-decoration', isLogoUnderline ? 'underline' : 'none', 'underline');
       setStyleVar('--attorney-address-font-size', attorneyAddressFontSizeInput?.value, '13px');
       const isAddressBold = Boolean(attorneyAddressBoldInput?.checked);
       const isAddressItalic = attorneyAddressItalicInput?.checked ?? true;
