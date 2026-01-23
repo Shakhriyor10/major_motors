@@ -167,6 +167,7 @@ class PowerOfAttorney(TimeStampedModel):
     make = models.CharField(max_length=255, blank=True)
     model_year = models.CharField(max_length=64, blank=True)
     dvs = models.CharField(max_length=64, blank=True)
+    new_status = models.CharField(max_length=64, blank=True)
     body_number = models.CharField(max_length=255, blank=True)
     engine_number = models.CharField(max_length=255, blank=True)
     engine_type = models.CharField(max_length=255, blank=True)
