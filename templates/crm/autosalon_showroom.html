@@ -195,16 +195,16 @@
       --attorney-logo-align: center;
       --attorney-logo-margin-top: 0mm;
       --attorney-logo-margin-bottom: 0mm;
-      --attorney-logo-text-size: 18px;
+      --attorney-logo-text-size: 30px;
       --attorney-logo-text-weight: 700;
-      --attorney-logo-text-style: normal;
-      --attorney-logo-text-decoration: none;
+      --attorney-logo-text-style: italic;
+      --attorney-logo-text-decoration: underline;
       --attorney-address-font-size: 13px;
       --attorney-address-font-weight: 400;
       --attorney-address-font-style: italic;
       --attorney-address-text-decoration: none;
       --attorney-doc-image-width: 90mm;
-      --attorney-doc-text-size: 16px;
+      --attorney-doc-text-size: 20px;
       --attorney-doc-text-align: left;
       --attorney-doc-justify: space-between;
       --attorney-doc-margin-top: 8mm;
@@ -1306,7 +1306,8 @@
                   class="form-control"
                   id="attorney-trustor-name"
                   name="attorney_trustor_name"
-                  placeholder="Например, Primboyeva Gulnoza Ravshanovna"
+                  placeholder="Например, Fayzullayeva Yekaterina Nikolayevna"
+                  value="Fayzullayeva Yekaterina Nikolayevna"
                 >
               </div>
               <div class="border rounded-3 p-3 bg-body-tertiary">
@@ -1323,12 +1324,19 @@
                     <div class="form-text">Файл будет показан только в предпросмотре.</div>
                   </div>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="attorney-logo-show-image" name="attorney_logo_show_image" checked>
+                    <input class="form-check-input" type="checkbox" id="attorney-logo-show-image" name="attorney_logo_show_image">
                     <label class="form-check-label" for="attorney-logo-show-image">Показывать изображение логотипа</label>
                   </div>
                   <div>
                     <label class="form-label" for="attorney-logo-text-input">Текст вместо логотипа</label>
-                    <input type="text" class="form-control" id="attorney-logo-text-input" name="attorney_logo_text" placeholder="Например, Major Motors">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="attorney-logo-text-input"
+                      name="attorney_logo_text"
+                      placeholder="Например, OOO «MAJOR MOTORS SAM»"
+                      value="OOO «MAJOR MOTORS SAM»"
+                    >
                   </div>
                   <div class="row g-2 align-items-end">
                     <div class="col-12 col-md-6">
@@ -1339,11 +1347,11 @@
                           <label class="form-check-label" for="attorney-logo-text-bold">Жирный</label>
                         </div>
                         <div class="form-check">
-                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-italic" name="attorney_logo_text_italic">
+                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-italic" name="attorney_logo_text_italic" checked>
                           <label class="form-check-label" for="attorney-logo-text-italic">Курсив</label>
                         </div>
                         <div class="form-check">
-                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-underline" name="attorney_logo_text_underline">
+                          <input class="form-check-input" type="checkbox" id="attorney-logo-text-underline" name="attorney_logo_text_underline" checked>
                           <label class="form-check-label" for="attorney-logo-text-underline">Подчеркнутый</label>
                         </div>
                       </div>
@@ -1356,7 +1364,7 @@
                     </div>
                     <div class="col-12 col-md-6">
                       <label class="form-label" for="attorney-logo-font-size">Размер шрифта логотипа</label>
-                      <input type="text" class="form-control" id="attorney-logo-font-size" name="attorney_logo_font_size" placeholder="18px">
+                      <input type="text" class="form-control" id="attorney-logo-font-size" name="attorney_logo_font_size" placeholder="30px" value="30px">
                     </div>
                   </div>
                   <div class="row g-2">
@@ -1394,8 +1402,9 @@
                       id="attorney-doc-text-input"
                       name="attorney_doc_text"
                       rows="2"
-                      placeholder="Например, Печать компании"
-                    ></textarea>
+                      placeholder="Например, Директор&#10;OOO «MAJOR MOTORS SAM»"
+                    >Директор
+OOO «MAJOR MOTORS SAM»</textarea>
                   </div>
                   <div class="row g-2">
                     <div class="col-12 col-md-6">
@@ -1404,7 +1413,7 @@
                     </div>
                     <div class="col-12 col-md-6">
                       <label class="form-label" for="attorney-doc-font-size">Размер шрифта текста печати</label>
-                      <input type="text" class="form-control" id="attorney-doc-font-size" name="attorney_doc_font_size" placeholder="16px">
+                      <input type="text" class="form-control" id="attorney-doc-font-size" name="attorney_doc_font_size" placeholder="20px" value="20px">
                     </div>
                   </div>
                   <div class="row g-2">
@@ -1653,15 +1662,15 @@
           <section class="attorney-page print-receipt-area" id="attorney-print-area">
             <div class="attorney-logo">
               <img id="attorney-logo-image" src="{% static 'img/logoavto3.png' %}" alt="Major Motors" data-default-src="{% static 'img/logoavto3.png' %}">
-              <div class="attorney-logo-text d-none" id="attorney-logo-text">Major Motors</div>
+              <div class="attorney-logo-text" id="attorney-logo-text">OOO «MAJOR MOTORS SAM»</div>
             </div>
             <div
               class="attorney-address"
               id="attorney-address-preview"
-              data-default-text="Адрес: г. Ташкент., Сергелийский р-н, Бунёбод МФЙ, д54, P/c: 20208000207157007001\nБанк: АКБ «Hamkorbank» Сергелийский филиал. ИНН 311 648 151"
+              data-default-text="Адрес: г. Самарканд, ул. Махмуд Кошгари, 49, Р/с: 20208000607293249001 Банк: АКБ «Hamkorbank» Богишамольский универсальный БХО. ИНН 312 297 479"
             >
-              Адрес: г. Ташкент., Сергелийский р-н, Бунёбод МФЙ, д54, P/c: 20208000207157007001<br>
-              Банк: АКБ «Hamkorbank» Сергелийский филиал. ИНН 311 648 151
+              Адрес: г. Самарканд, ул. Махмуд Кошгари, 49, Р/с: 20208000607293249001 Банк: АКБ «Hamkorbank»<br>
+              Богишамольский универсальный БХО. ИНН 312 297 479
             </div>
             <div class="attorney-title">Доверенность</div>
             <div class="attorney-subtitle">
@@ -1672,7 +1681,7 @@
               <span id="attorney-header-date">«__» ______ 20__ г.</span>
             </div>
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large" id="attorney-company-preview">
-              000 «AUTOCENTER» в лице директора <span id="attorney-director-preview">Primboyeva Gulnoza Ravshanovna</span>
+              000 «AUTOCENTER» в лице директора <span id="attorney-director-preview">Fayzullayeva Yekaterina Nikolayevna</span>
               являясь собственником автомобиля
               <span class="d-none" id="attorney-make-block"> марки «<span id="attorney-make-inline">—</span>».</span>
               <span class="d-none" id="attorney-model-block"> Модель <span id="attorney-model-inline">—</span></span>
@@ -1715,9 +1724,10 @@
             <div class="attorney-doc">
               <div class="attorney-doc-media">
                 <img id="attorney-doc-image" src="{% static 'img/doc2.png' %}" alt="Подпись и печать" data-default-src="{% static 'img/doc2.png' %}">
-                <div class="attorney-doc-text d-none" id="attorney-doc-text">Печать компании</div>
+                <div class="attorney-doc-text d-none" id="attorney-doc-text">Директор
+OOO «MAJOR MOTORS SAM»</div>
               </div>
-              <div class="attorney-director-sign" id="attorney-director-sign">Primboyeva Gulnoza Ravshanovna</div>
+              <div class="attorney-director-sign" id="attorney-director-sign">Fayzullayeva Yekaterina Nikolayevna</div>
             </div>
           </section>
         </div>
@@ -3050,8 +3060,8 @@
 
       setInputValue(attorneyLogoTextInput, record.logo_text);
       setCheckboxValue(attorneyLogoTextBoldInput, record.logo_text_bold, true);
-      setCheckboxValue(attorneyLogoTextItalicInput, record.logo_text_italic, false);
-      setCheckboxValue(attorneyLogoTextUnderlineInput, record.logo_text_underline, false);
+      setCheckboxValue(attorneyLogoTextItalicInput, record.logo_text_italic, true);
+      setCheckboxValue(attorneyLogoTextUnderlineInput, record.logo_text_underline, true);
       setInputValue(attorneyLogoWidthInput, record.logo_width);
       setInputValue(attorneyLogoFontSizeInput, record.logo_font_size);
       setInputValue(attorneyLogoAlignInput, record.logo_align || 'center');
@@ -3210,13 +3220,13 @@
       setStyleVar('--attorney-logo-align', attorneyLogoAlignInput?.value, 'center');
       setStyleVar('--attorney-logo-margin-top', attorneyLogoMarginTopInput?.value, '0mm');
       setStyleVar('--attorney-logo-margin-bottom', attorneyLogoMarginBottomInput?.value, '0mm');
-      setStyleVar('--attorney-logo-text-size', attorneyLogoFontSizeInput?.value, '18px');
+      setStyleVar('--attorney-logo-text-size', attorneyLogoFontSizeInput?.value, '30px');
       const isLogoBold = attorneyLogoTextBoldInput?.checked ?? true;
-      const isLogoItalic = Boolean(attorneyLogoTextItalicInput?.checked);
-      const isLogoUnderline = Boolean(attorneyLogoTextUnderlineInput?.checked);
+      const isLogoItalic = attorneyLogoTextItalicInput?.checked ?? true;
+      const isLogoUnderline = attorneyLogoTextUnderlineInput?.checked ?? true;
       setStyleVar('--attorney-logo-text-weight', isLogoBold ? '700' : '400', '700');
-      setStyleVar('--attorney-logo-text-style', isLogoItalic ? 'italic' : 'normal', 'normal');
-      setStyleVar('--attorney-logo-text-decoration', isLogoUnderline ? 'underline' : 'none', 'none');
+      setStyleVar('--attorney-logo-text-style', isLogoItalic ? 'italic' : 'normal', 'italic');
+      setStyleVar('--attorney-logo-text-decoration', isLogoUnderline ? 'underline' : 'none', 'underline');
       setStyleVar('--attorney-address-font-size', attorneyAddressFontSizeInput?.value, '13px');
       const isAddressBold = Boolean(attorneyAddressBoldInput?.checked);
       const isAddressItalic = attorneyAddressItalicInput?.checked ?? true;
@@ -3225,7 +3235,7 @@
       setStyleVar('--attorney-address-font-style', isAddressItalic ? 'italic' : 'normal', 'italic');
       setStyleVar('--attorney-address-text-decoration', isAddressUnderline ? 'underline' : 'none', 'none');
       setStyleVar('--attorney-doc-image-width', attorneyDocImageWidthInput?.value, '90mm');
-      setStyleVar('--attorney-doc-text-size', attorneyDocFontSizeInput?.value, '16px');
+      setStyleVar('--attorney-doc-text-size', attorneyDocFontSizeInput?.value, '20px');
       setStyleVar('--attorney-doc-text-align', attorneyDocTextAlignInput?.value, 'left');
       setStyleVar('--attorney-doc-justify', attorneyDocJustifyInput?.value, 'space-between');
       setStyleVar('--attorney-doc-margin-top', attorneyDocMarginTopInput?.value, '8mm');
@@ -3309,7 +3319,7 @@
       };
       if (attorneyDirectorPreview || attorneyDirectorSign) {
         const directorValue = `${attorneyTrustorInput?.value ?? ''}`.trim();
-        const resolvedDirector = directorValue || 'Primboyeva Gulnoza Ravshanovna';
+        const resolvedDirector = directorValue || 'Fayzullayeva Yekaterina Nikolayevna';
         if (attorneyDirectorPreview) {
           attorneyDirectorPreview.textContent = resolvedDirector;
         }
