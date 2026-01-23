@@ -1461,6 +1461,18 @@ OOO «MAJOR MOTORS SAM»</textarea>
                     ></textarea>
                     <div class="form-text">Оставьте пустым, чтобы использовать стандартный адрес.</div>
                   </div>
+                  <div>
+                    <label class="form-label" for="attorney-header-city">Город в шапке доверенности</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="attorney-header-city"
+                      name="attorney_header_city"
+                      value="г. Самарканд"
+                      data-default-text="г. Самарканд"
+                    >
+                    <div class="form-text">По умолчанию — г. Самарканд.</div>
+                  </div>
                   <div class="row g-2 align-items-end">
                     <div class="col-12 col-md-4">
                       <label class="form-label" for="attorney-address-font-size">Размер шрифта адреса</label>
@@ -1683,7 +1695,7 @@ OOO «MAJOR MOTORS SAM»</textarea>
               НА ПРАВО ПОЛЬЗОВАНИЯ И РАСПОРЯЖЕНИЯ ТРАНСПОРТНЫМ СРЕДСТВОМ
             </div>
             <div class="attorney-meta">
-              <span>г. Самарканд</span>
+              <span id="attorney-header-city-preview" data-default-text="г. Самарканд">г. Самарканд</span>
               <span id="attorney-header-date">«__» ______ 20__ г.</span>
             </div>
             <p class="attorney-paragraph attorney-paragraph--justify attorney-paragraph--large" id="attorney-company-preview">
@@ -2731,6 +2743,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const attorneyLogoMarginTopInput = document.getElementById('attorney-logo-margin-top');
     const attorneyLogoMarginBottomInput = document.getElementById('attorney-logo-margin-bottom');
     const attorneyAddressTextInput = document.getElementById('attorney-address-text');
+    const attorneyHeaderCityInput = document.getElementById('attorney-header-city');
     const attorneyAddressFontSizeInput = document.getElementById('attorney-address-font-size');
     const attorneyAddressBoldInput = document.getElementById('attorney-address-bold');
     const attorneyAddressItalicInput = document.getElementById('attorney-address-italic');
@@ -2794,6 +2807,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const attorneyPassportIssuedPreview = document.getElementById('attorney-passport-issued-preview');
     const attorneyExpiryPreview = document.getElementById('attorney-expiry-preview');
     const attorneyHeaderDatePreview = document.getElementById('attorney-header-date');
+    const attorneyHeaderCityPreview = document.getElementById('attorney-header-city-preview');
     const attorneyMakeInlinePreview = document.getElementById('attorney-make-inline');
     const attorneyModelInlinePreview = document.getElementById('attorney-model-inline');
     const attorneyModelYearInlinePreview = document.getElementById('attorney-model-year-inline');
@@ -3087,6 +3101,10 @@ OOO «MAJOR MOTORS SAM»</div>
       }
 
       setInputValue(attorneyAddressTextInput, record.address_text);
+      if (attorneyHeaderCityInput) {
+        const fallbackHeaderCity = attorneyHeaderCityInput.dataset.defaultText || '';
+        setInputValue(attorneyHeaderCityInput, record.header_city || fallbackHeaderCity);
+      }
       setInputValue(attorneyAddressFontSizeInput, record.address_font_size);
       setCheckboxValue(attorneyAddressBoldInput, record.address_bold, false);
       setCheckboxValue(attorneyAddressItalicInput, record.address_italic, true);
@@ -3118,6 +3136,7 @@ OOO «MAJOR MOTORS SAM»</div>
       );
       const shouldShowAddressSection = Boolean(
         record.address_text ||
+        record.header_city ||
         record.address_font_size ||
         record.address_bold ||
         record.address_underline,
@@ -3277,6 +3296,11 @@ OOO «MAJOR MOTORS SAM»</div>
         const fallbackText = attorneyAddressPreview.dataset.defaultText || '';
         const resolvedText = addressValue || fallbackText;
         attorneyAddressPreview.textContent = resolvedText;
+      }
+      if (attorneyHeaderCityPreview) {
+        const headerCityValue = `${attorneyHeaderCityInput?.value ?? ''}`.trim();
+        const fallbackCity = attorneyHeaderCityPreview.dataset.defaultText || '';
+        attorneyHeaderCityPreview.textContent = headerCityValue || fallbackCity;
       }
 
       const uploadedDocSrc = attorneyDocUploadInput?.dataset.uploadedSrc || '';
@@ -4074,6 +4098,7 @@ OOO «MAJOR MOTORS SAM»</div>
       attorneyLogoMarginTopInput,
       attorneyLogoMarginBottomInput,
       attorneyAddressTextInput,
+      attorneyHeaderCityInput,
       attorneyAddressFontSizeInput,
       attorneyAddressBoldInput,
       attorneyAddressItalicInput,

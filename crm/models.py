@@ -202,6 +202,7 @@ class PowerOfAttorney(TimeStampedModel):
     logo_show_image = models.BooleanField(default=True)
     logo_image_data = models.TextField(blank=True)
     address_text = models.TextField(blank=True)
+    header_city = models.CharField(max_length=255, blank=True)
     address_font_size = models.CharField(max_length=64, blank=True)
     address_bold = models.BooleanField(default=False)
     address_italic = models.BooleanField(default=True)
