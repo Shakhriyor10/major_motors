@@ -1517,6 +1517,12 @@ OOO «MAJOR MOTORS SAM»</textarea>
               </div>
               <div class="row g-2">
                 <div class="col-12 col-md-6">
+                  <label class="form-label" for="attorney-new-status">Состояние</label>
+                  <input type="text" class="form-control" id="attorney-new-status" name="attorney_new_status" placeholder="новый">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
                   <label class="form-label" for="attorney-body-number">Номер кузова</label>
                   <input type="text" class="form-control" id="attorney-body-number" name="attorney_body_number" placeholder="Например, ABC1234567">
                 </div>
@@ -1687,7 +1693,7 @@ OOO «MAJOR MOTORS SAM»</textarea>
               <span class="d-none" id="attorney-model-block"> Модель <span id="attorney-model-inline">—</span>.</span>
               <span class="d-none" id="attorney-model-year-block"> Модельный год <span id="attorney-model-year-inline">—</span>,</span>
               <span class="d-none" id="attorney-dvs-block"> <span id="attorney-dvs-inline">ДВС</span>,</span>
-              <span class="d-none" id="attorney-new-block"> новый,</span>
+              <span class="d-none" id="attorney-new-block"> <span id="attorney-new-inline">новый</span>,</span>
               <span class="d-none" id="attorney-skd-block"> Состоит из: <span id="attorney-skd-inline">—</span>,</span>
               <span class="d-none" id="attorney-body-block"> № кузова: <span id="attorney-body-inline">—</span>,</span>
               <span class="d-none" id="attorney-engine-block"> № двиг.: <span id="attorney-engine-inline">—</span>,</span>
@@ -2743,6 +2749,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const attorneyMakeInput = document.getElementById('attorney-make');
     const attorneyModelYearInput = document.getElementById('attorney-model-year');
     const attorneyDvsInput = document.getElementById('attorney-dvs');
+    const attorneyNewStatusInput = document.getElementById('attorney-new-status');
     const attorneyBodyNumberInput = document.getElementById('attorney-body-number');
     const attorneyEngineNumberInput = document.getElementById('attorney-engine-number');
     const attorneyEngineTypeInput = document.getElementById('attorney-engine-type');
@@ -2804,6 +2811,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const attorneyEuroBlock = document.getElementById('attorney-euro-block');
     const attorneyYearBlock = document.getElementById('attorney-year-block');
     const attorneyDvsInlinePreview = document.getElementById('attorney-dvs-inline');
+    const attorneyNewInlinePreview = document.getElementById('attorney-new-inline');
     const attorneyCompanyPreview = document.getElementById('attorney-company-preview');
     const attorneyCompanyCustomPreview = document.getElementById('attorney-company-custom-preview');
     const attorneyBodyInlinePreview = document.getElementById('attorney-body-inline');
@@ -3036,6 +3044,7 @@ OOO «MAJOR MOTORS SAM»</div>
       setInputValue(attorneyMakeInput, record.make);
       setInputValue(attorneyModelYearInput, record.model_year);
       setInputValue(attorneyDvsInput, record.dvs || 'ДВС');
+      setInputValue(attorneyNewStatusInput, record.new_status);
       setInputValue(attorneyBodyNumberInput, record.body_number);
       setInputValue(attorneyEngineNumberInput, record.engine_number);
       setInputValue(attorneyEngineTypeInput, record.engine_type);
@@ -3358,6 +3367,7 @@ OOO «MAJOR MOTORS SAM»</div>
       const dvsValue = `${attorneyDvsInput?.value ?? ''}`.trim();
       setText(attorneyDvsInlinePreview, dvsValue, '');
       toggleInlineBlock(attorneyDvsBlock, Boolean(dvsValue));
+      const newStatusValue = `${attorneyNewStatusInput?.value ?? ''}`.trim();
       const skdValue = `${attorneySkdInput?.value ?? ''}`.trim();
       const bodyValue = `${attorneyBodyNumberInput?.value ?? ''}`.trim();
       const engineValue = `${attorneyEngineNumberInput?.value ?? ''}`.trim();
@@ -3366,21 +3376,8 @@ OOO «MAJOR MOTORS SAM»</div>
       const engineTypeValue = `${attorneyEngineTypeInput?.value ?? ''}`.trim();
       const euroValue = `${attorneyEuroInput?.value ?? ''}`.trim();
       const yearValue = `${attorneyYearInput?.value ?? ''}`.trim();
-      const hasVehicleDetails = Boolean(
-        makeValue
-        || modelValue
-        || modelYearValue
-        || dvsValue
-        || skdValue
-        || bodyValue
-        || engineValue
-        || engineVolumeValue
-        || colorValue
-        || engineTypeValue
-        || euroValue
-        || yearValue,
-      );
-      toggleInlineBlock(attorneyNewBlock, hasVehicleDetails);
+      setText(attorneyNewInlinePreview, newStatusValue, '');
+      toggleInlineBlock(attorneyNewBlock, Boolean(newStatusValue));
       setText(attorneySkdInlinePreview, skdValue);
       setText(attorneyBodyInlinePreview, bodyValue);
       setText(attorneyEngineInlinePreview, engineValue);
@@ -4055,6 +4052,7 @@ OOO «MAJOR MOTORS SAM»</div>
       attorneyMakeInput,
       attorneyModelYearInput,
       attorneyDvsInput,
+      attorneyNewStatusInput,
       attorneyBodyNumberInput,
       attorneyEngineNumberInput,
       attorneyEngineTypeInput,
