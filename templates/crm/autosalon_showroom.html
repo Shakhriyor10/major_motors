@@ -158,6 +158,168 @@
       padding: 10px 12px;
     }
 
+    .showroom-card {
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 24px;
+      background: linear-gradient(135deg, #ffffff 0%, #f7f9ff 100%);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      overflow: hidden;
+    }
+
+    .showroom-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+    }
+
+    .showroom-media {
+      position: relative;
+      background: radial-gradient(circle at top, #e8f0ff, #f5f7fb 60%, #ffffff);
+      height: 100%;
+    }
+
+    .showroom-media::after {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: 20px;
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      pointer-events: none;
+    }
+
+    .showroom-media img {
+      object-fit: cover;
+      border-radius: 20px;
+    }
+
+    .showroom-body {
+      padding: 28px 32px;
+    }
+
+    .showroom-title {
+      font-weight: 700;
+      font-size: 1.35rem;
+      color: #0f172a;
+    }
+
+    .showroom-subtitle {
+      color: #64748b;
+      font-size: 0.92rem;
+    }
+
+    .showroom-price {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 16px;
+      padding: 12px 16px;
+      min-width: 170px;
+      text-align: right;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
+
+    .showroom-price .label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(248, 250, 252, 0.7);
+    }
+
+    .showroom-price .value {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .showroom-badges .badge {
+      border-radius: 999px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.75rem;
+    }
+
+    .showroom-attributes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .showroom-attribute {
+      background: #ffffff;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .showroom-attribute strong {
+      display: block;
+      color: #1e293b;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .showroom-note {
+      background: #f1f5f9;
+      border-radius: 16px;
+      padding: 16px;
+      color: #475569;
+    }
+
+    .showroom-actions .btn {
+      border-radius: 999px;
+      padding: 0.55rem 1.2rem;
+      font-weight: 600;
+    }
+
+    .vehicle-detail-modal .modal-content {
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .vehicle-detail-hero {
+      background: linear-gradient(120deg, #0f172a, #1e40af 55%, #38bdf8);
+      color: #f8fafc;
+      padding: 24px 32px;
+    }
+
+    .vehicle-detail-hero small {
+      color: rgba(248, 250, 252, 0.75);
+    }
+
+    .vehicle-detail-media {
+      background: #eef2ff;
+      border-radius: 20px;
+      padding: 16px;
+    }
+
+    .vehicle-detail-price {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+    }
+
+    .vehicle-detail-specs {
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .vehicle-detail-specs .spec-item {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .vehicle-detail-specs .spec-item:last-child {
+      border-bottom: 0;
+    }
+
+    .vehicle-detail-description {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.25);
+    }
+
     .credit-action-btn {
       font-size: 1rem;
       padding: 0.6rem 1.3rem;
@@ -920,44 +1082,44 @@
     <div class="tab-pane fade" id="autosalon-showroom" role="tabpanel" aria-labelledby="autosalon-showroom-tab">
       <div class="vstack gap-4">
         {% for vehicle in vehicles %}
-          <div class="card shadow-sm overflow-hidden border-0">
-            <div class="row g-0">
-              <div class="col-12 col-md-4">
-                <div class="ratio ratio-4x3 h-100 bg-body-tertiary">
+          <div class="card showroom-card">
+            <div class="row g-0 align-items-stretch">
+              <div class="col-12 col-lg-4">
+                <div class="ratio ratio-4x3 showroom-media">
                   {% if vehicle.primary_photo %}
                     <button
-                      class="btn p-0 w-100 h-100"
+                      class="btn p-3 w-100 h-100"
                       type="button"
                       data-bs-toggle="modal"
                       data-bs-target="#vehiclePhotoModal"
                       data-image-src="{{ vehicle.primary_photo.file.url }}"
                       data-image-alt="{{ vehicle.name }}"
                     >
-                      <img class="w-100 h-100 object-fit-contain" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
+                      <img class="w-100 h-100" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
                     </button>
                   {% else %}
-                    <div class="d-flex align-items-center justify-content-center bg-secondary-subtle text-muted">Фото отсутствует</div>
+                    <div class="d-flex align-items-center justify-content-center text-muted fw-semibold">Фото отсутствует</div>
                   {% endif %}
                 </div>
               </div>
-              <div class="col-12 col-md-8">
-                <div class="card-body vstack gap-3 p-4">
+              <div class="col-12 col-lg-8">
+                <div class="showroom-body vstack gap-3">
                   <div class="d-flex justify-content-between flex-wrap gap-3">
                     <div>
-                      <strong class="fs-5">{{ vehicle.name }}</strong>
-                      <div class="text-muted small">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
+                      <div class="showroom-title">{{ vehicle.name }}</div>
+                      <div class="showroom-subtitle">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
                     </div>
-                    <div class="text-end">
-                      <div class="text-muted small">Цена</div>
-                      <div class="fs-5 fw-semibold text-primary">
+                    <div class="showroom-price">
+                      <div class="label">Цена</div>
+                      <div class="value">
                         {{ vehicle.sale_price|default:vehicle.purchase_price }}
                         {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
                       </div>
                     </div>
                   </div>
-                  <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
-                    <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
+                  <div class="d-flex flex-wrap gap-2 align-items-center showroom-badges">
+                    <span class="badge text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
+                    <span class="badge text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
                     {% if vehicle.active_reservation %}
                       <button
                         class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
@@ -980,49 +1142,37 @@
                       </button>
                     {% endif %}
                   </div>
-                  <div class="row g-2 text-muted small">
-                    <div class="col-12 col-md-6 col-lg-3">
-                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                        <strong class="text-dark d-block">Цвет</strong>
-                        {{ vehicle.color|default:"—" }}
-                      </div>
+                  <div class="showroom-attributes text-muted small">
+                    <div class="showroom-attribute">
+                      <strong>Цвет</strong>
+                      {{ vehicle.color|default:"—" }}
                     </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                        <strong class="text-dark d-block">КПП</strong>
-                        {{ vehicle.get_transmission_display|default:"—" }}
-                      </div>
+                    <div class="showroom-attribute">
+                      <strong>КПП</strong>
+                      {{ vehicle.get_transmission_display|default:"—" }}
                     </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                        <strong class="text-dark d-block">Двигатель</strong>
-                        {{ vehicle.engine_volume|default:"—" }} л
-                      </div>
+                    <div class="showroom-attribute">
+                      <strong>Двигатель</strong>
+                      {{ vehicle.engine_volume|default:"—" }} л
                     </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                        <strong class="text-dark d-block">Кол-во</strong>
-                        {{ vehicle.stock_count }}
-                      </div>
+                    <div class="showroom-attribute">
+                      <strong>Кол-во</strong>
+                      {{ vehicle.stock_count }}
                     </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                        <strong class="text-dark d-block">Посадочные места</strong>
-                        {{ vehicle.seat_count|default:"—" }}
-                      </div>
+                    <div class="showroom-attribute">
+                      <strong>Посадочные места</strong>
+                      {{ vehicle.seat_count|default:"—" }}
                     </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                      <div class="p-2 bg-body-tertiary rounded-3 h-100">
-                        <strong class="text-dark d-block">Пробег</strong>
-                        {{ vehicle.mileage|default:"—" }} км
-                      </div>
+                    <div class="showroom-attribute">
+                      <strong>Пробег</strong>
+                      {{ vehicle.mileage|default:"—" }} км
                     </div>
                   </div>
                   {% if vehicle.description %}
-                    <div class="text-muted small bg-light rounded-3 p-3">{{ vehicle.description }}</div>
+                    <div class="showroom-note small">{{ vehicle.description }}</div>
                   {% endif %}
                   <div class="d-flex justify-content-end">
-                    <div class="d-flex flex-wrap gap-2">
+                    <div class="d-flex flex-wrap gap-2 showroom-actions">
                       <button
                         class="btn btn-outline-dark"
                         type="button"
@@ -2622,34 +2772,36 @@ OOO «MAJOR MOTORS SAM»</div>
     </div>
   </div>
 
-  <div class="modal fade" id="vehicleDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal fade vehicle-detail-modal" id="vehicleDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header">
+        <div class="vehicle-detail-hero d-flex justify-content-between align-items-start">
           <div>
             <h5 class="modal-title mb-1" id="vehicleDetailModalLabel">Карточка автомобиля</h5>
-            <p class="text-muted small mb-0" id="vehicleDetailSubtitle">—</p>
+            <small id="vehicleDetailSubtitle">—</small>
           </div>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
         <div class="modal-body p-4">
           <div class="row g-4">
             <div class="col-12 col-lg-5">
-              <div class="ratio ratio-4x3 bg-body-tertiary rounded-4 overflow-hidden">
-                <img
-                  class="w-100 h-100 object-fit-contain d-none"
-                  id="vehicleDetailImage"
-                  src=""
-                  alt=""
-                >
-                <div
-                  class="d-flex align-items-center justify-content-center text-muted"
-                  id="vehicleDetailImagePlaceholder"
-                >
-                  Фото отсутствует
+              <div class="vehicle-detail-media">
+                <div class="ratio ratio-4x3 rounded-4 overflow-hidden bg-white">
+                  <img
+                    class="w-100 h-100 object-fit-contain d-none"
+                    id="vehicleDetailImage"
+                    src=""
+                    alt=""
+                  >
+                  <div
+                    class="d-flex align-items-center justify-content-center text-muted fw-semibold"
+                    id="vehicleDetailImagePlaceholder"
+                  >
+                    Фото отсутствует
+                  </div>
                 </div>
               </div>
-              <div class="mt-3 p-3 bg-light rounded-4">
+              <div class="vehicle-detail-price mt-3">
                 <div class="text-muted small">Цена</div>
                 <div class="fs-4 fw-semibold text-primary" id="vehicleDetailPrice">—</div>
               </div>
@@ -2659,31 +2811,31 @@ OOO «MAJOR MOTORS SAM»</div>
               </div>
             </div>
             <div class="col-12 col-lg-7">
-              <div class="row g-3">
-                <div class="col-6">
+              <div class="vehicle-detail-specs">
+                <div class="spec-item d-flex justify-content-between align-items-center">
                   <div class="text-muted small">Цвет</div>
                   <div class="fw-semibold" id="vehicleDetailColor">—</div>
                 </div>
-                <div class="col-6">
+                <div class="spec-item d-flex justify-content-between align-items-center">
                   <div class="text-muted small">КПП</div>
                   <div class="fw-semibold" id="vehicleDetailTransmission">—</div>
                 </div>
-                <div class="col-6">
+                <div class="spec-item d-flex justify-content-between align-items-center">
                   <div class="text-muted small">Двигатель</div>
                   <div class="fw-semibold" id="vehicleDetailEngine">—</div>
                 </div>
-                <div class="col-6">
+                <div class="spec-item d-flex justify-content-between align-items-center">
                   <div class="text-muted small">Посадочные места</div>
                   <div class="fw-semibold" id="vehicleDetailSeats">—</div>
                 </div>
-                <div class="col-6">
+                <div class="spec-item d-flex justify-content-between align-items-center">
                   <div class="text-muted small">Пробег</div>
                   <div class="fw-semibold" id="vehicleDetailMileage">—</div>
                 </div>
-                <div class="col-12">
-                  <div class="text-muted small">Описание</div>
-                  <div class="p-3 bg-body-tertiary rounded-4" id="vehicleDetailDescription">—</div>
-                </div>
+              </div>
+              <div class="mt-4">
+                <div class="text-muted small mb-2">Описание</div>
+                <div class="vehicle-detail-description" id="vehicleDetailDescription">—</div>
               </div>
             </div>
           </div>
