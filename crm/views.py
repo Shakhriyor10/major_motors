@@ -252,7 +252,7 @@ def _create_vehicle_from_form(request, options_qs):
         except (TypeError, ValueError):
             return None
 
-    purchase_currency = request.POST.get('purchase_currency') or Vehicle.Currency.UZS
+    purchase_currency = Vehicle.Currency.UZS
     vehicle = Vehicle.objects.create(
         vin=request.POST.get('vin', '').strip(),
         name=request.POST.get('name', '').strip(),
@@ -263,7 +263,7 @@ def _create_vehicle_from_form(request, options_qs):
         purchase_price=to_decimal(request.POST.get('purchase_price')) or Decimal('0'),
         purchase_currency=purchase_currency,
         sale_price=to_decimal(request.POST.get('sale_price')),
-        sale_currency=purchase_currency,
+        sale_currency=Vehicle.Currency.UZS,
         stock_count=to_int(request.POST.get('stock_count')) or 1,
         seat_count=to_int(request.POST.get('seat_count')),
         engine_type=request.POST.get('engine_type') or Vehicle.EngineType.GASOLINE,
@@ -352,13 +352,15 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
     update_fields.append('color')
     vehicle.body_type = request.POST.get('body_type', '').strip()
     update_fields.append('body_type')
-    vehicle.purchase_price = to_decimal(request.POST.get('purchase_price')) or Decimal('0')
-    update_fields.append('purchase_price')
-    vehicle.purchase_currency = request.POST.get('purchase_currency') or Vehicle.Currency.UZS
+    purchase_price_value = request.POST.get('purchase_price')
+    if purchase_price_value not in (None, ''):
+        vehicle.purchase_price = to_decimal(purchase_price_value) or Decimal('0')
+        update_fields.append('purchase_price')
+    vehicle.purchase_currency = Vehicle.Currency.UZS
     update_fields.append('purchase_currency')
     vehicle.sale_price = to_decimal(request.POST.get('sale_price'))
     update_fields.append('sale_price')
-    vehicle.sale_currency = request.POST.get('sale_currency') or Vehicle.Currency.UZS
+    vehicle.sale_currency = Vehicle.Currency.UZS
     update_fields.append('sale_currency')
     vehicle.stock_count = to_int(request.POST.get('stock_count')) or 1
     update_fields.append('stock_count')
