@@ -4039,9 +4039,32 @@ OOO «MAJOR MOTORS SAM»</div>
       });
     };
 
+    const fillCreditCustomerPhone = () => {
+      if (!creditCustomerNameInput || !creditCustomerPhoneInput) {
+        return;
+      }
+      const selectedName = creditCustomerNameInput.value.trim();
+      if (!selectedName) {
+        return;
+      }
+      const employees = loadItems(EMPLOYEES_KEY);
+      const matchedEmployee = employees.find((employee) => getEmployeeDisplayName(employee) === selectedName);
+      if (!matchedEmployee) {
+        return;
+      }
+      const phone = matchedEmployee.phonePrimary || matchedEmployee.phoneSecondary || '';
+      if (phone) {
+        creditCustomerPhoneInput.value = phone;
+      }
+    };
+
     populateEmployeeSelects();
     populateCreditCustomerDatalist();
     updateCreditDownPaymentUI();
+
+    if (creditCustomerNameInput && creditCustomerDataList) {
+      creditCustomerNameInput.addEventListener('change', fillCreditCustomerPhone);
+    }
 
     if (creditTabButton && typeof bootstrap !== 'undefined') {
       const creditTab = bootstrap.Tab.getOrCreateInstance(creditTabButton);
