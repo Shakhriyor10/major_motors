@@ -947,7 +947,6 @@
           <tr>
             <th style="width:38px" class="center">№</th>
             <th>Наименование</th>
-            <th style="width:80px" class="center">Кол-во</th>
             <th style="width:90px" class="right">Цена</th>
             <th style="width:90px" class="right">Сумма</th>
           </tr>
@@ -965,7 +964,6 @@
                 {% endif %}
               </span>
             </td>
-            <td class="center">1</td>
             <td class="right">{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</td>
             <td class="right"><b>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</b></td>
           </tr>
@@ -977,7 +975,6 @@
                   <b>{{ option.name }}</b><br>
                   <span style="color:#666; font-size:12px;">Дополнительная опция</span>
                 </td>
-                <td class="center">1</td>
                 <td class="right">0</td>
                 <td class="right"><b>0</b></td>
               </tr>
@@ -1118,7 +1115,9 @@
                     </div>
                   </div>
                   <div class="d-flex flex-wrap gap-2 align-items-center showroom-badges">
-                    <span class="badge text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
+                    {% if vehicle.status != 'inactive' %}
+                      <span class="badge text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
+                    {% endif %}
                     <span class="badge text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
                     {% if vehicle.active_reservation %}
                       <button
@@ -1163,10 +1162,12 @@
                         —
                       {% endif %}
                     </div>
-                    <div class="showroom-attribute">
-                      <strong>Кол-во</strong>
-                      {{ vehicle.stock_count }}
-                    </div>
+                    {% if vehicle.status != 'inactive' %}
+                      <div class="showroom-attribute">
+                        <strong>Статус</strong>
+                        {{ vehicle.get_status_display }}
+                      </div>
+                    {% endif %}
                     <div class="showroom-attribute">
                       <strong>Посадочные места</strong>
                       {{ vehicle.seat_count|default:"—" }}
@@ -2321,7 +2322,6 @@ OOO «MAJOR MOTORS SAM»</div>
                 <tr>
                   <th style="width:38px" class="center">№</th>
                   <th>Наименование</th>
-                  <th style="width:80px" class="center">Кол-во</th>
                   <th style="width:90px" class="right">Цена</th>
                   <th style="width:90px" class="right">Сумма</th>
                 </tr>
@@ -4875,7 +4875,6 @@ OOO «MAJOR MOTORS SAM»</div>
               <b>${vehicleName}</b><br>
               <span style="color:#666; font-size:12px;">${baseDescParts.join(' · ')}</span>
             </td>
-            <td class="center">1</td>
             <td class="right">${formatNumber(salePrice)} ${currency}</td>
             <td class="right"><b>${formatNumber(salePrice)} ${currency}</b></td>
           `;
@@ -4891,7 +4890,6 @@ OOO «MAJOR MOTORS SAM»</div>
                 <b>${option}</b><br>
                 <span style="color:#666; font-size:12px;">Дополнительная опция</span>
               </td>
-              <td class="center">1</td>
               <td class="right">0</td>
               <td class="right"><b>0</b></td>
             `;
