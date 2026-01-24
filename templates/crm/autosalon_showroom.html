@@ -1329,6 +1329,18 @@
               <h3 class="h6 mb-3">Параметры кредита</h3>
               <div class="vstack gap-3">
                 <div>
+                  <label class="form-label" for="credit-employee">Сотрудник из базы (опционально)</label>
+                  <select
+                    class="form-select"
+                    id="credit-employee"
+                    data-employee-select
+                    data-employee-value="id"
+                  >
+                    <option value="">Выберите сотрудника</option>
+                  </select>
+                  <div class="form-text">Можно выбрать сотрудника из базы или заполнить поля вручную.</div>
+                </div>
+                <div>
                   <label class="form-label" for="credit-customer-name">Фамилия Имя</label>
                   <input type="text" class="form-control" id="credit-customer-name" placeholder="Например, Иванов Иван">
                 </div>
@@ -2935,6 +2947,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditCurrencyLabel = document.getElementById('credit-currency-label');
     const creditCustomerNameInput = document.getElementById('credit-customer-name');
     const creditCustomerPhoneInput = document.getElementById('credit-customer-phone');
+    const creditEmployeeSelect = document.getElementById('credit-employee');
     const creditDownPaymentType = document.getElementById('credit-down-payment-type');
     const creditDownPaymentValue = document.getElementById('credit-down-payment-value');
     const creditDownPaymentSuffix = document.getElementById('credit-down-payment-suffix');
@@ -3995,26 +4008,28 @@ OOO «MAJOR MOTORS SAM»</div>
         }))
         .filter((employee) => employee.name);
       employeeSelects.forEach((select) => {
+        const optionValueMode = select.dataset.employeeValue || 'name';
         const fallbackName = select.dataset.employeeFallback || '';
         const existingValues = new Set(
           Array.from(select.options).map((option) => option.value),
         );
-        if (fallbackName && !existingValues.has(fallbackName)) {
+        if (optionValueMode === 'name' && fallbackName && !existingValues.has(fallbackName)) {
           const fallbackOption = document.createElement('option');
           fallbackOption.value = fallbackName;
           fallbackOption.textContent = `${fallbackName} (текущий пользователь)`;
           select.appendChild(fallbackOption);
         }
         options.forEach((employee) => {
-          if (existingValues.has(employee.name)) {
+          const optionValue = optionValueMode === 'id' ? String(employee.id) : employee.name;
+          if (existingValues.has(optionValue)) {
             return;
           }
           const option = document.createElement('option');
-          option.value = employee.name;
+          option.value = optionValue;
           option.textContent = employee.name;
           select.appendChild(option);
         });
-        if (fallbackName && select.value === '') {
+        if (optionValueMode === 'name' && fallbackName && select.value === '') {
           select.value = fallbackName;
         }
       });
@@ -4022,6 +4037,33 @@ OOO «MAJOR MOTORS SAM»</div>
 
     populateEmployeeSelects();
     updateCreditDownPaymentUI();
+
+    const applyCreditEmployeeSelection = () => {
+      if (!creditEmployeeSelect) {
+        return;
+      }
+      const selectedId = creditEmployeeSelect.value;
+      if (!selectedId) {
+        return;
+      }
+      const employees = loadItems(EMPLOYEES_KEY);
+      const selectedEmployee = employees.find((employee) => String(employee.id) === String(selectedId));
+      if (!selectedEmployee) {
+        return;
+      }
+      const fullName = getEmployeeDisplayName(selectedEmployee);
+      if (creditCustomerNameInput && fullName) {
+        creditCustomerNameInput.value = fullName;
+      }
+      if (creditCustomerPhoneInput) {
+        creditCustomerPhoneInput.value = selectedEmployee.phonePrimary || selectedEmployee.phoneSecondary || '';
+      }
+      updateCreditPrintTable();
+    };
+
+    if (creditEmployeeSelect) {
+      creditEmployeeSelect.addEventListener('change', applyCreditEmployeeSelection);
+    }
 
     if (creditTabButton && typeof bootstrap !== 'undefined') {
       const creditTab = bootstrap.Tab.getOrCreateInstance(creditTabButton);
