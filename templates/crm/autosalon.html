@@ -108,6 +108,10 @@
             <input id="fuel_consumption" name="fuel_consumption" type="number" min="0" step="0.1" class="form-control">
           </div>
           <div class="col-12 col-md-6 col-lg-4">
+            <label for="range_km" class="form-label">Запас хода (км)</label>
+            <input id="range_km" name="range_km" type="number" min="0" step="1" class="form-control">
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
             <label for="condition" class="form-label">Состояние</label>
             <select id="condition" name="condition" class="form-select js-condition-select" data-target="mileage-field-create">
               <option value="new">Новая</option>
@@ -183,8 +187,7 @@
                   <div class="text-muted small">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
                 </div>
                 <span class="badge rounded-pill text-bg-primary-subtle text-primary fs-6">
-                  {{ vehicle.sale_price|default:vehicle.purchase_price }}
-                  {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
+                  {{ vehicle.sale_price|default:vehicle.purchase_price }} сум
                 </span>
               </div>
               <div class="d-flex flex-wrap gap-2 mt-2">
@@ -197,10 +200,21 @@
               <div class="row g-2 text-muted small">
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Кузов:</strong> {{ vehicle.body_type|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Цвет:</strong> {{ vehicle.color|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Двигатель:</strong> {{ vehicle.engine_volume|default:"—" }} л</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Двигатель:</strong>
+                  {% if vehicle.engine_type == 'hybrid' %}
+                    {% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} л{% else %}Гибрид{% endif %}
+                  {% elif vehicle.engine_type == 'electric' %}
+                    Электрический
+                  {% elif vehicle.engine_volume %}
+                    {{ vehicle.engine_volume }} л
+                  {% else %}
+                    —
+                  {% endif %}
+                </div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Мощность:</strong> {{ vehicle.horsepower|default:"—" }} л.с.</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">КПП:</strong> {{ vehicle.get_transmission_display|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Расход:</strong> {{ vehicle.fuel_consumption|default:"—" }}</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Расход:</strong> {% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}</div>
+                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Запас хода:</strong> {% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Страна:</strong> {{ vehicle.country|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Посадочные места:</strong> {{ vehicle.seat_count|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Пробег:</strong> {{ vehicle.mileage|default:"—" }} км</div>
@@ -283,30 +297,9 @@
                       <input id="edit-body-type-{{ vehicle.id }}" name="body_type" type="text" class="form-control" value="{{ vehicle.body_type }}">
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-purchase-price-{{ vehicle.id }}">Закупочная цена</label>
-                      <input id="edit-purchase-price-{{ vehicle.id }}" name="purchase_price" type="number" min="0" step="0.01" class="form-control" value="{{ vehicle.purchase_price }}">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-purchase-currency-{{ vehicle.id }}">Валюта закупа</label>
-                      <select id="edit-purchase-currency-{{ vehicle.id }}" name="purchase_currency" class="form-select">
-                        <option value="uzs" {% if vehicle.purchase_currency == 'uzs' %}selected{% endif %}>UZS</option>
-                        <option value="usd" {% if vehicle.purchase_currency == 'usd' %}selected{% endif %}>USD</option>
-                      </select>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-sale-price-{{ vehicle.id }}">Цена продажи</label>
                       <input id="edit-sale-price-{{ vehicle.id }}" name="sale_price" type="number" min="0" step="0.01" class="form-control" value="{{ vehicle.sale_price|default:'' }}">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-sale-currency-{{ vehicle.id }}">Валюта продажи</label>
-                      <select id="edit-sale-currency-{{ vehicle.id }}" name="sale_currency" class="form-select">
-                        <option value="uzs" {% if vehicle.sale_currency == 'uzs' %}selected{% endif %}>UZS</option>
-                        <option value="usd" {% if vehicle.sale_currency == 'usd' %}selected{% endif %}>USD</option>
-                      </select>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-stock-count-{{ vehicle.id }}">Остаток на складе</label>
-                      <input id="edit-stock-count-{{ vehicle.id }}" name="stock_count" type="number" min="1" step="1" class="form-control" value="{{ vehicle.stock_count }}">
+                      <div class="form-text">Укажите сумму в сумах.</div>
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-seat-count-{{ vehicle.id }}">Количество посадочных мест</label>
@@ -339,10 +332,14 @@
                         <option value="cvt" {% if vehicle.transmission == 'cvt' %}selected{% endif %}>Вариатор</option>
                       </select>
                     </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-fuel-consumption-{{ vehicle.id }}">Расход топлива (л/100км)</label>
-                      <input id="edit-fuel-consumption-{{ vehicle.id }}" name="fuel_consumption" type="number" min="0" step="0.1" class="form-control" value="{{ vehicle.fuel_consumption|default:'' }}">
-                    </div>
+                  <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label" for="edit-fuel-consumption-{{ vehicle.id }}">Расход топлива (л/100км)</label>
+                    <input id="edit-fuel-consumption-{{ vehicle.id }}" name="fuel_consumption" type="number" min="0" step="0.1" class="form-control" value="{{ vehicle.fuel_consumption|default:'' }}">
+                  </div>
+                  <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label" for="edit-range-km-{{ vehicle.id }}">Запас хода (км)</label>
+                    <input id="edit-range-km-{{ vehicle.id }}" name="range_km" type="number" min="0" step="1" class="form-control" value="{{ vehicle.range_km|default:'' }}">
+                  </div>
                     <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-condition-{{ vehicle.id }}">Состояние</label>
                       <select id="edit-condition-{{ vehicle.id }}" name="condition" class="form-select js-condition-select" data-target="edit-mileage-field-{{ vehicle.id }}">
@@ -374,26 +371,6 @@
                         <option value="reserved" {% if vehicle.status == 'reserved' %}selected{% endif %}>Бронь</option>
                         <option value="inactive" {% if vehicle.status == 'inactive' %}selected{% endif %}>Неактивный</option>
                       </select>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-acquisition-{{ vehicle.id }}">Тип поступления</label>
-                      <select id="edit-acquisition-{{ vehicle.id }}" name="acquisition_type" class="form-select">
-                        <option value="purchase" {% if vehicle.acquisition_type == 'purchase' %}selected{% endif %}>Закуп</option>
-                        <option value="trade_in" {% if vehicle.acquisition_type == 'trade_in' %}selected{% endif %}>Трейд-ин</option>
-                        <option value="consignment" {% if vehicle.acquisition_type == 'consignment' %}selected{% endif %}>Комиссия</option>
-                      </select>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-counterparty-{{ vehicle.id }}">Контрагент</label>
-                      <input id="edit-counterparty-{{ vehicle.id }}" name="counterparty_name" type="text" class="form-control" value="{{ vehicle.counterparty_name }}">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-arrived-at-{{ vehicle.id }}">Дата поступления</label>
-                      <input id="edit-arrived-at-{{ vehicle.id }}" name="arrived_at" type="date" class="form-control" value="{{ vehicle.arrived_at|date:'Y-m-d' }}">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-location-{{ vehicle.id }}">Локация</label>
-                      <input id="edit-location-{{ vehicle.id }}" name="location" type="text" class="form-control" value="{{ vehicle.location }}">
                     </div>
                     <div class="col-12">
                       <label class="form-label" for="edit-description-{{ vehicle.id }}">Описание</label>

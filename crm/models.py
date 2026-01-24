@@ -375,6 +375,7 @@ class Vehicle(TimeStampedModel):
     horsepower = models.PositiveIntegerField(null=True, blank=True)
     transmission = models.CharField(max_length=32, choices=Transmission.choices, blank=True)
     fuel_consumption = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    range_km = models.PositiveIntegerField(null=True, blank=True)
     condition = models.CharField(max_length=32, choices=Condition.choices, default=Condition.NEW)
     country = models.CharField(max_length=128, blank=True)
     trim_level = models.CharField(max_length=32, choices=TrimLevel.choices, default=TrimLevel.STANDARD)
