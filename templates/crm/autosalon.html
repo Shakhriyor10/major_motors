@@ -302,10 +302,6 @@
                       <div class="form-text">Укажите сумму в сумах.</div>
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-stock-count-{{ vehicle.id }}">Остаток на складе</label>
-                      <input id="edit-stock-count-{{ vehicle.id }}" name="stock_count" type="number" min="1" step="1" class="form-control" value="{{ vehicle.stock_count }}">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-seat-count-{{ vehicle.id }}">Количество посадочных мест</label>
                       <input id="edit-seat-count-{{ vehicle.id }}" name="seat_count" type="number" min="1" step="1" class="form-control" value="{{ vehicle.seat_count|default:'' }}">
                     </div>
@@ -375,26 +371,6 @@
                         <option value="reserved" {% if vehicle.status == 'reserved' %}selected{% endif %}>Бронь</option>
                         <option value="inactive" {% if vehicle.status == 'inactive' %}selected{% endif %}>Неактивный</option>
                       </select>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-acquisition-{{ vehicle.id }}">Тип поступления</label>
-                      <select id="edit-acquisition-{{ vehicle.id }}" name="acquisition_type" class="form-select">
-                        <option value="purchase" {% if vehicle.acquisition_type == 'purchase' %}selected{% endif %}>Закуп</option>
-                        <option value="trade_in" {% if vehicle.acquisition_type == 'trade_in' %}selected{% endif %}>Трейд-ин</option>
-                        <option value="consignment" {% if vehicle.acquisition_type == 'consignment' %}selected{% endif %}>Комиссия</option>
-                      </select>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-counterparty-{{ vehicle.id }}">Контрагент</label>
-                      <input id="edit-counterparty-{{ vehicle.id }}" name="counterparty_name" type="text" class="form-control" value="{{ vehicle.counterparty_name }}">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-arrived-at-{{ vehicle.id }}">Дата поступления</label>
-                      <input id="edit-arrived-at-{{ vehicle.id }}" name="arrived_at" type="date" class="form-control" value="{{ vehicle.arrived_at|date:'Y-m-d' }}">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-location-{{ vehicle.id }}">Локация</label>
-                      <input id="edit-location-{{ vehicle.id }}" name="location" type="text" class="form-control" value="{{ vehicle.location }}">
                     </div>
                     <div class="col-12">
                       <label class="form-label" for="edit-description-{{ vehicle.id }}">Описание</label>
