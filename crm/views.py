@@ -308,6 +308,105 @@ def _create_vehicle_from_form(request, options_qs):
     return vehicle
 
 
+def _update_vehicle_from_form(request, vehicle, options_qs):
+    def to_decimal(value):
+        if value in (None, ''):
+            return None
+        try:
+            return Decimal(value)
+        except InvalidOperation:
+            return None
+
+    def to_int(value):
+        if value in (None, ''):
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    update_fields = []
+    vin = request.POST.get('vin', '').strip()
+    if vin:
+        vehicle.vin = vin
+        update_fields.append('vin')
+    name = request.POST.get('name', '').strip()
+    if name:
+        vehicle.name = name
+        update_fields.append('name')
+    make = request.POST.get('make', '').strip()
+    if make:
+        vehicle.make = make
+        update_fields.append('make')
+    model = request.POST.get('model', '').strip()
+    if model:
+        vehicle.model = model
+        update_fields.append('model')
+
+    vehicle.year = to_int(request.POST.get('year'))
+    update_fields.append('year')
+    vehicle.mileage = to_int(request.POST.get('mileage'))
+    update_fields.append('mileage')
+    vehicle.color = request.POST.get('color', '').strip()
+    update_fields.append('color')
+    vehicle.body_type = request.POST.get('body_type', '').strip()
+    update_fields.append('body_type')
+    vehicle.purchase_price = to_decimal(request.POST.get('purchase_price')) or Decimal('0')
+    update_fields.append('purchase_price')
+    vehicle.purchase_currency = request.POST.get('purchase_currency') or Vehicle.Currency.UZS
+    update_fields.append('purchase_currency')
+    vehicle.sale_price = to_decimal(request.POST.get('sale_price'))
+    update_fields.append('sale_price')
+    vehicle.sale_currency = request.POST.get('sale_currency') or Vehicle.Currency.UZS
+    update_fields.append('sale_currency')
+    vehicle.stock_count = to_int(request.POST.get('stock_count')) or 1
+    update_fields.append('stock_count')
+    vehicle.seat_count = to_int(request.POST.get('seat_count'))
+    update_fields.append('seat_count')
+    vehicle.engine_type = request.POST.get('engine_type') or Vehicle.EngineType.GASOLINE
+    update_fields.append('engine_type')
+    vehicle.engine_volume = to_decimal(request.POST.get('engine_volume'))
+    update_fields.append('engine_volume')
+    vehicle.horsepower = to_int(request.POST.get('horsepower'))
+    update_fields.append('horsepower')
+    vehicle.transmission = request.POST.get('transmission', '')
+    update_fields.append('transmission')
+    vehicle.fuel_consumption = to_decimal(request.POST.get('fuel_consumption'))
+    update_fields.append('fuel_consumption')
+    vehicle.condition = request.POST.get('condition') or Vehicle.Condition.NEW
+    update_fields.append('condition')
+    vehicle.country = request.POST.get('country', '').strip()
+    update_fields.append('country')
+    vehicle.trim_level = request.POST.get('trim_level') or Vehicle.TrimLevel.STANDARD
+    update_fields.append('trim_level')
+    vehicle.description = request.POST.get('description', '').strip()
+    update_fields.append('description')
+    vehicle.status = request.POST.get('status') or Vehicle.VehicleStatus.FOR_SALE
+    update_fields.append('status')
+    vehicle.acquisition_type = request.POST.get('acquisition_type') or Vehicle.AcquisitionType.PURCHASE
+    update_fields.append('acquisition_type')
+    vehicle.counterparty_name = request.POST.get('counterparty_name', '').strip()
+    update_fields.append('counterparty_name')
+    vehicle.arrived_at = parse_date(request.POST.get('arrived_at') or '')
+    update_fields.append('arrived_at')
+    vehicle.location = request.POST.get('location', '').strip()
+    update_fields.append('location')
+    vehicle.notes = request.POST.get('notes', '').strip()
+    update_fields.append('notes')
+
+    vehicle.save(update_fields=update_fields)
+    selected_options = request.POST.getlist('options')
+    vehicle.options.set(options_qs.filter(id__in=selected_options))
+
+    for photo in request.FILES.getlist('photos'):
+        vehicle.media.create(
+            media_type=VehicleMedia.MediaType.PHOTO,
+            file=photo,
+        )
+
+    return vehicle
+
+
 @login_required
 def autosalon(request):
     def parse_datetime_value(value, default_value=None):
@@ -791,6 +890,13 @@ def inventory(request):
         action = request.POST.get('action')
         if action == 'create_vehicle':
             _create_vehicle_from_form(request, options_qs)
+            return redirect('inventory')
+        if action == 'update_vehicle':
+            vehicle_id = request.POST.get('vehicle_id')
+            if vehicle_id:
+                vehicle = Vehicle.objects.filter(pk=vehicle_id).first()
+                if vehicle:
+                    _update_vehicle_from_form(request, vehicle, options_qs)
             return redirect('inventory')
         if action == 'return_to_autosalon':
             vehicle_id = request.POST.get('vehicle_id')
