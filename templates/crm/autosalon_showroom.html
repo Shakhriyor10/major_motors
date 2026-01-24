@@ -1330,7 +1330,8 @@
               <div class="vstack gap-3">
                 <div>
                   <label class="form-label" for="credit-customer-name">Фамилия Имя</label>
-                  <input type="text" class="form-control" id="credit-customer-name" placeholder="Например, Иванов Иван">
+                  <input type="text" class="form-control" id="credit-customer-name" placeholder="Например, Иванов Иван" list="credit-customer-datalist">
+                  <datalist id="credit-customer-datalist"></datalist>
                 </div>
                 <div>
                   <label class="form-label" for="credit-customer-phone">Номер телефона</label>
@@ -2934,6 +2935,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditVehiclePriceInput = document.getElementById('credit-vehicle-price');
     const creditCurrencyLabel = document.getElementById('credit-currency-label');
     const creditCustomerNameInput = document.getElementById('credit-customer-name');
+    const creditCustomerDataList = document.getElementById('credit-customer-datalist');
     const creditCustomerPhoneInput = document.getElementById('credit-customer-phone');
     const creditDownPaymentType = document.getElementById('credit-down-payment-type');
     const creditDownPaymentValue = document.getElementById('credit-down-payment-value');
@@ -4020,7 +4022,25 @@ OOO «MAJOR MOTORS SAM»</div>
       });
     };
 
+    const populateCreditCustomerDatalist = () => {
+      if (!creditCustomerDataList) {
+        return;
+      }
+      const employees = loadItems(EMPLOYEES_KEY);
+      const names = employees
+        .map((employee) => getEmployeeDisplayName(employee))
+        .filter((name) => name);
+      const uniqueNames = new Set(names);
+      creditCustomerDataList.innerHTML = '';
+      uniqueNames.forEach((name) => {
+        const option = document.createElement('option');
+        option.value = name;
+        creditCustomerDataList.appendChild(option);
+      });
+    };
+
     populateEmployeeSelects();
+    populateCreditCustomerDatalist();
     updateCreditDownPaymentUI();
 
     if (creditTabButton && typeof bootstrap !== 'undefined') {
