@@ -1216,16 +1216,6 @@
                         Подробнее
                       </button>
                       <button
-                        class="btn btn-outline-primary"
-                        type="button"
-                        data-open-reserve
-                        data-vehicle-id="{{ vehicle.id }}"
-                        data-vehicle-name="{{ vehicle.name }}"
-                        {% if vehicle.status == 'reserved' or vehicle.active_reservation %}disabled{% endif %}
-                      >
-                        Забронировать
-                      </button>
-                      <button
                         class="btn btn-outline-success"
                         type="button"
                         data-open-credit
@@ -1234,20 +1224,6 @@
                         data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
                       >
                         Кредит
-                      </button>
-                      <button
-                        class="btn btn-primary"
-                        type="button"
-                        data-open-sale
-                        data-vehicle-id="{{ vehicle.id }}"
-                        data-vehicle-name="{{ vehicle.name }}"
-                        data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
-                        data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency }}"
-                        data-reservation-customer-id="{{ vehicle.active_reservation.customer.id|default:'' }}"
-                        data-reservation-customer-name="{{ vehicle.active_reservation.customer.full_name|default:'' }}"
-                        data-reservation-customer-phone="{{ vehicle.active_reservation.customer.phone|default:'' }}"
-                      >
-                        Продать
                       </button>
                     </div>
                   </div>
