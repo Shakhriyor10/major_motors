@@ -1,4 +1,5 @@
 import json
+import uuid
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
@@ -253,11 +254,15 @@ def _create_vehicle_from_form(request, options_qs):
             return None
 
     purchase_currency = Vehicle.Currency.UZS
+    name = request.POST.get('name', '').strip()
+    model = request.POST.get('model', '').strip()
+    make = request.POST.get('make', '').strip() or model or name
+    vin = request.POST.get('vin', '').strip() or uuid.uuid4().hex[:32]
     vehicle = Vehicle.objects.create(
-        vin=request.POST.get('vin', '').strip(),
-        name=request.POST.get('name', '').strip(),
-        make=request.POST.get('make', '').strip(),
-        model=request.POST.get('model', '').strip(),
+        vin=vin,
+        name=name,
+        make=make,
+        model=model,
         color=request.POST.get('color', '').strip(),
         body_type=request.POST.get('body_type', '').strip(),
         purchase_price=to_decimal(request.POST.get('purchase_price')) or Decimal('0'),
