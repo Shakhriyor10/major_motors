@@ -271,6 +271,7 @@ def _create_vehicle_from_form(request, options_qs):
         horsepower=to_int(request.POST.get('horsepower')),
         transmission=request.POST.get('transmission', ''),
         fuel_consumption=to_decimal(request.POST.get('fuel_consumption')),
+        range_km=to_int(request.POST.get('range_km')),
         condition=request.POST.get('condition') or Vehicle.Condition.NEW,
         mileage=to_int(request.POST.get('mileage')),
         country=request.POST.get('country', '').strip(),
@@ -373,6 +374,8 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
     update_fields.append('transmission')
     vehicle.fuel_consumption = to_decimal(request.POST.get('fuel_consumption'))
     update_fields.append('fuel_consumption')
+    vehicle.range_km = to_int(request.POST.get('range_km'))
+    update_fields.append('range_km')
     vehicle.condition = request.POST.get('condition') or Vehicle.Condition.NEW
     update_fields.append('condition')
     vehicle.country = request.POST.get('country', '').strip()

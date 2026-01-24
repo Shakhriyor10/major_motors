@@ -1153,7 +1153,15 @@
                     </div>
                     <div class="showroom-attribute">
                       <strong>Двигатель</strong>
-                      {{ vehicle.engine_volume|default:"—" }} л
+                      {% if vehicle.engine_type == 'hybrid' %}
+                        {% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} л{% else %}Гибрид{% endif %}
+                      {% elif vehicle.engine_type == 'electric' %}
+                        Электрический
+                      {% elif vehicle.engine_volume %}
+                        {{ vehicle.engine_volume }} л
+                      {% else %}
+                        —
+                      {% endif %}
                     </div>
                     <div class="showroom-attribute">
                       <strong>Кол-во</strong>
@@ -1166,6 +1174,14 @@
                     <div class="showroom-attribute">
                       <strong>Пробег</strong>
                       {{ vehicle.mileage|default:"—" }} км
+                    </div>
+                    <div class="showroom-attribute">
+                      <strong>Расход</strong>
+                      {% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}
+                    </div>
+                    <div class="showroom-attribute">
+                      <strong>Запас хода</strong>
+                      {% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}
                     </div>
                   </div>
                   {% if vehicle.description %}
@@ -1188,9 +1204,11 @@
                         data-vehicle-condition="{{ vehicle.get_condition_display }}"
                         data-vehicle-color="{{ vehicle.color|default:'—' }}"
                         data-vehicle-transmission="{{ vehicle.get_transmission_display|default:'—' }}"
-                        data-vehicle-engine="{{ vehicle.engine_volume|default:'—' }}"
+                        data-vehicle-engine="{% if vehicle.engine_type == 'hybrid' %}{% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} л{% else %}Гибрид{% endif %}{% elif vehicle.engine_type == 'electric' %}Электрический{% elif vehicle.engine_volume %}{{ vehicle.engine_volume }} л{% else %}—{% endif %}"
                         data-vehicle-seats="{{ vehicle.seat_count|default:'—' }}"
                         data-vehicle-mileage="{{ vehicle.mileage|default:'—' }}"
+                        data-vehicle-consumption="{% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}"
+                        data-vehicle-range="{% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}"
                         data-vehicle-description="{{ vehicle.description|default:'' }}"
                         data-vehicle-image="{% if vehicle.primary_photo %}{{ vehicle.primary_photo.file.url }}{% endif %}"
                       >
@@ -2142,7 +2160,7 @@ OOO «MAJOR MOTORS SAM»</div>
                           data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
                           data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
                           data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
-                          data-vehicle-engine="{{ deal.vehicle.engine_volume|default:'—' }}"
+                          data-vehicle-engine="{% if deal.vehicle.engine_type == 'hybrid' %}{% if deal.vehicle.engine_volume %}Гибрид, {{ deal.vehicle.engine_volume }} л{% else %}Гибрид{% endif %}{% elif deal.vehicle.engine_type == 'electric' %}Электрический{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} л{% else %}—{% endif %}"
                           data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
                           data-sale-price="{{ deal.sale_price }}"
                           data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
@@ -2173,7 +2191,7 @@ OOO «MAJOR MOTORS SAM»</div>
                           data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
                           data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
                           data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
-                          data-vehicle-engine="{{ deal.vehicle.engine_volume|default:'—' }}"
+                          data-vehicle-engine="{% if deal.vehicle.engine_type == 'hybrid' %}{% if deal.vehicle.engine_volume %}Гибрид, {{ deal.vehicle.engine_volume }} л{% else %}Гибрид{% endif %}{% elif deal.vehicle.engine_type == 'electric' %}Электрический{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} л{% else %}—{% endif %}"
                           data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
                           data-sale-price="{{ deal.sale_price }}"
                           data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
@@ -2831,6 +2849,14 @@ OOO «MAJOR MOTORS SAM»</div>
                 <div class="spec-item d-flex justify-content-between align-items-center">
                   <div class="text-muted small">Пробег</div>
                   <div class="fw-semibold" id="vehicleDetailMileage">—</div>
+                </div>
+                <div class="spec-item d-flex justify-content-between align-items-center">
+                  <div class="text-muted small">Расход</div>
+                  <div class="fw-semibold" id="vehicleDetailConsumption">—</div>
+                </div>
+                <div class="spec-item d-flex justify-content-between align-items-center">
+                  <div class="text-muted small">Запас хода</div>
+                  <div class="fw-semibold" id="vehicleDetailRange">—</div>
                 </div>
               </div>
               <div class="mt-4">
@@ -4839,7 +4865,7 @@ OOO «MAJOR MOTORS SAM»</div>
             vehicleMileage !== '—' ? `Пробег ${vehicleMileage} км` : null,
             vehicleColor !== '—' ? `Цвет ${vehicleColor}` : null,
             vehicleTransmission !== '—' ? `КПП ${vehicleTransmission}` : null,
-            vehicleEngine !== '—' ? `Двигатель ${vehicleEngine} л` : null,
+            vehicleEngine !== '—' ? `Двигатель ${vehicleEngine}` : null,
             vehicleSeats !== '—' ? `Мест ${vehicleSeats}` : null,
           ].filter(Boolean);
           const baseRow = document.createElement('tr');
@@ -4926,10 +4952,7 @@ OOO «MAJOR MOTORS SAM»</div>
         );
         setText('soldDealVehicleColor', button.dataset.vehicleColor);
         setText('soldDealVehicleTransmission', button.dataset.vehicleTransmission);
-        setText(
-          'soldDealVehicleEngine',
-          vehicleEngine && vehicleEngine !== '—' ? `${vehicleEngine} л` : '—',
-        );
+        setText('soldDealVehicleEngine', vehicleEngine || '—');
         setText('soldDealVehicleSeats', button.dataset.vehicleSeats);
         setText(
           'soldDealSalePrice',
@@ -4980,6 +5003,8 @@ OOO «MAJOR MOTORS SAM»</div>
       const modalColor = document.getElementById('vehicleDetailColor');
       const modalTransmission = document.getElementById('vehicleDetailTransmission');
       const modalEngine = document.getElementById('vehicleDetailEngine');
+      const modalConsumption = document.getElementById('vehicleDetailConsumption');
+      const modalRange = document.getElementById('vehicleDetailRange');
       const modalSeats = document.getElementById('vehicleDetailSeats');
       const modalMileage = document.getElementById('vehicleDetailMileage');
       const modalDescription = document.getElementById('vehicleDetailDescription');
@@ -5002,6 +5027,8 @@ OOO «MAJOR MOTORS SAM»</div>
         const engine = button.dataset.vehicleEngine || '—';
         const seats = button.dataset.vehicleSeats || '—';
         const mileage = button.dataset.vehicleMileage || '—';
+        const consumption = button.dataset.vehicleConsumption || '—';
+        const range = button.dataset.vehicleRange || '—';
         const description = button.dataset.vehicleDescription || '—';
         const imageSrc = button.dataset.vehicleImage || '';
 
@@ -5031,13 +5058,19 @@ OOO «MAJOR MOTORS SAM»</div>
           modalTransmission.textContent = transmission;
         }
         if (modalEngine) {
-          modalEngine.textContent = engine && engine !== '—' ? `${engine} л` : '—';
+          modalEngine.textContent = engine || '—';
         }
         if (modalSeats) {
           modalSeats.textContent = seats;
         }
         if (modalMileage) {
           modalMileage.textContent = mileage && mileage !== '—' ? `${mileage} км` : '—';
+        }
+        if (modalConsumption) {
+          modalConsumption.textContent = consumption || '—';
+        }
+        if (modalRange) {
+          modalRange.textContent = range || '—';
         }
         if (modalDescription) {
           modalDescription.textContent = description || '—';
