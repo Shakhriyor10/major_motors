@@ -68,39 +68,13 @@
             <input id="body_type" name="body_type" type="text" class="form-control">
           </div>
           <div class="col-12 col-md-6 col-lg-4">
-            <label for="purchase_price" class="form-label">Цена по себестоимости</label>
-            <input id="purchase_price" name="purchase_price" type="number" min="0" step="0.01" class="form-control" required>
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="purchase_currency" class="form-label">Валюта себестоимости и продажи</label>
-            <select id="purchase_currency" name="purchase_currency" class="form-select">
-              <option value="uzs">Сум (UZS)</option>
-              <option value="usd">Доллар (USD)</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="sale_price" class="form-label">Продаваемая цена</label>
-            <input id="sale_price" name="sale_price" type="number" min="0" step="0.01" class="form-control">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="stock_count" class="form-label">Количество в автосалоне</label>
-            <input id="stock_count" name="stock_count" type="number" min="0" step="1" class="form-control" required>
+            <label for="sale_price" class="form-label">Цена</label>
+            <input id="sale_price" name="sale_price" type="number" min="0" step="0.01" class="form-control" required>
+            <div class="form-text">Укажите сумму в сумах.</div>
           </div>
           <div class="col-12 col-md-6 col-lg-4">
             <label for="seat_count" class="form-label">Количество посадочных мест</label>
             <input id="seat_count" name="seat_count" type="number" min="1" step="1" class="form-control" placeholder="Например: 5">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="acquisition_type" class="form-label">Тип поступления</label>
-            <select id="acquisition_type" name="acquisition_type" class="form-select">
-              <option value="purchase">Закуп (с кассы)</option>
-              <option value="trade_in">Трейд-ин</option>
-              <option value="consignment">Комиссия (чужое авто)</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="counterparty_name" class="form-label">Контрагент</label>
-            <input id="counterparty_name" name="counterparty_name" type="text" class="form-control" placeholder="Например: владелец авто">
           </div>
           <div class="col-12 col-md-6 col-lg-4">
             <label for="engine_type" class="form-label">Тип двигателя</label>
@@ -228,24 +202,11 @@
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">КПП:</strong> {{ vehicle.get_transmission_display|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Расход:</strong> {{ vehicle.fuel_consumption|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Страна:</strong> {{ vehicle.country|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Кол-во:</strong> {{ vehicle.stock_count }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Посадочные места:</strong> {{ vehicle.seat_count|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Пробег:</strong> {{ vehicle.mileage|default:"—" }} км</div>
               </div>
               <div class="row g-2 text-muted small mt-2">
-                <div class="col-12 col-md-6">
-                  <strong class="text-dark">Себестоимость:</strong>
-                  {{ vehicle.purchase_price }} {{ vehicle.purchase_currency|upper }}
-                </div>
                 <div class="col-12 col-md-6"><strong class="text-dark">Фото:</strong> {{ vehicle.media.count }}</div>
-              </div>
-              <div class="row g-2 text-muted small mt-2">
-                <div class="col-12 col-md-6">
-                  <strong class="text-dark">Тип поступления:</strong> {{ vehicle.get_acquisition_type_display }}
-                </div>
-                <div class="col-12 col-md-6">
-                  <strong class="text-dark">Контрагент:</strong> {{ vehicle.counterparty_name|default:"—" }}
-                </div>
               </div>
               {% if vehicle.options.exists %}
                 <div class="mt-2">

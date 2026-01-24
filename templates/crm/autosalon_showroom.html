@@ -948,7 +948,7 @@
                       <div class="text-muted small">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
                     </div>
                     <div class="text-end">
-                      <div class="text-muted small">Цена продажи</div>
+                      <div class="text-muted small">Цена</div>
                       <div class="fs-5 fw-semibold text-primary">
                         {{ vehicle.sale_price|default:vehicle.purchase_price }}
                         {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
@@ -1023,6 +1023,29 @@
                   {% endif %}
                   <div class="d-flex justify-content-end">
                     <div class="d-flex flex-wrap gap-2">
+                      <button
+                        class="btn btn-outline-dark"
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#vehicleDetailModal"
+                        data-vehicle-name="{{ vehicle.name }}"
+                        data-vehicle-make="{{ vehicle.make }}"
+                        data-vehicle-model="{{ vehicle.model }}"
+                        data-vehicle-vin="{{ vehicle.vin }}"
+                        data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                        data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                        data-vehicle-status="{{ vehicle.get_status_display }}"
+                        data-vehicle-condition="{{ vehicle.get_condition_display }}"
+                        data-vehicle-color="{{ vehicle.color|default:'—' }}"
+                        data-vehicle-transmission="{{ vehicle.get_transmission_display|default:'—' }}"
+                        data-vehicle-engine="{{ vehicle.engine_volume|default:'—' }}"
+                        data-vehicle-seats="{{ vehicle.seat_count|default:'—' }}"
+                        data-vehicle-mileage="{{ vehicle.mileage|default:'—' }}"
+                        data-vehicle-description="{{ vehicle.description|default:'' }}"
+                        data-vehicle-image="{% if vehicle.primary_photo %}{{ vehicle.primary_photo.file.url }}{% endif %}"
+                      >
+                        Подробнее
+                      </button>
                       <button
                         class="btn btn-outline-primary"
                         type="button"
@@ -2594,6 +2617,76 @@ OOO «MAJOR MOTORS SAM»</div>
             <button class="btn btn-outline-danger" type="submit">Отменить бронирование</button>
           </form>
           <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="vehicleDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title mb-1" id="vehicleDetailModalLabel">Карточка автомобиля</h5>
+            <p class="text-muted small mb-0" id="vehicleDetailSubtitle">—</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="row g-4">
+            <div class="col-12 col-lg-5">
+              <div class="ratio ratio-4x3 bg-body-tertiary rounded-4 overflow-hidden">
+                <img
+                  class="w-100 h-100 object-fit-contain d-none"
+                  id="vehicleDetailImage"
+                  src=""
+                  alt=""
+                >
+                <div
+                  class="d-flex align-items-center justify-content-center text-muted"
+                  id="vehicleDetailImagePlaceholder"
+                >
+                  Фото отсутствует
+                </div>
+              </div>
+              <div class="mt-3 p-3 bg-light rounded-4">
+                <div class="text-muted small">Цена</div>
+                <div class="fs-4 fw-semibold text-primary" id="vehicleDetailPrice">—</div>
+              </div>
+              <div class="d-flex flex-wrap gap-2 mt-3" id="vehicleDetailBadges">
+                <span class="badge rounded-pill text-bg-info-subtle text-info" id="vehicleDetailStatus">—</span>
+                <span class="badge rounded-pill text-bg-secondary-subtle text-secondary" id="vehicleDetailCondition">—</span>
+              </div>
+            </div>
+            <div class="col-12 col-lg-7">
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="text-muted small">Цвет</div>
+                  <div class="fw-semibold" id="vehicleDetailColor">—</div>
+                </div>
+                <div class="col-6">
+                  <div class="text-muted small">КПП</div>
+                  <div class="fw-semibold" id="vehicleDetailTransmission">—</div>
+                </div>
+                <div class="col-6">
+                  <div class="text-muted small">Двигатель</div>
+                  <div class="fw-semibold" id="vehicleDetailEngine">—</div>
+                </div>
+                <div class="col-6">
+                  <div class="text-muted small">Посадочные места</div>
+                  <div class="fw-semibold" id="vehicleDetailSeats">—</div>
+                </div>
+                <div class="col-6">
+                  <div class="text-muted small">Пробег</div>
+                  <div class="fw-semibold" id="vehicleDetailMileage">—</div>
+                </div>
+                <div class="col-12">
+                  <div class="text-muted small">Описание</div>
+                  <div class="p-3 bg-body-tertiary rounded-4" id="vehicleDetailDescription">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -4446,6 +4539,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const soldSortButtons = document.querySelectorAll('[data-sold-sort-key]');
     const soldSortIndicators = document.querySelectorAll('[data-sold-sort-indicator]');
     let currentSoldSort = { key: 'vehicle', direction: 'asc' };
+    const vehicleDetailModal = document.getElementById('vehicleDetailModal');
     const vehiclePhotoModal = document.getElementById('vehiclePhotoModal');
     const soldReceiptModal = document.getElementById('soldReceiptModal');
     const soldReceiptPrintButton = document.getElementById('print-sold-receipt');
@@ -4722,6 +4816,104 @@ OOO «MAJOR MOTORS SAM»</div>
         currentPrintTarget = null;
       }
     });
+
+    if (vehicleDetailModal) {
+      const modalTitle = document.getElementById('vehicleDetailModalLabel');
+      const modalSubtitle = document.getElementById('vehicleDetailSubtitle');
+      const modalImage = document.getElementById('vehicleDetailImage');
+      const modalImagePlaceholder = document.getElementById('vehicleDetailImagePlaceholder');
+      const modalPrice = document.getElementById('vehicleDetailPrice');
+      const modalStatus = document.getElementById('vehicleDetailStatus');
+      const modalCondition = document.getElementById('vehicleDetailCondition');
+      const modalColor = document.getElementById('vehicleDetailColor');
+      const modalTransmission = document.getElementById('vehicleDetailTransmission');
+      const modalEngine = document.getElementById('vehicleDetailEngine');
+      const modalSeats = document.getElementById('vehicleDetailSeats');
+      const modalMileage = document.getElementById('vehicleDetailMileage');
+      const modalDescription = document.getElementById('vehicleDetailDescription');
+
+      vehicleDetailModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        if (!button) {
+          return;
+        }
+        const make = button.dataset.vehicleMake || '';
+        const model = button.dataset.vehicleModel || '';
+        const vin = button.dataset.vehicleVin || '';
+        const vehicleName = button.dataset.vehicleName || '—';
+        const price = button.dataset.vehiclePrice || '—';
+        const currency = button.dataset.vehicleCurrency || '';
+        const status = button.dataset.vehicleStatus || '—';
+        const condition = button.dataset.vehicleCondition || '—';
+        const color = button.dataset.vehicleColor || '—';
+        const transmission = button.dataset.vehicleTransmission || '—';
+        const engine = button.dataset.vehicleEngine || '—';
+        const seats = button.dataset.vehicleSeats || '—';
+        const mileage = button.dataset.vehicleMileage || '—';
+        const description = button.dataset.vehicleDescription || '—';
+        const imageSrc = button.dataset.vehicleImage || '';
+
+        if (modalTitle) {
+          modalTitle.textContent = vehicleName;
+        }
+        if (modalSubtitle) {
+          const parts = [
+            [make, model].filter(Boolean).join(' '),
+            vin ? `VIN ${vin}` : '',
+          ].filter(Boolean);
+          modalSubtitle.textContent = parts.join(' · ') || '—';
+        }
+        if (modalPrice) {
+          modalPrice.textContent = `${formatNumber(price)} ${currency}`.trim() || '—';
+        }
+        if (modalStatus) {
+          modalStatus.textContent = status;
+        }
+        if (modalCondition) {
+          modalCondition.textContent = condition;
+        }
+        if (modalColor) {
+          modalColor.textContent = color;
+        }
+        if (modalTransmission) {
+          modalTransmission.textContent = transmission;
+        }
+        if (modalEngine) {
+          modalEngine.textContent = engine && engine !== '—' ? `${engine} л` : '—';
+        }
+        if (modalSeats) {
+          modalSeats.textContent = seats;
+        }
+        if (modalMileage) {
+          modalMileage.textContent = mileage && mileage !== '—' ? `${mileage} км` : '—';
+        }
+        if (modalDescription) {
+          modalDescription.textContent = description || '—';
+        }
+        if (modalImage && modalImagePlaceholder) {
+          if (imageSrc) {
+            modalImage.src = imageSrc;
+            modalImage.alt = vehicleName;
+            modalImage.classList.remove('d-none');
+            modalImagePlaceholder.classList.add('d-none');
+          } else {
+            modalImage.src = '';
+            modalImage.classList.add('d-none');
+            modalImagePlaceholder.classList.remove('d-none');
+          }
+        }
+      });
+
+      vehicleDetailModal.addEventListener('hidden.bs.modal', () => {
+        if (modalImage) {
+          modalImage.src = '';
+          modalImage.classList.add('d-none');
+        }
+        if (modalImagePlaceholder) {
+          modalImagePlaceholder.classList.remove('d-none');
+        }
+      });
+    }
 
     if (vehiclePhotoModal) {
       const modalImage = document.getElementById('vehiclePhotoModalImage');
