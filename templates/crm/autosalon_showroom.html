@@ -1329,8 +1329,27 @@
               <h3 class="h6 mb-3">Параметры кредита</h3>
               <div class="vstack gap-3">
                 <div>
+                  <label class="form-label" for="credit-employee">Сотрудник из базы (опционально)</label>
+                  <select
+                    class="form-select"
+                    id="credit-employee"
+                    data-employee-select
+                    data-employee-value="id"
+                  >
+                    <option value="">Выберите сотрудника</option>
+                  </select>
+                  <div class="form-text">Можно выбрать сотрудника из базы или заполнить поля вручную.</div>
+                </div>
+                <div>
                   <label class="form-label" for="credit-customer-name">Фамилия Имя</label>
-                  <input type="text" class="form-control" id="credit-customer-name" placeholder="Например, Иванов Иван">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="credit-customer-name"
+                    list="credit-employee-datalist"
+                    placeholder="Например, Иванов Иван"
+                  >
+                  <datalist id="credit-employee-datalist"></datalist>
                 </div>
                 <div>
                   <label class="form-label" for="credit-customer-phone">Номер телефона</label>
@@ -2935,6 +2954,8 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditCurrencyLabel = document.getElementById('credit-currency-label');
     const creditCustomerNameInput = document.getElementById('credit-customer-name');
     const creditCustomerPhoneInput = document.getElementById('credit-customer-phone');
+    const creditEmployeeSelect = document.getElementById('credit-employee');
+    const creditEmployeeDatalist = document.getElementById('credit-employee-datalist');
     const creditDownPaymentType = document.getElementById('credit-down-payment-type');
     const creditDownPaymentValue = document.getElementById('credit-down-payment-value');
     const creditDownPaymentSuffix = document.getElementById('credit-down-payment-suffix');
@@ -3995,26 +4016,28 @@ OOO «MAJOR MOTORS SAM»</div>
         }))
         .filter((employee) => employee.name);
       employeeSelects.forEach((select) => {
+        const optionValueMode = select.dataset.employeeValue || 'name';
         const fallbackName = select.dataset.employeeFallback || '';
         const existingValues = new Set(
           Array.from(select.options).map((option) => option.value),
         );
-        if (fallbackName && !existingValues.has(fallbackName)) {
+        if (optionValueMode === 'name' && fallbackName && !existingValues.has(fallbackName)) {
           const fallbackOption = document.createElement('option');
           fallbackOption.value = fallbackName;
           fallbackOption.textContent = `${fallbackName} (текущий пользователь)`;
           select.appendChild(fallbackOption);
         }
         options.forEach((employee) => {
-          if (existingValues.has(employee.name)) {
+          const optionValue = optionValueMode === 'id' ? String(employee.id) : employee.name;
+          if (existingValues.has(optionValue)) {
             return;
           }
           const option = document.createElement('option');
-          option.value = employee.name;
+          option.value = optionValue;
           option.textContent = employee.name;
           select.appendChild(option);
         });
-        if (fallbackName && select.value === '') {
+        if (optionValueMode === 'name' && fallbackName && select.value === '') {
           select.value = fallbackName;
         }
       });
@@ -4022,6 +4045,84 @@ OOO «MAJOR MOTORS SAM»</div>
 
     populateEmployeeSelects();
     updateCreditDownPaymentUI();
+
+    const buildEmployeeLookup = () => {
+      const employees = loadItems(EMPLOYEES_KEY);
+      const lookup = new Map();
+      employees.forEach((employee) => {
+        const displayName = getEmployeeDisplayName(employee);
+        if (!displayName) {
+          return;
+        }
+        lookup.set(displayName.toLowerCase(), employee);
+      });
+      return lookup;
+    };
+
+    const populateCreditEmployeeDatalist = () => {
+      if (!creditEmployeeDatalist) {
+        return;
+      }
+      const employees = loadItems(EMPLOYEES_KEY);
+      const usedNames = new Set();
+      creditEmployeeDatalist.innerHTML = '';
+      employees.forEach((employee) => {
+        const displayName = getEmployeeDisplayName(employee);
+        if (!displayName || usedNames.has(displayName)) {
+          return;
+        }
+        usedNames.add(displayName);
+        const option = document.createElement('option');
+        option.value = displayName;
+        creditEmployeeDatalist.appendChild(option);
+      });
+    };
+
+    populateCreditEmployeeDatalist();
+
+    let creditEmployeeLookup = buildEmployeeLookup();
+
+    const applyCreditEmployeeSelection = () => {
+      if (!creditEmployeeSelect) {
+        return;
+      }
+      const selectedId = creditEmployeeSelect.value;
+      if (!selectedId) {
+        return;
+      }
+      const employees = loadItems(EMPLOYEES_KEY);
+      const selectedEmployee = employees.find((employee) => String(employee.id) === String(selectedId));
+      if (!selectedEmployee) {
+        return;
+      }
+      const fullName = getEmployeeDisplayName(selectedEmployee);
+      if (creditCustomerNameInput && fullName) {
+        creditCustomerNameInput.value = fullName;
+      }
+      if (creditCustomerPhoneInput) {
+        creditCustomerPhoneInput.value = selectedEmployee.phonePrimary || selectedEmployee.phoneSecondary || '';
+      }
+      updateCreditPrintTable();
+    };
+
+    if (creditEmployeeSelect) {
+      creditEmployeeSelect.addEventListener('change', applyCreditEmployeeSelection);
+    }
+
+    if (creditCustomerNameInput) {
+      creditCustomerNameInput.addEventListener('input', () => {
+        creditEmployeeLookup = creditEmployeeLookup.size ? creditEmployeeLookup : buildEmployeeLookup();
+        const nameValue = creditCustomerNameInput.value.trim().toLowerCase();
+        const matchedEmployee = creditEmployeeLookup.get(nameValue);
+        if (!matchedEmployee) {
+          return;
+        }
+        if (creditCustomerPhoneInput) {
+          creditCustomerPhoneInput.value = matchedEmployee.phonePrimary || matchedEmployee.phoneSecondary || '';
+        }
+        updateCreditPrintTable();
+      });
+    }
 
     if (creditTabButton && typeof bootstrap !== 'undefined') {
       const creditTab = bootstrap.Tab.getOrCreateInstance(creditTabButton);
