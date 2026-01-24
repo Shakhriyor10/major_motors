@@ -1109,7 +1109,9 @@
                     <div class="showroom-price">
                       <div class="label">Цена</div>
                       <div class="value">
-                        {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                        <span data-showroom-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
+                          {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                        </span>
                         {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
                       </div>
                     </div>
@@ -3108,6 +3110,15 @@ OOO «MAJOR MOTORS SAM»</div>
     let currentCreditCurrencyLabel = 'UZS';
     const formatNumberString = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const formatNumber = (value) => formatNumberString(value);
+    const formatShowroomPrices = () => {
+      document.querySelectorAll('[data-showroom-price]').forEach((priceElement) => {
+        const rawValue = priceElement.dataset.showroomPrice;
+        if (!rawValue) {
+          return;
+        }
+        priceElement.textContent = formatNumberString(`${rawValue}`.replace(/\s+/g, ''));
+      });
+    };
     const parseNumber = (value) => {
       if (value === null || value === undefined) {
         return 0;
@@ -3122,6 +3133,8 @@ OOO «MAJOR MOTORS SAM»</div>
       const formatted = formatNumber(safeValue.toFixed(2));
       return `${formatted} ${currencyLabel}`.trim();
     };
+
+    formatShowroomPrices();
 
     const formatAttorneyDate = (value) => {
       if (!value) {
