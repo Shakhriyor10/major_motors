@@ -957,8 +957,7 @@
             <td>
               <b>{{ receipt.vehicle.name }}</b><br>
               <span style="color:#666; font-size:12px;">
-                {{ receipt.vehicle.make }} · {{ receipt.vehicle.model }} · VIN {{ receipt.vehicle.vin }} ·
-                {{ receipt.vehicle.get_condition_display }}
+                {{ receipt.vehicle.make }} · {{ receipt.vehicle.model }} · {{ receipt.vehicle.get_condition_display }}
                 {% if receipt.vehicle.condition == 'used' %}
                   · Пробег {{ receipt.vehicle.mileage|default:"—" }} км
                 {% endif %}
@@ -1104,7 +1103,7 @@
                   <div class="d-flex justify-content-between flex-wrap gap-2">
                     <div>
                       <div class="showroom-title">{{ vehicle.name }}</div>
-                      <div class="showroom-subtitle">{{ vehicle.make }} · {{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
+                      <div class="showroom-subtitle">{{ vehicle.make }} · {{ vehicle.model }}</div>
                     </div>
                     <div class="showroom-price">
                       <div class="label">Цена</div>
@@ -1196,7 +1195,6 @@
                         data-vehicle-name="{{ vehicle.name }}"
                         data-vehicle-make="{{ vehicle.make }}"
                         data-vehicle-model="{{ vehicle.model }}"
-                        data-vehicle-vin="{{ vehicle.vin }}"
                         data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                         data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
                         data-vehicle-status="{{ vehicle.get_status_display }}"
@@ -1676,7 +1674,7 @@ OOO «MAJOR MOTORS SAM»</textarea>
                 <div class="form-text">Заполните, если хотите вставить собственный текст целиком.</div>
               </div>
               <div>
-                <label class="form-label" for="attorney-vehicle-name">Имя машины (Vin Code)</label>
+                <label class="form-label" for="attorney-vehicle-name">Имя машины</label>
                 <input type="text" class="form-control" id="attorney-vehicle-name" name="attorney_vehicle_name" placeholder="Например, Chevrolet Onix">
               </div>
               <div class="row g-2">
@@ -2017,14 +2015,14 @@ OOO «MAJOR MOTORS SAM»</div>
         <div class="card-body">
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="flex-grow-1">
-              <label class="form-label">Поиск по машине, клиенту или VIN</label>
+              <label class="form-label">Поиск по машине или клиенту</label>
               <div class="input-group input-group-lg">
                 <span class="input-group-text">🔍</span>
                 <input
                   type="text"
                   id="soldSearch"
                   class="form-control"
-                  placeholder="Например, Chevrolet, Иванов или VIN"
+                  placeholder="Например, Chevrolet или Иванов"
                   autocomplete="off"
                 />
               </div>
@@ -2056,7 +2054,6 @@ OOO «MAJOR MOTORS SAM»</div>
                   <th>Клиент</th>
                   <th>Тип оплаты</th>
                   <th>Сумма</th>
-                  <th>VIN</th>
                   <th>Сотрудник</th>
                   <th>
                     <button type="button" class="btn btn-link p-0 fw-semibold text-decoration-none" data-sold-sort-key="date">
@@ -2070,7 +2067,7 @@ OOO «MAJOR MOTORS SAM»</div>
               <tbody id="soldTableBody">
                 {% for deal in sold_deals %}
                   <tr
-                    data-search-text="{{ deal.vehicle.name|lower }} {{ deal.customer.full_name|lower }} {{ deal.vehicle.vin|lower }} {% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username|lower }}{% elif deal.sold_by_name %}{{ deal.sold_by_name|lower }}{% endif %}"
+                    data-search-text="{{ deal.vehicle.name|lower }} {{ deal.customer.full_name|lower }} {% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username|lower }}{% elif deal.sold_by_name %}{{ deal.sold_by_name|lower }}{% endif %}"
                     data-sort-vehicle="{{ deal.vehicle.name|lower }}"
                     data-sort-date="{{ deal.signed_at|date:'c' }}"
                   >
@@ -2101,7 +2098,6 @@ OOO «MAJOR MOTORS SAM»</div>
                       {{ deal.sale_price }}
                       {{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}
                     </td>
-                    <td>{{ deal.vehicle.vin }}</td>
                     <td>
                       {% if deal.manager %}
                         {{ deal.manager.get_full_name|default:deal.manager.username }}
@@ -2130,7 +2126,6 @@ OOO «MAJOR MOTORS SAM»</div>
                           data-vehicle-name="{{ deal.vehicle.name }}"
                           data-vehicle-make="{{ deal.vehicle.make }}"
                           data-vehicle-model="{{ deal.vehicle.model }}"
-                          data-vehicle-vin="{{ deal.vehicle.vin }}"
                           data-vehicle-condition="{{ deal.vehicle.get_condition_display }}"
                           data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
                           data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
@@ -2161,7 +2156,6 @@ OOO «MAJOR MOTORS SAM»</div>
                           data-vehicle-name="{{ deal.vehicle.name }}"
                           data-vehicle-make="{{ deal.vehicle.make }}"
                           data-vehicle-model="{{ deal.vehicle.model }}"
-                          data-vehicle-vin="{{ deal.vehicle.vin }}"
                           data-vehicle-condition="{{ deal.vehicle.get_condition_display }}"
                           data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
                           data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
@@ -2400,10 +2394,6 @@ OOO «MAJOR MOTORS SAM»</div>
                   <div class="col-12 col-md-6">
                     <div class="small text-muted">Марка / модель</div>
                     <div id="soldDealVehicleMakeModel">—</div>
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <div class="small text-muted">VIN</div>
-                    <div id="soldDealVehicleVin">—</div>
                   </div>
                   <div class="col-12 col-md-6">
                     <div class="small text-muted">Состояние</div>
@@ -4847,7 +4837,6 @@ OOO «MAJOR MOTORS SAM»</div>
         const vehicleModel = button.dataset.vehicleModel || '';
         const vehicleInfo = `${vehicleMake} · ${vehicleModel}`.trim();
         const vehicleName = button.dataset.vehicleName || '—';
-        const vehicleVin = button.dataset.vehicleVin || '—';
         const vehicleCondition = button.dataset.vehicleCondition || '—';
         const vehicleMileage = button.dataset.vehicleMileage || '—';
         const vehicleColor = button.dataset.vehicleColor || '—';
@@ -4883,7 +4872,6 @@ OOO «MAJOR MOTORS SAM»</div>
           itemsBody.innerHTML = '';
           const baseDescParts = [
             vehicleInfo,
-            `VIN ${vehicleVin}`,
             vehicleCondition,
             vehicleMileage !== '—' ? `Пробег ${vehicleMileage} км` : null,
             vehicleColor !== '—' ? `Цвет ${vehicleColor}` : null,
@@ -4963,7 +4951,6 @@ OOO «MAJOR MOTORS SAM»</div>
           'soldDealVehicleMakeModel',
           [button.dataset.vehicleMake, button.dataset.vehicleModel].filter(Boolean).join(' · ') || '—',
         );
-        setText('soldDealVehicleVin', button.dataset.vehicleVin);
         setText('soldDealVehicleCondition', button.dataset.vehicleCondition);
         const vehicleMileage = button.dataset.vehicleMileage;
         const vehicleEngine = button.dataset.vehicleEngine;
@@ -5036,7 +5023,6 @@ OOO «MAJOR MOTORS SAM»</div>
         }
         const make = button.dataset.vehicleMake || '';
         const model = button.dataset.vehicleModel || '';
-        const vin = button.dataset.vehicleVin || '';
         const vehicleName = button.dataset.vehicleName || '—';
         const price = button.dataset.vehiclePrice || '—';
         const currency = button.dataset.vehicleCurrency || '';
@@ -5057,7 +5043,6 @@ OOO «MAJOR MOTORS SAM»</div>
         if (modalSubtitle) {
           const parts = [
             [make, model].filter(Boolean).join(' '),
-            vin ? `VIN ${vin}` : '',
           ].filter(Boolean);
           modalSubtitle.textContent = parts.join(' · ') || '—';
         }
