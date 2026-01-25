@@ -36,16 +36,8 @@
             <input id="name" name="name" type="text" class="form-control" required>
           </div>
           <div class="col-12 col-md-6 col-lg-4">
-            <label for="make" class="form-label">Марка</label>
-            <input id="make" name="make" type="text" class="form-control" required>
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
             <label for="model" class="form-label">Модель</label>
             <input id="model" name="model" type="text" class="form-control" required>
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="vin" class="form-label">VIN-код</label>
-            <input id="vin" name="vin" type="text" class="form-control" required>
           </div>
           <div class="col-12">
             <label for="description" class="form-label">Описание</label>
@@ -206,7 +198,7 @@
                   {% elif vehicle.engine_type == 'electric' %}
                     Электрический
                   {% elif vehicle.engine_volume %}
-                    {{ vehicle.engine_volume }} л
+                    {{ vehicle.engine_volume }} л{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}
                   {% else %}
                     —
                   {% endif %}
@@ -273,16 +265,8 @@
                       <input id="edit-name-{{ vehicle.id }}" name="name" type="text" class="form-control" value="{{ vehicle.name }}">
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-make-{{ vehicle.id }}">Марка</label>
-                      <input id="edit-make-{{ vehicle.id }}" name="make" type="text" class="form-control" value="{{ vehicle.make }}">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-model-{{ vehicle.id }}">Модель</label>
                       <input id="edit-model-{{ vehicle.id }}" name="model" type="text" class="form-control" value="{{ vehicle.model }}">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <label class="form-label" for="edit-vin-{{ vehicle.id }}">VIN-код</label>
-                      <input id="edit-vin-{{ vehicle.id }}" name="vin" type="text" class="form-control" value="{{ vehicle.vin }}">
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-year-{{ vehicle.id }}">Год выпуска</label>

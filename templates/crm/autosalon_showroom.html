@@ -1145,10 +1145,6 @@
                   </div>
                   <div class="showroom-attributes text-muted small">
                     <div class="showroom-attribute">
-                      <strong>Цвет</strong>
-                      {{ vehicle.color|default:"—" }}
-                    </div>
-                    <div class="showroom-attribute">
                       <strong>КПП</strong>
                       {{ vehicle.get_transmission_display|default:"—" }}
                     </div>
@@ -1159,7 +1155,7 @@
                       {% elif vehicle.engine_type == 'electric' %}
                         Электрический
                       {% elif vehicle.engine_volume %}
-                        {{ vehicle.engine_volume }} л
+                        {{ vehicle.engine_volume }} л{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}
                       {% else %}
                         —
                       {% endif %}
@@ -1205,9 +1201,8 @@
                         data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
                         data-vehicle-status="{{ vehicle.get_status_display }}"
                         data-vehicle-condition="{{ vehicle.get_condition_display }}"
-                        data-vehicle-color="{{ vehicle.color|default:'—' }}"
                         data-vehicle-transmission="{{ vehicle.get_transmission_display|default:'—' }}"
-                        data-vehicle-engine="{% if vehicle.engine_type == 'hybrid' %}{% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} л{% else %}Гибрид{% endif %}{% elif vehicle.engine_type == 'electric' %}Электрический{% elif vehicle.engine_volume %}{{ vehicle.engine_volume }} л{% else %}—{% endif %}"
+                        data-vehicle-engine="{% if vehicle.engine_type == 'hybrid' %}{% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} л{% else %}Гибрид{% endif %}{% elif vehicle.engine_type == 'electric' %}Электрический{% elif vehicle.engine_volume %}{{ vehicle.engine_volume }} л{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}{% else %}—{% endif %}"
                         data-vehicle-seats="{{ vehicle.seat_count|default:'—' }}"
                         data-vehicle-mileage="{{ vehicle.mileage|default:'—' }}"
                         data-vehicle-consumption="{% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}"
@@ -2140,7 +2135,7 @@ OOO «MAJOR MOTORS SAM»</div>
                           data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
                           data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
                           data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
-                          data-vehicle-engine="{% if deal.vehicle.engine_type == 'hybrid' %}{% if deal.vehicle.engine_volume %}Гибрид, {{ deal.vehicle.engine_volume }} л{% else %}Гибрид{% endif %}{% elif deal.vehicle.engine_type == 'electric' %}Электрический{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} л{% else %}—{% endif %}"
+                          data-vehicle-engine="{% if deal.vehicle.engine_type == 'hybrid' %}{% if deal.vehicle.engine_volume %}Гибрид, {{ deal.vehicle.engine_volume }} л{% else %}Гибрид{% endif %}{% elif deal.vehicle.engine_type == 'electric' %}Электрический{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} л{% if "турб" in deal.vehicle.description|default:""|lower or "турб" in deal.vehicle.name|default:""|lower %} турбо{% endif %}{% else %}—{% endif %}"
                           data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
                           data-sale-price="{{ deal.sale_price }}"
                           data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
@@ -2171,7 +2166,7 @@ OOO «MAJOR MOTORS SAM»</div>
                           data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
                           data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
                           data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
-                          data-vehicle-engine="{% if deal.vehicle.engine_type == 'hybrid' %}{% if deal.vehicle.engine_volume %}Гибрид, {{ deal.vehicle.engine_volume }} л{% else %}Гибрид{% endif %}{% elif deal.vehicle.engine_type == 'electric' %}Электрический{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} л{% else %}—{% endif %}"
+                          data-vehicle-engine="{% if deal.vehicle.engine_type == 'hybrid' %}{% if deal.vehicle.engine_volume %}Гибрид, {{ deal.vehicle.engine_volume }} л{% else %}Гибрид{% endif %}{% elif deal.vehicle.engine_type == 'electric' %}Электрический{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} л{% if "турб" in deal.vehicle.description|default:""|lower or "турб" in deal.vehicle.name|default:""|lower %} турбо{% endif %}{% else %}—{% endif %}"
                           data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
                           data-sale-price="{{ deal.sale_price }}"
                           data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
@@ -2809,10 +2804,6 @@ OOO «MAJOR MOTORS SAM»</div>
             </div>
             <div class="col-12 col-lg-7">
               <div class="vehicle-detail-specs">
-                <div class="spec-item d-flex justify-content-between align-items-center">
-                  <div class="text-muted small">Цвет</div>
-                  <div class="fw-semibold" id="vehicleDetailColor">—</div>
-                </div>
                 <div class="spec-item d-flex justify-content-between align-items-center">
                   <div class="text-muted small">КПП</div>
                   <div class="fw-semibold" id="vehicleDetailTransmission">—</div>
@@ -5030,7 +5021,6 @@ OOO «MAJOR MOTORS SAM»</div>
       const modalPrice = document.getElementById('vehicleDetailPrice');
       const modalStatus = document.getElementById('vehicleDetailStatus');
       const modalCondition = document.getElementById('vehicleDetailCondition');
-      const modalColor = document.getElementById('vehicleDetailColor');
       const modalTransmission = document.getElementById('vehicleDetailTransmission');
       const modalEngine = document.getElementById('vehicleDetailEngine');
       const modalConsumption = document.getElementById('vehicleDetailConsumption');
@@ -5052,7 +5042,6 @@ OOO «MAJOR MOTORS SAM»</div>
         const currency = button.dataset.vehicleCurrency || '';
         const status = button.dataset.vehicleStatus || '—';
         const condition = button.dataset.vehicleCondition || '—';
-        const color = button.dataset.vehicleColor || '—';
         const transmission = button.dataset.vehicleTransmission || '—';
         const engine = button.dataset.vehicleEngine || '—';
         const seats = button.dataset.vehicleSeats || '—';
@@ -5080,9 +5069,6 @@ OOO «MAJOR MOTORS SAM»</div>
         }
         if (modalCondition) {
           modalCondition.textContent = condition;
-        }
-        if (modalColor) {
-          modalColor.textContent = color;
         }
         if (modalTransmission) {
           modalTransmission.textContent = transmission;
