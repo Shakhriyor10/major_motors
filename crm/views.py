@@ -363,8 +363,10 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
         update_fields.append('purchase_price')
     vehicle.purchase_currency = Vehicle.Currency.UZS
     update_fields.append('purchase_currency')
-    vehicle.sale_price = to_decimal(request.POST.get('sale_price'))
-    update_fields.append('sale_price')
+    sale_price_value = request.POST.get('sale_price')
+    if sale_price_value not in (None, ''):
+        vehicle.sale_price = to_decimal(sale_price_value)
+        update_fields.append('sale_price')
     vehicle.sale_currency = Vehicle.Currency.UZS
     update_fields.append('sale_currency')
     vehicle.stock_count = to_int(request.POST.get('stock_count')) or 1
@@ -407,6 +409,10 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
     vehicle.save(update_fields=update_fields)
     selected_options = request.POST.getlist('options')
     vehicle.options.set(options_qs.filter(id__in=selected_options))
+
+    delete_photo_ids = request.POST.getlist('delete_photos')
+    if delete_photo_ids:
+        VehicleMedia.objects.filter(vehicle=vehicle, id__in=delete_photo_ids).delete()
 
     for photo in request.FILES.getlist('photos'):
         vehicle.media.create(
