@@ -263,6 +263,7 @@ def _create_vehicle_from_form(request, options_qs):
         name=name,
         make=make,
         model=model,
+        year=to_int(request.POST.get('year')),
         color=request.POST.get('color', '').strip(),
         body_type=request.POST.get('body_type', '').strip(),
         purchase_price=to_decimal(request.POST.get('purchase_price')) or Decimal('0'),
