@@ -1144,6 +1144,10 @@
                   </div>
                   <div class="showroom-attributes text-muted small">
                     <div class="showroom-attribute">
+                      <strong>VIN</strong>
+                      {{ vehicle.vin|default:"—" }}
+                    </div>
+                    <div class="showroom-attribute">
                       <strong>КПП</strong>
                       {{ vehicle.get_transmission_display|default:"—" }}
                     </div>
