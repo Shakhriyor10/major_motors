@@ -353,9 +353,11 @@ class Vehicle(TimeStampedModel):
     make = models.CharField(max_length=128)
     model = models.CharField(max_length=128)
     year = models.PositiveIntegerField(null=True, blank=True)
+    model_year = models.PositiveIntegerField(null=True, blank=True)
     mileage = models.PositiveIntegerField(null=True, blank=True)
     color = models.CharField(max_length=64, blank=True)
     body_type = models.CharField(max_length=128, blank=True)
+    engine_number = models.CharField(max_length=128, blank=True)
     purchase_price = models.DecimalField(max_digits=12, decimal_places=2)
     purchase_currency = models.CharField(
         max_length=8,
@@ -371,7 +373,7 @@ class Vehicle(TimeStampedModel):
     stock_count = models.PositiveIntegerField(default=1)
     seat_count = models.PositiveIntegerField(null=True, blank=True)
     engine_type = models.CharField(max_length=32, choices=EngineType.choices, default=EngineType.GASOLINE)
-    engine_volume = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    engine_volume = models.PositiveIntegerField(null=True, blank=True)
     horsepower = models.PositiveIntegerField(null=True, blank=True)
     transmission = models.CharField(max_length=32, choices=Transmission.choices, blank=True)
     fuel_consumption = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
@@ -379,6 +381,7 @@ class Vehicle(TimeStampedModel):
     condition = models.CharField(max_length=32, choices=Condition.choices, default=Condition.NEW)
     country = models.CharField(max_length=128, blank=True)
     trim_level = models.CharField(max_length=32, choices=TrimLevel.choices, default=TrimLevel.STANDARD)
+    gross_weight = models.PositiveIntegerField(null=True, blank=True)
     description = models.TextField(blank=True)
     options = models.ManyToManyField(VehicleOption, related_name='vehicles', blank=True)
     status = models.CharField(max_length=32, choices=VehicleStatus.choices, default=VehicleStatus.FOR_SALE)
