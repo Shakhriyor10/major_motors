@@ -272,7 +272,7 @@ def _create_vehicle_from_form(request, options_qs):
         stock_count=to_int(request.POST.get('stock_count')) or 1,
         seat_count=to_int(request.POST.get('seat_count')),
         engine_type=request.POST.get('engine_type') or Vehicle.EngineType.GASOLINE,
-        engine_volume=to_decimal(request.POST.get('engine_volume')),
+        engine_volume=to_int(request.POST.get('engine_volume')),
         horsepower=to_int(request.POST.get('horsepower')),
         transmission=request.POST.get('transmission', ''),
         fuel_consumption=to_decimal(request.POST.get('fuel_consumption')),
@@ -280,15 +280,14 @@ def _create_vehicle_from_form(request, options_qs):
         condition=request.POST.get('condition') or Vehicle.Condition.NEW,
         mileage=to_int(request.POST.get('mileage')),
         country=request.POST.get('country', '').strip(),
-        trim_level=request.POST.get('trim_level') or Vehicle.TrimLevel.STANDARD,
+        model_year=to_int(request.POST.get('model_year')),
+        engine_number=request.POST.get('engine_number', '').strip(),
+        gross_weight=to_int(request.POST.get('gross_weight')),
         description=request.POST.get('description', '').strip(),
         status=request.POST.get('status') or Vehicle.VehicleStatus.FOR_SALE,
         acquisition_type=request.POST.get('acquisition_type') or Vehicle.AcquisitionType.PURCHASE,
         counterparty_name=request.POST.get('counterparty_name', '').strip(),
     )
-    selected_options = request.POST.getlist('options')
-    if selected_options:
-        vehicle.options.set(options_qs.filter(id__in=selected_options))
 
     for photo in request.FILES.getlist('photos'):
         vehicle.media.create(
@@ -375,7 +374,7 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
     update_fields.append('seat_count')
     vehicle.engine_type = request.POST.get('engine_type') or Vehicle.EngineType.GASOLINE
     update_fields.append('engine_type')
-    vehicle.engine_volume = to_decimal(request.POST.get('engine_volume'))
+    vehicle.engine_volume = to_int(request.POST.get('engine_volume'))
     update_fields.append('engine_volume')
     vehicle.horsepower = to_int(request.POST.get('horsepower'))
     update_fields.append('horsepower')
@@ -389,8 +388,12 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
     update_fields.append('condition')
     vehicle.country = request.POST.get('country', '').strip()
     update_fields.append('country')
-    vehicle.trim_level = request.POST.get('trim_level') or Vehicle.TrimLevel.STANDARD
-    update_fields.append('trim_level')
+    vehicle.model_year = to_int(request.POST.get('model_year'))
+    update_fields.append('model_year')
+    vehicle.engine_number = request.POST.get('engine_number', '').strip()
+    update_fields.append('engine_number')
+    vehicle.gross_weight = to_int(request.POST.get('gross_weight'))
+    update_fields.append('gross_weight')
     vehicle.description = request.POST.get('description', '').strip()
     update_fields.append('description')
     vehicle.status = request.POST.get('status') or Vehicle.VehicleStatus.FOR_SALE
@@ -407,9 +410,6 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
     update_fields.append('notes')
 
     vehicle.save(update_fields=update_fields)
-    selected_options = request.POST.getlist('options')
-    vehicle.options.set(options_qs.filter(id__in=selected_options))
-
     delete_photo_ids = request.POST.getlist('delete_photos')
     if delete_photo_ids:
         VehicleMedia.objects.filter(vehicle=vehicle, id__in=delete_photo_ids).delete()
