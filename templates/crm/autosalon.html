@@ -17,155 +17,231 @@
   </div>
 
   <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <form method="post" enctype="multipart/form-data" class="vstack gap-4">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="create_vehicle">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <div>
-            <h2 class="h4 mb-1">Новый автомобиль</h2>
-            <p class="text-muted mb-0">Заполните основные параметры авто, чтобы оно появилось в списке.</p>
+    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h2 class="h4 mb-1">Добавление автомобиля</h2>
+        <p class="text-muted mb-0">Форма скрыта по умолчанию — откройте её, когда нужно внести новый автомобиль.</p>
+      </div>
+      <button
+        class="btn btn-primary"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#inventoryCreateForm"
+        aria-expanded="false"
+        aria-controls="inventoryCreateForm"
+        id="inventoryCreateToggle"
+      >
+        + Добавить автомобиль
+      </button>
+    </div>
+    <div class="collapse" id="inventoryCreateForm">
+      <div class="card-body border-top">
+        <form method="post" enctype="multipart/form-data" class="vstack gap-4">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_vehicle">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <h3 class="h5 mb-1">Новый автомобиль</h3>
+              <p class="text-muted mb-0">Заполните основные параметры авто, чтобы оно появилось в списке.</p>
+            </div>
+            <span class="badge rounded-pill text-bg-light text-dark">Обязательные поля отмечены</span>
           </div>
-          <span class="badge rounded-pill text-bg-light text-dark">Обязательные поля отмечены</span>
-        </div>
 
-        <div class="row g-3">
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="name" class="form-label">Название машины</label>
-            <input id="name" name="name" type="text" class="form-control" required>
+          <div class="row g-3">
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="name" class="form-label">Название машины</label>
+              <input id="name" name="name" type="text" class="form-control" required>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="model" class="form-label">Модель</label>
+              <input id="model" name="model" type="text" class="form-control" required>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="year" class="form-label">Год выпуска</label>
+              <input id="year" name="year" type="number" min="1900" step="1" class="form-control" placeholder="Например: 2020">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="vin" class="form-label">VIN code (номер кузова)</label>
+              <input id="vin" name="vin" type="text" class="form-control" placeholder="Например: XTA00000000000000">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="engine_number" class="form-label">Номер двигателя</label>
+              <input id="engine_number" name="engine_number" type="text" class="form-control" placeholder="Например: ENG987654">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="model_year" class="form-label">Модельный год</label>
+              <input id="model_year" name="model_year" type="number" min="1900" step="1" class="form-control" placeholder="Например: 2024">
+            </div>
+            <div class="col-12">
+              <label for="description" class="form-label">Описание</label>
+              <textarea id="description" name="description" rows="3" class="form-control" placeholder="Например: полный сервис, один владелец, расширенная гарантия."></textarea>
+            </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="model" class="form-label">Модель</label>
-            <input id="model" name="model" type="text" class="form-control" required>
+
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="h5 mb-0">Характеристики и цены</h3>
+            <span class="text-muted small">Стоимость, двигатель, состояние</span>
           </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="year" class="form-label">Год выпуска</label>
-            <input id="year" name="year" type="number" min="1900" step="1" class="form-control" placeholder="Например: 2020">
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="color" class="form-label">Цвет</label>
+              <input id="color" name="color" type="text" class="form-control">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="body_type" class="form-label">Тип кузова</label>
+              <input id="body_type" name="body_type" type="text" class="form-control">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="sale_price" class="form-label">Цена</label>
+              <input id="sale_price" name="sale_price" type="number" min="0" step="0.01" class="form-control" required>
+              <div class="form-text">Укажите сумму в сумах.</div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="seat_count" class="form-label">Количество посадочных мест</label>
+              <input id="seat_count" name="seat_count" type="number" min="1" step="1" class="form-control" placeholder="Например: 5">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="engine_type" class="form-label">Тип двигателя</label>
+              <select id="engine_type" name="engine_type" class="form-select">
+                <option value="gasoline">Бензин</option>
+                <option value="diesel">Дизель</option>
+                <option value="hybrid">Гибрид</option>
+                <option value="electric">Электро</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="engine_volume" class="form-label">Объём двигателя (см3)</label>
+              <input id="engine_volume" name="engine_volume" type="number" min="0" step="1" class="form-control">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="horsepower" class="form-label">Мощность (л.с.)</label>
+              <input id="horsepower" name="horsepower" type="number" min="0" step="1" class="form-control">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="transmission" class="form-label">Коробка передач</label>
+              <select id="transmission" name="transmission" class="form-select">
+                <option value="">—</option>
+                <option value="automatic">Автомат</option>
+                <option value="manual">Механика</option>
+                <option value="robot">Робот</option>
+                <option value="cvt">Вариатор</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="fuel_consumption" class="form-label">Расход топлива (л/100км)</label>
+              <input id="fuel_consumption" name="fuel_consumption" type="number" min="0" step="0.1" class="form-control">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="range_km" class="form-label">Запас хода (км)</label>
+              <input id="range_km" name="range_km" type="number" min="0" step="1" class="form-control">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="condition" class="form-label">Состояние</label>
+              <select id="condition" name="condition" class="form-select js-condition-select" data-target="mileage-field-create">
+                <option value="new">Новая</option>
+                <option value="used">С пробегом</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4 d-none" id="mileage-field-create">
+              <label for="mileage" class="form-label">Пробег (км)</label>
+              <input id="mileage" name="mileage" type="number" min="0" step="1" class="form-control" placeholder="Например: 45000">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="country" class="form-label">Страна производства</label>
+              <input id="country" name="country" type="text" class="form-control">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="gross_weight" class="form-label">Полная масса (кг)</label>
+              <input id="gross_weight" name="gross_weight" type="number" min="0" step="1" class="form-control" placeholder="Необязательно">
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <label for="status" class="form-label">Статус</label>
+              <select id="status" name="status" class="form-select">
+                <option value="for_sale">В продаже</option>
+                <option value="sold">Продано</option>
+                <option value="reserved">Бронь</option>
+                <option value="inactive">Неактивный</option>
+              </select>
+            </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="vin" class="form-label">VIN code (номер кузова)</label>
-            <input id="vin" name="vin" type="text" class="form-control" placeholder="Например: XTA00000000000000">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="engine_number" class="form-label">Номер двигателя</label>
-            <input id="engine_number" name="engine_number" type="text" class="form-control" placeholder="Например: ENG987654">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="model_year" class="form-label">Модельный год</label>
-            <input id="model_year" name="model_year" type="number" min="1900" step="1" class="form-control" placeholder="Например: 2024">
-          </div>
+
           <div class="col-12">
-            <label for="description" class="form-label">Описание</label>
-            <textarea id="description" name="description" rows="3" class="form-control" placeholder="Например: полный сервис, один владелец, расширенная гарантия."></textarea>
+            <label for="photos" class="form-label">Фото (несколько)</label>
+            <input id="photos" name="photos" type="file" accept="image/*" multiple class="form-control">
           </div>
-        </div>
 
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <h3 class="h5 mb-0">Характеристики и цены</h3>
-          <span class="text-muted small">Стоимость, двигатель, состояние</span>
-        </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-primary" type="submit">Добавить в автосалон</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-        <div class="row g-3">
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="color" class="form-label">Цвет</label>
-            <input id="color" name="color" type="text" class="form-control">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="body_type" class="form-label">Тип кузова</label>
-            <input id="body_type" name="body_type" type="text" class="form-control">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="sale_price" class="form-label">Цена</label>
-            <input id="sale_price" name="sale_price" type="number" min="0" step="0.01" class="form-control" required>
-            <div class="form-text">Укажите сумму в сумах.</div>
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="seat_count" class="form-label">Количество посадочных мест</label>
-            <input id="seat_count" name="seat_count" type="number" min="1" step="1" class="form-control" placeholder="Например: 5">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="engine_type" class="form-label">Тип двигателя</label>
-            <select id="engine_type" name="engine_type" class="form-select">
-              <option value="gasoline">Бензин</option>
-              <option value="diesel">Дизель</option>
-              <option value="hybrid">Гибрид</option>
-              <option value="electric">Электро</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="engine_volume" class="form-label">Объём двигателя (см3)</label>
-            <input id="engine_volume" name="engine_volume" type="number" min="0" step="1" class="form-control">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="horsepower" class="form-label">Мощность (л.с.)</label>
-            <input id="horsepower" name="horsepower" type="number" min="0" step="1" class="form-control">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="transmission" class="form-label">Коробка передач</label>
-            <select id="transmission" name="transmission" class="form-select">
-              <option value="">—</option>
-              <option value="automatic">Автомат</option>
-              <option value="manual">Механика</option>
-              <option value="robot">Робот</option>
-              <option value="cvt">Вариатор</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="fuel_consumption" class="form-label">Расход топлива (л/100км)</label>
-            <input id="fuel_consumption" name="fuel_consumption" type="number" min="0" step="0.1" class="form-control">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="range_km" class="form-label">Запас хода (км)</label>
-            <input id="range_km" name="range_km" type="number" min="0" step="1" class="form-control">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="condition" class="form-label">Состояние</label>
-            <select id="condition" name="condition" class="form-select js-condition-select" data-target="mileage-field-create">
-              <option value="new">Новая</option>
-              <option value="used">С пробегом</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-6 col-lg-4 d-none" id="mileage-field-create">
-            <label for="mileage" class="form-label">Пробег (км)</label>
-            <input id="mileage" name="mileage" type="number" min="0" step="1" class="form-control" placeholder="Например: 45000">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="country" class="form-label">Страна производства</label>
-            <input id="country" name="country" type="text" class="form-control">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="gross_weight" class="form-label">Полная масса (кг)</label>
-            <input id="gross_weight" name="gross_weight" type="number" min="0" step="1" class="form-control" placeholder="Необязательно">
-          </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <label for="status" class="form-label">Статус</label>
-            <select id="status" name="status" class="form-select">
-              <option value="for_sale">В продаже</option>
-              <option value="sold">Продано</option>
-              <option value="reserved">Бронь</option>
-              <option value="inactive">Неактивный</option>
-            </select>
-          </div>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-4">
+          <label class="form-label" for="inventory-search">Поиск по авто</label>
+          <input
+            type="text"
+            id="inventory-search"
+            class="form-control"
+            placeholder="Марка, модель, VIN или описание"
+          >
         </div>
-
-        <div class="col-12">
-          <label for="photos" class="form-label">Фото (несколько)</label>
-          <input id="photos" name="photos" type="file" accept="image/*" multiple class="form-control">
+        <div class="col-12 col-md-4 col-lg-3">
+          <label class="form-label" for="inventory-model-filter">Фильтр по модели</label>
+          <select id="inventory-model-filter" class="form-select">
+            <option value="">Все модели</option>
+            {% for model_name in inventory_models %}
+              <option value="{{ model_name|lower }}">{{ model_name }}</option>
+            {% endfor %}
+          </select>
         </div>
-
-        <div class="d-flex justify-content-end gap-2">
-          <button class="btn btn-primary" type="submit">Добавить в автосалон</button>
+        <div class="col-12 col-md-4 col-lg-3">
+          <label class="form-label" for="inventory-status-filter">Статусы</label>
+          <select id="inventory-status-filter" class="form-select">
+            <option value="">Все</option>
+            <option value="active">Активные (в продаже/бронь)</option>
+            <option value="for_sale">В продаже</option>
+            <option value="reserved">Бронь</option>
+            <option value="sold">Проданные</option>
+            <option value="inactive">Неактивные</option>
+          </select>
         </div>
-      </form>
+        <div class="col-12 col-md-4 col-lg-2">
+          <label class="form-label" for="inventory-sort">Сортировка</label>
+          <select id="inventory-sort" class="form-select">
+            <option value="default">По умолчанию</option>
+            <option value="model-asc">Модель A → Z</option>
+            <option value="model-desc">Модель Z → A</option>
+          </select>
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+        <span class="text-muted small">По умолчанию проданные автомобили размещаются внизу списка.</span>
+        <span class="badge text-bg-dark" id="inventory-count">0</span>
+      </div>
     </div>
   </div>
 
   <div class="card shadow-sm">
     <div class="card-body">
-      <h2 class="h4">Автомобили в общем списке</h2>
-      <div class="vstack gap-3 mt-3">
+      <h2 class="h4 d-flex flex-wrap align-items-center gap-2">
+        Автомобили в общем списке
+      </h2>
+      <div class="vstack gap-3 mt-3" id="inventory-list">
         {% for vehicle in vehicles %}
-          <div class="card shadow-sm">
+          <div
+            class="card shadow-sm inventory-item"
+            data-inventory-item
+            data-order="{{ forloop.counter }}"
+            data-status="{{ vehicle.status }}"
+            data-model="{{ vehicle.model|default:''|lower }}"
+            data-search="{{ vehicle.name|default:'' }} {{ vehicle.make|default:'' }} {{ vehicle.model|default:'' }} {{ vehicle.vin|default:'' }} {{ vehicle.description|default:'' }}"
+          >
             <div class="card-body">
               <div class="d-flex justify-content-between flex-wrap gap-2">
                 <div>
@@ -177,7 +253,15 @@
                 </span>
               </div>
               <div class="d-flex flex-wrap gap-2 mt-2">
-                <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
+                {% if vehicle.status == 'sold' %}
+                  <span class="badge rounded-pill text-bg-secondary">Продано</span>
+                {% elif vehicle.status == 'reserved' %}
+                  <span class="badge rounded-pill text-bg-warning text-dark">Бронь</span>
+                {% elif vehicle.status == 'inactive' %}
+                  <span class="badge rounded-pill text-bg-dark">Неактивный</span>
+                {% else %}
+                  <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
+                {% endif %}
                 <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_engine_type_display }}</span>
                 <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
               </div>
@@ -403,6 +487,11 @@
         {% empty %}
           <p class="text-muted mb-0">Автомобили пока не добавлены.</p>
         {% endfor %}
+        {% if vehicles %}
+          <div id="inventory-empty" class="text-muted text-center py-4 d-none">
+            Нет автомобилей по выбранным фильтрам.
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -411,6 +500,16 @@
 {% block extra_scripts %}
   <script>
     const conditionSelects = document.querySelectorAll('.js-condition-select');
+    const inventoryList = document.getElementById('inventory-list');
+    const inventoryItems = inventoryList ? Array.from(inventoryList.querySelectorAll('[data-inventory-item]')) : [];
+    const inventorySearchInput = document.getElementById('inventory-search');
+    const inventoryModelFilter = document.getElementById('inventory-model-filter');
+    const inventoryStatusFilter = document.getElementById('inventory-status-filter');
+    const inventorySort = document.getElementById('inventory-sort');
+    const inventoryCount = document.getElementById('inventory-count');
+    const inventoryEmpty = document.getElementById('inventory-empty');
+    const inventoryCreateToggle = document.getElementById('inventoryCreateToggle');
+    const inventoryCreateForm = document.getElementById('inventoryCreateForm');
 
     const toggleMileage = (select) => {
       const targetId = select.dataset.target;
@@ -429,5 +528,89 @@
       select.addEventListener('change', () => toggleMileage(select));
       toggleMileage(select);
     });
+
+    const updateInventoryList = () => {
+      if (!inventoryList) {
+        return;
+      }
+      const searchTerm = inventorySearchInput ? inventorySearchInput.value.trim().toLowerCase() : '';
+      const selectedModel = inventoryModelFilter ? inventoryModelFilter.value : '';
+      const statusValue = inventoryStatusFilter ? inventoryStatusFilter.value : '';
+      let visibleCount = 0;
+
+      inventoryItems.forEach((item) => {
+        const searchValue = (item.dataset.search || '').toLowerCase();
+        const modelValue = item.dataset.model || '';
+        const statusValueRaw = item.dataset.status || '';
+        const matchesSearch = !searchTerm || searchValue.includes(searchTerm);
+        const matchesModel = !selectedModel || modelValue === selectedModel;
+        let matchesStatus = true;
+        if (statusValue) {
+          if (statusValue === 'active') {
+            matchesStatus = statusValueRaw === 'for_sale' || statusValueRaw === 'reserved';
+          } else {
+            matchesStatus = statusValueRaw === statusValue;
+          }
+        }
+        const shouldShow = matchesSearch && matchesModel && matchesStatus;
+        item.classList.toggle('d-none', !shouldShow);
+        if (shouldShow) {
+          visibleCount += 1;
+        }
+      });
+
+      if (inventorySort) {
+        const sortValue = inventorySort.value;
+        const sortedItems = [...inventoryItems].sort((a, b) => {
+          if (sortValue === 'model-asc' || sortValue === 'model-desc') {
+            const modelA = (a.dataset.model || '').toLowerCase();
+            const modelB = (b.dataset.model || '').toLowerCase();
+            const compareResult = modelA.localeCompare(modelB, 'ru', { sensitivity: 'base' });
+            if (compareResult !== 0) {
+              return sortValue === 'model-asc' ? compareResult : -compareResult;
+            }
+          }
+          const orderA = Number(a.dataset.order || 0);
+          const orderB = Number(b.dataset.order || 0);
+          return orderA - orderB;
+        });
+
+        const activeItems = sortedItems.filter((item) => item.dataset.status !== 'sold');
+        const soldItems = sortedItems.filter((item) => item.dataset.status === 'sold');
+        [...activeItems, ...soldItems].forEach((item) => inventoryList.appendChild(item));
+      }
+
+      if (inventoryCount) {
+        inventoryCount.textContent = `${visibleCount}`;
+      }
+      if (inventoryEmpty) {
+        inventoryEmpty.classList.toggle('d-none', visibleCount !== 0);
+      }
+    };
+
+    if (inventorySearchInput) {
+      inventorySearchInput.addEventListener('input', updateInventoryList);
+    }
+    if (inventoryModelFilter) {
+      inventoryModelFilter.addEventListener('change', updateInventoryList);
+    }
+    if (inventoryStatusFilter) {
+      inventoryStatusFilter.addEventListener('change', updateInventoryList);
+    }
+    if (inventorySort) {
+      inventorySort.addEventListener('change', updateInventoryList);
+    }
+    if (inventoryList) {
+      updateInventoryList();
+    }
+
+    if (inventoryCreateForm && inventoryCreateToggle) {
+      inventoryCreateForm.addEventListener('show.bs.collapse', () => {
+        inventoryCreateToggle.textContent = 'Скрыть форму';
+      });
+      inventoryCreateForm.addEventListener('hidden.bs.collapse', () => {
+        inventoryCreateToggle.textContent = '+ Добавить автомобиль';
+      });
+    }
   </script>
 {% endblock %}
