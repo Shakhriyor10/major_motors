@@ -1165,7 +1165,9 @@
                       <div class="d-flex justify-content-between flex-wrap gap-2">
                         <div>
                           <div class="showroom-title">{{ vehicle.model }} {{ vehicle.name }}</div>
-                          <div class="showroom-subtitle">VIN {{ vehicle.vin|default:"—" }}</div>
+                          {% if vehicle.vin %}
+                            <div class="showroom-subtitle">VIN {{ vehicle.vin }}</div>
+                          {% endif %}
                         </div>
                         <div class="showroom-price">
                           <div class="label">Цена</div>
@@ -5197,8 +5199,8 @@ OOO «MAJOR MOTORS SAM»</div>
           .filter((item) => !item.classList.contains('d-none'))
           .sort((a, b) => {
             if (sortValue === 'price-asc' || sortValue === 'price-desc') {
-              const priceA = Number(a.dataset.price || 0);
-              const priceB = Number(b.dataset.price || 0);
+              const priceA = parseNumber(a.dataset.price || 0);
+              const priceB = parseNumber(b.dataset.price || 0);
               return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;
             }
             const orderA = Number(a.dataset.order || 0);

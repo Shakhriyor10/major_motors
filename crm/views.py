@@ -932,15 +932,20 @@ def inventory(request):
             return redirect('inventory')
 
     vehicles_qs = Vehicle.objects.prefetch_related('options', 'media', 'deals__customer').order_by('-created_at')[:50]
-    for vehicle in vehicles_qs:
+    vehicles = list(vehicles_qs)
+    for vehicle in vehicles:
         vehicle.latest_deal = next(iter(vehicle.deals.all()), None)
+    active_vehicles = [vehicle for vehicle in vehicles if vehicle.status != Vehicle.VehicleStatus.SOLD]
+    sold_vehicles = [vehicle for vehicle in vehicles if vehicle.status == Vehicle.VehicleStatus.SOLD]
+    inventory_models = sorted({vehicle.model for vehicle in vehicles if vehicle.model})
     return render(
         request,
         'crm/autosalon.html',
         {
-            'vehicles': vehicles_qs,
+            'vehicles': active_vehicles + sold_vehicles,
             'options': options_qs,
             'vehicles_for_sale': Vehicle.objects.filter(status=Vehicle.VehicleStatus.FOR_SALE).count(),
+            'inventory_models': inventory_models,
         },
     )
 
