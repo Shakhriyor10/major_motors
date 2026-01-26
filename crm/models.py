@@ -348,7 +348,7 @@ class Vehicle(TimeStampedModel):
         ROBOT = 'robot', 'Робот'
         CVT = 'cvt', 'Вариатор'
 
-    vin = models.CharField(max_length=32, unique=True)
+    vin = models.CharField(max_length=32, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255)
     make = models.CharField(max_length=128)
     model = models.CharField(max_length=128)
@@ -400,7 +400,8 @@ class Vehicle(TimeStampedModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.name} ({self.vin})'
+        vin_display = self.vin or '—'
+        return f'{self.name} ({vin_display})'
 
 
 class VehicleMedia(TimeStampedModel):
