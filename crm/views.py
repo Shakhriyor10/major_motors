@@ -790,9 +790,7 @@ def autosalon(request):
         .filter(
             status__in=[Vehicle.VehicleStatus.FOR_SALE, Vehicle.VehicleStatus.RESERVED],
             stock_count__gt=0,
-            vin__isnull=False,
         )
-        .exclude(vin='')
         .order_by('-created_at')
     )
     showroom_models = sorted({model for model in vehicles_qs.values_list('model', flat=True) if model})
