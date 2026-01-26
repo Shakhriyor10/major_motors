@@ -335,6 +335,9 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
     if vin:
         vehicle.vin = vin
         update_fields.append('vin')
+    elif vin == '':
+        vehicle.vin = None
+        update_fields.append('vin')
     name = request.POST.get('name', '').strip()
     if name:
         vehicle.name = name
