@@ -270,6 +270,50 @@
       font-weight: 600;
     }
 
+    .showroom-toolbar {
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: linear-gradient(120deg, #ffffff, #f8fafc 60%, #eef2ff);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+    }
+
+    .showroom-toolbar .form-control,
+    .showroom-toolbar .form-select {
+      border-radius: 12px;
+      border-color: rgba(148, 163, 184, 0.4);
+    }
+
+    .showroom-count {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-weight: 700;
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .showroom-grid {
+      align-items: stretch;
+    }
+
+    .showroom-item {
+      display: flex;
+    }
+
+    .showroom-item .showroom-card {
+      flex: 1;
+    }
+
+    .showroom-empty {
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      color: #64748b;
+      background: #f8fafc;
+    }
+
     .vehicle-detail-modal .modal-content {
       border-radius: 24px;
       overflow: hidden;
@@ -1076,163 +1120,215 @@
 
   <div class="tab-content">
     <div class="tab-pane fade" id="autosalon-showroom" role="tabpanel" aria-labelledby="autosalon-showroom-tab">
-      <div class="vstack gap-3">
-        {% for vehicle in vehicles %}
-          <div class="card showroom-card">
-            <div class="row g-0 align-items-stretch">
+      <div class="vstack gap-4">
+        <div class="card showroom-toolbar">
+          <div class="card-body">
+            <div class="row g-3 align-items-end">
               <div class="col-12 col-lg-5">
-                <div class="ratio ratio-21x9 showroom-media">
-                  {% if vehicle.primary_photo %}
-                    <button
-                      class="btn p-3 w-100 h-100"
-                      type="button"
-                      data-bs-toggle="modal"
-                      data-bs-target="#vehiclePhotoModal"
-                      data-image-src="{{ vehicle.primary_photo.file.url }}"
-                      data-image-alt="{{ vehicle.name }}"
-                    >
-                      <img class="w-100 h-100" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
-                    </button>
-                  {% else %}
-                    <div class="d-flex align-items-center justify-content-center text-muted fw-semibold">Фото отсутствует</div>
-                  {% endif %}
-                </div>
+                <label class="form-label" for="showroom-search">Поиск автомобиля</label>
+                <input
+                  type="text"
+                  id="showroom-search"
+                  class="form-control"
+                  placeholder="Марка, модель, VIN или описание"
+                >
               </div>
-              <div class="col-12 col-lg-7">
-                <div class="showroom-body vstack gap-2">
-                  <div class="d-flex justify-content-between flex-wrap gap-2">
-                    <div>
-                      <div class="showroom-title">{{ vehicle.name }}</div>
-                      <div class="showroom-subtitle">{{ vehicle.model }} · VIN {{ vehicle.vin|default:"—" }}</div>
-                    </div>
-                    <div class="showroom-price">
-                      <div class="label">Цена</div>
-                      <div class="value">
-                        <span data-showroom-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
-                          {{ vehicle.sale_price|default:vehicle.purchase_price }}
-                        </span>
-                        {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="d-flex flex-wrap gap-2 align-items-center showroom-badges">
-                    {% if vehicle.status != 'inactive' %}
-                      <span class="badge text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
-                    {% endif %}
-                    <span class="badge text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
-                    {% if vehicle.active_reservation %}
-                      <button
-                        class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                        type="button"
-                        data-open-reservation-details
-                        data-reservation-id="{{ vehicle.active_reservation.id }}"
-                        data-reservation-customer="{{ vehicle.active_reservation.customer.full_name }}"
-                        data-reservation-phone="{{ vehicle.active_reservation.customer.phone }}"
-                        data-reservation-passport="{{ vehicle.active_reservation.customer.passport_series }} {{ vehicle.active_reservation.customer.passport_number }}"
-                        data-reservation-issued="{{ vehicle.active_reservation.customer.passport_issued_by|default:'—' }}"
-                        data-reservation-address="{{ vehicle.active_reservation.customer.address|default:'—' }}"
-                        data-reservation-start="{{ vehicle.active_reservation.start_at|date:'d.m.Y H:i' }}"
-                        data-reservation-end="{{ vehicle.active_reservation.end_at|date:'d.m.Y H:i' }}"
-                        data-reservation-deposit="{{ vehicle.active_reservation.deposit_amount|default:'—' }}"
-                        data-reservation-terms="{{ vehicle.active_reservation.deposit_terms|default:'—' }}"
-                        data-reservation-staff="{% if vehicle.active_reservation.reserved_by %}{{ vehicle.active_reservation.reserved_by.get_full_name|default:vehicle.active_reservation.reserved_by.username }}{% elif vehicle.active_reservation.reserved_by_name %}{{ vehicle.active_reservation.reserved_by_name }}{% else %}—{% endif %}"
-                        aria-label="Детали брони"
-                      >
-                        👁 <span class="small">Детали брони</span>
-                      </button>
-                    {% endif %}
-                  </div>
-                  <div class="showroom-attributes text-muted small">
-                    <div class="showroom-attribute">
-                      <strong>КПП</strong>
-                      {{ vehicle.get_transmission_display|default:"—" }}
-                    </div>
-                    <div class="showroom-attribute">
-                      <strong>Двигатель</strong>
-                      {% if vehicle.engine_type == 'hybrid' %}
-                        {% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} см3{% else %}Гибрид{% endif %}
-                      {% elif vehicle.engine_type == 'electric' %}
-                        Электрический
-                      {% elif vehicle.engine_volume %}
-                        {{ vehicle.engine_volume }} см3{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}
-                      {% else %}
-                        —
-                      {% endif %}
-                    </div>
-                    {% if vehicle.status != 'inactive' %}
-                      <div class="showroom-attribute">
-                        <strong>Статус</strong>
-                        {{ vehicle.get_status_display }}
-                      </div>
-                    {% endif %}
-                    <div class="showroom-attribute">
-                      <strong>Посадочные места</strong>
-                      {{ vehicle.seat_count|default:"—" }}
-                    </div>
-                    <div class="showroom-attribute">
-                      <strong>Пробег</strong>
-                      {{ vehicle.mileage|default:"—" }} км
-                    </div>
-                    <div class="showroom-attribute">
-                      <strong>Расход</strong>
-                      {% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}
-                    </div>
-                    <div class="showroom-attribute">
-                      <strong>Запас хода</strong>
-                      {% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}
-                    </div>
-                  </div>
-                  {% if vehicle.description %}
-                    <div class="showroom-note small">{{ vehicle.description }}</div>
-                  {% endif %}
-                  <div class="d-flex justify-content-end">
-                    <div class="d-flex flex-wrap gap-2 showroom-actions">
-                      <button
-                        class="btn btn-outline-dark"
-                        type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#vehicleDetailModal"
-                        data-vehicle-name="{{ vehicle.name }}"
-                        data-vehicle-make="{{ vehicle.make }}"
-                        data-vehicle-model="{{ vehicle.model }}"
-                        data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
-                        data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
-                        data-vehicle-status="{{ vehicle.get_status_display }}"
-                        data-vehicle-condition="{{ vehicle.get_condition_display }}"
-                        data-vehicle-transmission="{{ vehicle.get_transmission_display|default:'—' }}"
-                        data-vehicle-engine="{% if vehicle.engine_type == 'hybrid' %}{% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} см3{% else %}Гибрид{% endif %}{% elif vehicle.engine_type == 'electric' %}Электрический{% elif vehicle.engine_volume %}{{ vehicle.engine_volume }} см3{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}{% else %}—{% endif %}"
-                        data-vehicle-seats="{{ vehicle.seat_count|default:'—' }}"
-                        data-vehicle-mileage="{{ vehicle.mileage|default:'—' }}"
-                        data-vehicle-consumption="{% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}"
-                        data-vehicle-range="{% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}"
-                        data-vehicle-description="{{ vehicle.description|default:'' }}"
-                        data-vehicle-image="{% if vehicle.primary_photo %}{{ vehicle.primary_photo.file.url }}{% endif %}"
-                      >
-                        Подробнее
-                      </button>
-                      <button
-                        class="btn btn-outline-success"
-                        type="button"
-                        data-open-credit
-                        data-vehicle-name="{{ vehicle.name }}"
-                        data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
-                        data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
-                      >
-                        Кредит
-                      </button>
-                    </div>
-                  </div>
+              <div class="col-12 col-md-4 col-lg-3">
+                <label class="form-label" for="showroom-model-filter">Фильтр по модели</label>
+                <select id="showroom-model-filter" class="form-select">
+                  <option value="">Все модели</option>
+                  {% for model_name in showroom_models %}
+                    <option value="{{ model_name|lower }}">{{ model_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="showroom-sort">Сортировка</label>
+                <select id="showroom-sort" class="form-select">
+                  <option value="default">По умолчанию</option>
+                  <option value="price-asc">Цена ↑</option>
+                  <option value="price-desc">Цена ↓</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4 col-lg-2 d-flex justify-content-md-end">
+                <div>
+                  <div class="form-label">Результаты</div>
+                  <div class="showroom-count" id="showroom-count">0</div>
                 </div>
               </div>
             </div>
           </div>
-        {% empty %}
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <p class="text-muted mb-0">Витрина пустая. Добавьте авто в общем списке и переведите статус в продажу.</p>
-            </div>
+        </div>
+        {% if vehicles %}
+          <div class="row g-4 showroom-grid" id="showroom-list">
+            {% for vehicle in vehicles %}
+              <div
+                class="col-12 col-xxl-6 showroom-item"
+                data-showroom-item
+                data-order="{{ forloop.counter }}"
+                data-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                data-model="{{ vehicle.model|default:''|lower }}"
+                data-search="{{ vehicle.name|default:'' }} {{ vehicle.make|default:'' }} {{ vehicle.model|default:'' }} {{ vehicle.vin|default:'' }} {{ vehicle.description|default:'' }}"
+              >
+                <div class="card showroom-card">
+                  <div class="row g-0 align-items-stretch">
+                    <div class="col-12 col-lg-5">
+                      <div class="ratio ratio-21x9 showroom-media">
+                        {% if vehicle.primary_photo %}
+                          <button
+                            class="btn p-3 w-100 h-100"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#vehiclePhotoModal"
+                            data-image-src="{{ vehicle.primary_photo.file.url }}"
+                            data-image-alt="{{ vehicle.name }}"
+                          >
+                            <img class="w-100 h-100" src="{{ vehicle.primary_photo.file.url }}" alt="{{ vehicle.name }}">
+                          </button>
+                        {% else %}
+                          <div class="d-flex align-items-center justify-content-center text-muted fw-semibold">Фото отсутствует</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="col-12 col-lg-7">
+                      <div class="showroom-body vstack gap-2">
+                        <div class="d-flex justify-content-between flex-wrap gap-2">
+                          <div>
+                            <div class="showroom-title">{{ vehicle.name }}</div>
+                            <div class="showroom-subtitle">{{ vehicle.model }} · VIN {{ vehicle.vin }}</div>
+                          </div>
+                          <div class="showroom-price">
+                            <div class="label">Цена</div>
+                            <div class="value">
+                              <span data-showroom-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
+                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                              </span>
+                              {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 align-items-center showroom-badges">
+                          {% if vehicle.status != 'inactive' %}
+                            <span class="badge text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
+                          {% endif %}
+                          <span class="badge text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
+                          {% if vehicle.active_reservation %}
+                            <button
+                              class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                              type="button"
+                              data-open-reservation-details
+                              data-reservation-id="{{ vehicle.active_reservation.id }}"
+                              data-reservation-customer="{{ vehicle.active_reservation.customer.full_name }}"
+                              data-reservation-phone="{{ vehicle.active_reservation.customer.phone }}"
+                              data-reservation-passport="{{ vehicle.active_reservation.customer.passport_series }} {{ vehicle.active_reservation.customer.passport_number }}"
+                              data-reservation-issued="{{ vehicle.active_reservation.customer.passport_issued_by|default:'—' }}"
+                              data-reservation-address="{{ vehicle.active_reservation.customer.address|default:'—' }}"
+                              data-reservation-start="{{ vehicle.active_reservation.start_at|date:'d.m.Y H:i' }}"
+                              data-reservation-end="{{ vehicle.active_reservation.end_at|date:'d.m.Y H:i' }}"
+                              data-reservation-deposit="{{ vehicle.active_reservation.deposit_amount|default:'—' }}"
+                              data-reservation-terms="{{ vehicle.active_reservation.deposit_terms|default:'—' }}"
+                              data-reservation-staff="{% if vehicle.active_reservation.reserved_by %}{{ vehicle.active_reservation.reserved_by.get_full_name|default:vehicle.active_reservation.reserved_by.username }}{% elif vehicle.active_reservation.reserved_by_name %}{{ vehicle.active_reservation.reserved_by_name }}{% else %}—{% endif %}"
+                              aria-label="Детали брони"
+                            >
+                              👁 <span class="small">Детали брони</span>
+                            </button>
+                          {% endif %}
+                        </div>
+                        <div class="showroom-attributes text-muted small">
+                          <div class="showroom-attribute">
+                            <strong>КПП</strong>
+                            {{ vehicle.get_transmission_display|default:"—" }}
+                          </div>
+                          <div class="showroom-attribute">
+                            <strong>Двигатель</strong>
+                            {% if vehicle.engine_type == 'hybrid' %}
+                              {% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} см3{% else %}Гибрид{% endif %}
+                            {% elif vehicle.engine_type == 'electric' %}
+                              Электрический
+                            {% elif vehicle.engine_volume %}
+                              {{ vehicle.engine_volume }} см3{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}
+                            {% else %}
+                              —
+                            {% endif %}
+                          </div>
+                          {% if vehicle.status != 'inactive' %}
+                            <div class="showroom-attribute">
+                              <strong>Статус</strong>
+                              {{ vehicle.get_status_display }}
+                            </div>
+                          {% endif %}
+                          <div class="showroom-attribute">
+                            <strong>Посадочные места</strong>
+                            {{ vehicle.seat_count|default:"—" }}
+                          </div>
+                          <div class="showroom-attribute">
+                            <strong>Пробег</strong>
+                            {{ vehicle.mileage|default:"—" }} км
+                          </div>
+                          <div class="showroom-attribute">
+                            <strong>Расход</strong>
+                            {% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}
+                          </div>
+                          <div class="showroom-attribute">
+                            <strong>Запас хода</strong>
+                            {% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}
+                          </div>
+                        </div>
+                        {% if vehicle.description %}
+                          <div class="showroom-note small">{{ vehicle.description }}</div>
+                        {% endif %}
+                        <div class="d-flex justify-content-end">
+                          <div class="d-flex flex-wrap gap-2 showroom-actions">
+                            <button
+                              class="btn btn-outline-dark"
+                              type="button"
+                              data-bs-toggle="modal"
+                              data-bs-target="#vehicleDetailModal"
+                              data-vehicle-name="{{ vehicle.name }}"
+                              data-vehicle-make="{{ vehicle.make }}"
+                              data-vehicle-model="{{ vehicle.model }}"
+                              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                              data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                              data-vehicle-status="{{ vehicle.get_status_display }}"
+                              data-vehicle-condition="{{ vehicle.get_condition_display }}"
+                              data-vehicle-transmission="{{ vehicle.get_transmission_display|default:'—' }}"
+                              data-vehicle-engine="{% if vehicle.engine_type == 'hybrid' %}{% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} см3{% else %}Гибрид{% endif %}{% elif vehicle.engine_type == 'electric' %}Электрический{% elif vehicle.engine_volume %}{{ vehicle.engine_volume }} см3{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}{% else %}—{% endif %}"
+                              data-vehicle-seats="{{ vehicle.seat_count|default:'—' }}"
+                              data-vehicle-mileage="{{ vehicle.mileage|default:'—' }}"
+                              data-vehicle-consumption="{% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}"
+                              data-vehicle-range="{% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}"
+                              data-vehicle-description="{{ vehicle.description|default:'' }}"
+                              data-vehicle-image="{% if vehicle.primary_photo %}{{ vehicle.primary_photo.file.url }}{% endif %}"
+                            >
+                              Подробнее
+                            </button>
+                            <button
+                              class="btn btn-outline-success"
+                              type="button"
+                              data-open-credit
+                              data-vehicle-name="{{ vehicle.name }}"
+                              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                              data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                            >
+                              Кредит
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
           </div>
-        {% endfor %}
+          <div id="showroom-empty" class="showroom-empty d-none">
+            Ничего не найдено. Измените параметры поиска или фильтр.
+          </div>
+        {% else %}
+          <div class="showroom-empty">
+            Витрина пустая. Добавьте авто в общем списке и переведите статус в продажу.
+          </div>
+        {% endif %}
       </div>
     </div>
 
@@ -5096,6 +5192,73 @@ OOO «MAJOR MOTORS SAM»</div>
           modalImagePlaceholder.classList.remove('d-none');
         }
       });
+    }
+
+    const showroomList = document.getElementById('showroom-list');
+    const showroomSearchInput = document.getElementById('showroom-search');
+    const showroomModelFilter = document.getElementById('showroom-model-filter');
+    const showroomSort = document.getElementById('showroom-sort');
+    const showroomCount = document.getElementById('showroom-count');
+    const showroomEmpty = document.getElementById('showroom-empty');
+    const showroomItems = showroomList ? Array.from(showroomList.querySelectorAll('[data-showroom-item]')) : [];
+
+    const updateShowroom = () => {
+      if (!showroomList) {
+        return;
+      }
+      const searchTerm = showroomSearchInput ? showroomSearchInput.value.trim().toLowerCase() : '';
+      const selectedModel = showroomModelFilter ? showroomModelFilter.value : '';
+      let visibleCount = 0;
+
+      showroomItems.forEach((item) => {
+        const searchValue = (item.dataset.search || '').toLowerCase();
+        const modelValue = item.dataset.model || '';
+        const matchesSearch = !searchTerm || searchValue.includes(searchTerm);
+        const matchesModel = !selectedModel || modelValue === selectedModel;
+        const shouldShow = matchesSearch && matchesModel;
+        item.classList.toggle('d-none', !shouldShow);
+        if (shouldShow) {
+          visibleCount += 1;
+        }
+      });
+
+      if (showroomSort) {
+        const sortValue = showroomSort.value;
+        const sortedItems = showroomItems
+          .filter((item) => !item.classList.contains('d-none'))
+          .sort((a, b) => {
+            if (sortValue === 'price-asc' || sortValue === 'price-desc') {
+              const priceA = Number(a.dataset.price || 0);
+              const priceB = Number(b.dataset.price || 0);
+              return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;
+            }
+            const orderA = Number(a.dataset.order || 0);
+            const orderB = Number(b.dataset.order || 0);
+            return orderA - orderB;
+          });
+
+        sortedItems.forEach((item) => showroomList.appendChild(item));
+      }
+
+      if (showroomCount) {
+        showroomCount.textContent = `${visibleCount}`;
+      }
+      if (showroomEmpty) {
+        showroomEmpty.classList.toggle('d-none', visibleCount !== 0);
+      }
+    };
+
+    if (showroomSearchInput) {
+      showroomSearchInput.addEventListener('input', updateShowroom);
+    }
+    if (showroomModelFilter) {
+      showroomModelFilter.addEventListener('change', updateShowroom);
+    }
+    if (showroomSort) {
+      showroomSort.addEventListener('change', updateShowroom);
+    }
+    if (showroomList) {
+      updateShowroom();
     }
 
     if (vehiclePhotoModal) {

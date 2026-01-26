@@ -1,5 +1,4 @@
 import json
-import uuid
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
@@ -257,7 +256,7 @@ def _create_vehicle_from_form(request, options_qs):
     name = request.POST.get('name', '').strip()
     model = request.POST.get('model', '').strip()
     make = request.POST.get('make', '').strip() or model or name
-    vin = request.POST.get('vin', '').strip() or uuid.uuid4().hex[:32]
+    vin = request.POST.get('vin', '').strip() or None
     vehicle = Vehicle.objects.create(
         vin=vin,
         name=name,
@@ -785,9 +784,15 @@ def autosalon(request):
             'media',
             Prefetch('reservations', queryset=active_reservations, to_attr='active_reservations'),
         )
-        .filter(status__in=[Vehicle.VehicleStatus.FOR_SALE, Vehicle.VehicleStatus.RESERVED], stock_count__gt=0)
+        .filter(
+            status__in=[Vehicle.VehicleStatus.FOR_SALE, Vehicle.VehicleStatus.RESERVED],
+            stock_count__gt=0,
+            vin__isnull=False,
+        )
+        .exclude(vin='')
         .order_by('-created_at')
     )
+    showroom_models = sorted({model for model in vehicles_qs.values_list('model', flat=True) if model})
     customers_qs = Customer.objects.order_by('full_name')
     receipt_deal = None
     receipt_id = request.GET.get('receipt')
@@ -879,6 +884,7 @@ def autosalon(request):
         'crm/autosalon_showroom.html',
         {
             'vehicles': vehicles_qs,
+            'showroom_models': showroom_models,
             'customers': customers_qs,
             'receipt': receipt_deal,
             'sold_deals': sold_deals,
