@@ -238,6 +238,14 @@ def leads(request):
 
 
 def _create_vehicle_from_form(request, options_qs):
+    def serialize_engine_types(values):
+        cleaned = []
+        for value in values:
+            value = (value or '').strip()
+            if value and value not in cleaned:
+                cleaned.append(value)
+        return ','.join(cleaned)
+
     def to_decimal(value):
         if value in (None, ''):
             return None
@@ -271,7 +279,7 @@ def _create_vehicle_from_form(request, options_qs):
         sale_currency=Vehicle.Currency.UZS,
         stock_count=to_int(request.POST.get('stock_count')) or 1,
         seat_count=to_int(request.POST.get('seat_count')),
-        engine_type=request.POST.get('engine_type') or Vehicle.EngineType.GASOLINE,
+        engine_type=serialize_engine_types(request.POST.getlist('engine_type')),
         engine_volume=to_int(request.POST.get('engine_volume')),
         horsepower=to_int(request.POST.get('horsepower')),
         transmission=request.POST.get('transmission', ''),
@@ -314,6 +322,14 @@ def _create_vehicle_from_form(request, options_qs):
 
 
 def _update_vehicle_from_form(request, vehicle, options_qs):
+    def serialize_engine_types(values):
+        cleaned = []
+        for value in values:
+            value = (value or '').strip()
+            if value and value not in cleaned:
+                cleaned.append(value)
+        return ','.join(cleaned)
+
     def to_decimal(value):
         if value in (None, ''):
             return None
@@ -375,7 +391,7 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
     update_fields.append('stock_count')
     vehicle.seat_count = to_int(request.POST.get('seat_count'))
     update_fields.append('seat_count')
-    vehicle.engine_type = request.POST.get('engine_type') or Vehicle.EngineType.GASOLINE
+    vehicle.engine_type = serialize_engine_types(request.POST.getlist('engine_type'))
     update_fields.append('engine_type')
     vehicle.engine_volume = to_int(request.POST.get('engine_volume'))
     update_fields.append('engine_volume')

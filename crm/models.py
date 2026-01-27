@@ -328,10 +328,12 @@ class Vehicle(TimeStampedModel):
         UZS = 'uzs', 'UZS'
 
     class EngineType(models.TextChoices):
+        ELECTRIC = 'electric', 'Электро'
+        ATMOSPHERIC = 'atmospheric', 'Атмосферный'
+        TURBO = 'turbo', 'Турбина'
+        HYBRID = 'hybrid', 'Гибрид'
         GASOLINE = 'gasoline', 'Бензин'
         DIESEL = 'diesel', 'Дизель'
-        HYBRID = 'hybrid', 'Гибрид'
-        ELECTRIC = 'electric', 'Электро'
 
     class Condition(models.TextChoices):
         NEW = 'new', 'Новая'
@@ -372,7 +374,7 @@ class Vehicle(TimeStampedModel):
     )
     stock_count = models.PositiveIntegerField(default=1)
     seat_count = models.PositiveIntegerField(null=True, blank=True)
-    engine_type = models.CharField(max_length=32, choices=EngineType.choices, default=EngineType.GASOLINE)
+    engine_type = models.CharField(max_length=255, blank=True)
     engine_volume = models.PositiveIntegerField(null=True, blank=True)
     horsepower = models.PositiveIntegerField(null=True, blank=True)
     transmission = models.CharField(max_length=32, choices=Transmission.choices, blank=True)
@@ -402,6 +404,17 @@ class Vehicle(TimeStampedModel):
     def __str__(self):
         vin_display = self.vin or '—'
         return f'{self.name} ({vin_display})'
+
+    @property
+    def engine_type_list(self):
+        if not self.engine_type:
+            return []
+        return [value.strip() for value in self.engine_type.split(',') if value.strip()]
+
+    @property
+    def engine_type_labels(self):
+        labels = dict(self.EngineType.choices)
+        return [labels.get(code, code) for code in self.engine_type_list]
 
 
 class VehicleMedia(TimeStampedModel):
