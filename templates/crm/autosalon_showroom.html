@@ -1211,12 +1211,10 @@
                         </div>
                         <div class="showroom-attribute">
                           <strong>Двигатель</strong>
-                          {% if vehicle.engine_type == 'hybrid' %}
-                            {% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} см3{% else %}Гибрид{% endif %}
-                          {% elif vehicle.engine_type == 'electric' %}
-                            Электрический
+                          {% if vehicle.engine_type_labels %}
+                            {{ vehicle.engine_type_labels|join:", " }}{% if vehicle.engine_volume %}, {{ vehicle.engine_volume }} см3{% endif %}
                           {% elif vehicle.engine_volume %}
-                            {{ vehicle.engine_volume }} см3{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}
+                            {{ vehicle.engine_volume }} см3
                           {% else %}
                             —
                           {% endif %}
@@ -1262,7 +1260,7 @@
                             data-vehicle-status="{{ vehicle.get_status_display }}"
                             data-vehicle-condition="{{ vehicle.get_condition_display }}"
                             data-vehicle-transmission="{{ vehicle.get_transmission_display|default:'—' }}"
-                            data-vehicle-engine="{% if vehicle.engine_type == 'hybrid' %}{% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} см3{% else %}Гибрид{% endif %}{% elif vehicle.engine_type == 'electric' %}Электрический{% elif vehicle.engine_volume %}{{ vehicle.engine_volume }} см3{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}{% else %}—{% endif %}"
+                            data-vehicle-engine="{% if vehicle.engine_type_labels %}{{ vehicle.engine_type_labels|join:', ' }}{% if vehicle.engine_volume %}, {{ vehicle.engine_volume }} см3{% endif %}{% elif vehicle.engine_volume %}{{ vehicle.engine_volume }} см3{% else %}—{% endif %}"
                             data-vehicle-seats="{{ vehicle.seat_count|default:'—' }}"
                             data-vehicle-mileage="{{ vehicle.mileage|default:'—' }}"
                             data-vehicle-consumption="{% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}"
@@ -2195,7 +2193,7 @@ OOO «MAJOR MOTORS SAM»</div>
                           data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
                           data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
                           data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
-                          data-vehicle-engine="{% if deal.vehicle.engine_type == 'hybrid' %}{% if deal.vehicle.engine_volume %}Гибрид, {{ deal.vehicle.engine_volume }} см3{% else %}Гибрид{% endif %}{% elif deal.vehicle.engine_type == 'electric' %}Электрический{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} см3{% if "турб" in deal.vehicle.description|default:""|lower or "турб" in deal.vehicle.name|default:""|lower %} турбо{% endif %}{% else %}—{% endif %}"
+                          data-vehicle-engine="{% if deal.vehicle.engine_type_labels %}{{ deal.vehicle.engine_type_labels|join:', ' }}{% if deal.vehicle.engine_volume %}, {{ deal.vehicle.engine_volume }} см3{% endif %}{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} см3{% else %}—{% endif %}"
                           data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
                           data-sale-price="{{ deal.sale_price }}"
                           data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
@@ -2225,7 +2223,7 @@ OOO «MAJOR MOTORS SAM»</div>
                           data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
                           data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
                           data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
-                          data-vehicle-engine="{% if deal.vehicle.engine_type == 'hybrid' %}{% if deal.vehicle.engine_volume %}Гибрид, {{ deal.vehicle.engine_volume }} см3{% else %}Гибрид{% endif %}{% elif deal.vehicle.engine_type == 'electric' %}Электрический{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} см3{% if "турб" in deal.vehicle.description|default:""|lower or "турб" in deal.vehicle.name|default:""|lower %} турбо{% endif %}{% else %}—{% endif %}"
+                          data-vehicle-engine="{% if deal.vehicle.engine_type_labels %}{{ deal.vehicle.engine_type_labels|join:', ' }}{% if deal.vehicle.engine_volume %}, {{ deal.vehicle.engine_volume }} см3{% endif %}{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} см3{% else %}—{% endif %}"
                           data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
                           data-sale-price="{{ deal.sale_price }}"
                           data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"

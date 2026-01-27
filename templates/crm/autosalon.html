@@ -103,12 +103,13 @@
             </div>
             <div class="col-12 col-md-6 col-lg-4">
               <label for="engine_type" class="form-label">Тип двигателя</label>
-              <select id="engine_type" name="engine_type" class="form-select">
-                <option value="gasoline">Бензин</option>
-                <option value="diesel">Дизель</option>
-                <option value="hybrid">Гибрид</option>
+              <select id="engine_type" name="engine_type" class="form-select" multiple>
                 <option value="electric">Электро</option>
+                <option value="atmospheric">Атмосферный</option>
+                <option value="turbo">Турбина</option>
+                <option value="hybrid">Гибрид</option>
               </select>
+              <div class="form-text">Можно выбрать несколько вариантов.</div>
             </div>
             <div class="col-12 col-md-6 col-lg-4">
               <label for="engine_volume" class="form-label">Объём двигателя (см3)</label>
@@ -262,7 +263,13 @@
                 {% else %}
                   <span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span>
                 {% endif %}
-                <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_engine_type_display }}</span>
+                <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">
+                  {% if vehicle.engine_type_labels %}
+                    {{ vehicle.engine_type_labels|join:", " }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </span>
                 <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
               </div>
               <hr class="my-3">
@@ -273,12 +280,10 @@
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">№ двигателя:</strong> {{ vehicle.engine_number|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Модельный год:</strong> {{ vehicle.model_year|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Двигатель:</strong>
-                  {% if vehicle.engine_type == 'hybrid' %}
-                    {% if vehicle.engine_volume %}Гибрид, {{ vehicle.engine_volume }} см3{% else %}Гибрид{% endif %}
-                  {% elif vehicle.engine_type == 'electric' %}
-                    Электрический
+                  {% if vehicle.engine_type_labels %}
+                    {{ vehicle.engine_type_labels|join:", " }}{% if vehicle.engine_volume %}, {{ vehicle.engine_volume }} см3{% endif %}
                   {% elif vehicle.engine_volume %}
-                    {{ vehicle.engine_volume }} см3{% if "турб" in vehicle.description|default:""|lower or "турб" in vehicle.name|default:""|lower %} турбо{% endif %}
+                    {{ vehicle.engine_volume }} см3
                   {% else %}
                     —
                   {% endif %}
@@ -374,12 +379,13 @@
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-engine-type-{{ vehicle.id }}">Тип двигателя</label>
-                      <select id="edit-engine-type-{{ vehicle.id }}" name="engine_type" class="form-select">
-                        <option value="gasoline" {% if vehicle.engine_type == 'gasoline' %}selected{% endif %}>Бензин</option>
-                        <option value="diesel" {% if vehicle.engine_type == 'diesel' %}selected{% endif %}>Дизель</option>
-                        <option value="hybrid" {% if vehicle.engine_type == 'hybrid' %}selected{% endif %}>Гибрид</option>
-                        <option value="electric" {% if vehicle.engine_type == 'electric' %}selected{% endif %}>Электро</option>
+                      <select id="edit-engine-type-{{ vehicle.id }}" name="engine_type" class="form-select" multiple>
+                        <option value="electric" {% if 'electric' in vehicle.engine_type_list %}selected{% endif %}>Электро</option>
+                        <option value="atmospheric" {% if 'atmospheric' in vehicle.engine_type_list %}selected{% endif %}>Атмосферный</option>
+                        <option value="turbo" {% if 'turbo' in vehicle.engine_type_list %}selected{% endif %}>Турбина</option>
+                        <option value="hybrid" {% if 'hybrid' in vehicle.engine_type_list %}selected{% endif %}>Гибрид</option>
                       </select>
+                      <div class="form-text">Можно выбрать несколько вариантов.</div>
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-engine-volume-{{ vehicle.id }}">Объём двигателя (см3)</label>
