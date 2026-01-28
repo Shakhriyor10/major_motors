@@ -63,6 +63,7 @@
             <div class="col-12 col-md-6 col-lg-4">
               <label for="vin" class="form-label">VIN code (номер кузова)</label>
               <input id="vin" name="vin" type="text" class="form-control" placeholder="Например: XTA00000000000000">
+              <div class="form-text">Если VIN несколько, добавляйте их в отдельной форме ниже.</div>
             </div>
             <div class="col-12 col-md-6 col-lg-4">
               <label for="engine_number" class="form-label">Номер двигателя</label>
@@ -182,6 +183,54 @@
 
   <div class="card shadow-sm mb-4">
     <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h2 class="h5 mb-1">Добавить VIN к существующему авто</h2>
+          <p class="text-muted mb-0">Выберите автомобиль из списка и внесите уникальные данные (VIN, двигатель, цвет).</p>
+        </div>
+        <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">VIN / Двигатель</span>
+      </div>
+      <form method="post" class="row g-3 align-items-end">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_vehicle_unit">
+        <div class="col-12 col-md-6 col-lg-4">
+          <label for="unit_vehicle_id" class="form-label">Автомобиль</label>
+          <select id="unit_vehicle_id" name="vehicle_id" class="form-select" required>
+            <option value="">Выберите автомобиль</option>
+            {% for vehicle in vehicles_for_unit %}
+              <option value="{{ vehicle.id }}">{{ vehicle.name }} · {{ vehicle.model }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+          <label for="unit_vin" class="form-label">VIN code</label>
+          <input id="unit_vin" name="unit_vin" type="text" class="form-control" placeholder="Введите VIN">
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+          <label for="unit_engine_number" class="form-label">Номер двигателя</label>
+          <input id="unit_engine_number" name="unit_engine_number" type="text" class="form-control" placeholder="Введите номер двигателя">
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+          <label for="unit_color" class="form-label">Цвет</label>
+          <input id="unit_color" name="unit_color" type="text" class="form-control" placeholder="Например: белый">
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+          <label for="unit_year" class="form-label">Год выпуска</label>
+          <input id="unit_year" name="unit_year" type="number" min="1900" max="2100" class="form-control" placeholder="Например: 2023">
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+          <label for="unit_mileage" class="form-label">Пробег (км)</label>
+          <input id="unit_mileage" name="unit_mileage" type="number" min="0" class="form-control" placeholder="0">
+        </div>
+        <div class="col-12">
+          <button class="btn btn-outline-primary" type="submit">Добавить VIN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
       <div class="row g-3 align-items-end">
         <div class="col-12 col-lg-4">
           <label class="form-label" for="inventory-search">Поиск по авто</label>
@@ -241,7 +290,7 @@
             data-order="{{ forloop.counter }}"
             data-status="{{ vehicle.status }}"
             data-model="{{ vehicle.model|default:''|lower }}"
-            data-search="{{ vehicle.name|default:'' }} {{ vehicle.make|default:'' }} {{ vehicle.model|default:'' }} {{ vehicle.vin|default:'' }} {{ vehicle.description|default:'' }}"
+            data-search="{{ vehicle.name|default:'' }} {{ vehicle.make|default:'' }} {{ vehicle.model|default:'' }} {{ vehicle.vin|default:'' }} {{ vehicle.available_units_preview|default:'' }} {{ vehicle.description|default:'' }}"
           >
             <div class="card-body">
               <div class="d-flex justify-content-between flex-wrap gap-2">
@@ -276,8 +325,24 @@
               <div class="row g-2 text-muted small">
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Кузов:</strong> {{ vehicle.body_type|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Цвет:</strong> {{ vehicle.color|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">VIN:</strong> {{ vehicle.vin|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">№ двигателя:</strong> {{ vehicle.engine_number|default:"—" }}</div>
+                <div class="col-12 col-md-6 col-lg-3">
+                  <strong class="text-dark">VIN в наличии:</strong>
+                  {% if vehicle.available_units_preview %}
+                    {{ vehicle.available_units_preview }}
+                  {% elif vehicle.vin %}
+                    {{ vehicle.vin }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                  <strong class="text-dark">В наличии:</strong>
+                  {% if vehicle.available_units_count %}
+                    {{ vehicle.available_units_count }} шт
+                  {% else %}
+                    {{ vehicle.stock_count }} шт
+                  {% endif %}
+                </div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Модельный год:</strong> {{ vehicle.model_year|default:"—" }}</div>
                 <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Двигатель:</strong>
                   {% if vehicle.engine_type_labels %}

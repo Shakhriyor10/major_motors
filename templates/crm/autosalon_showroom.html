@@ -1147,7 +1147,7 @@
                 data-order="{{ forloop.counter }}"
                 data-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                 data-model="{{ vehicle.model|default:''|lower }}"
-                data-search="{{ vehicle.name|default:'' }} {{ vehicle.make|default:'' }} {{ vehicle.model|default:'' }} {{ vehicle.vin|default:'' }} {{ vehicle.description|default:'' }}"
+                data-search="{{ vehicle.name|default:'' }} {{ vehicle.make|default:'' }} {{ vehicle.model|default:'' }} {{ vehicle.vin|default:'' }} {{ vehicle.available_vins|join:' ' }} {{ vehicle.description|default:'' }}"
               >
                 <div class="row g-0 align-items-stretch">
                   <div class="col-12 col-lg-5">
@@ -1173,7 +1173,15 @@
                       <div class="d-flex justify-content-between flex-wrap gap-2">
                         <div>
                           <div class="showroom-title">{{ vehicle.model }} {{ vehicle.name }}</div>
-                          <div class="showroom-subtitle">VIN {{ vehicle.vin|default:"—" }}</div>
+                          <div class="showroom-subtitle">
+                            {% if vehicle.available_vins %}
+                              VIN {{ vehicle.available_vins|join:", " }}
+                            {% elif vehicle.vin %}
+                              VIN {{ vehicle.vin }}
+                            {% else %}
+                              VIN не указан
+                            {% endif %}
+                          </div>
                         </div>
                         <div class="showroom-price">
                           <div class="label">Цена</div>
@@ -1242,6 +1250,14 @@
                           {{ vehicle.mileage|default:"—" }} км
                         </div>
                         <div class="showroom-attribute">
+                          <strong>В наличии</strong>
+                          {% if vehicle.available_units_count %}
+                            {{ vehicle.available_units_count }} шт
+                          {% else %}
+                            {{ vehicle.stock_count }} шт
+                          {% endif %}
+                        </div>
+                        <div class="showroom-attribute">
                           <strong>Расход</strong>
                           {% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}
                         </div>
@@ -1260,11 +1276,12 @@
                             data-vehicle-name="{{ vehicle.name }}"
                             data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                             data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
-                            data-vehicle-vin="{{ vehicle.vin|default:'' }}"
-                            data-vehicle-engine-number="{{ vehicle.engine_number|default:'' }}"
-                            data-vehicle-year="{{ vehicle.year|default:'' }}"
-                            data-vehicle-color="{{ vehicle.color|default:'' }}"
-                            data-vehicle-mileage="{{ vehicle.mileage|default:'' }}"
+                            data-vehicle-vin="{{ vehicle.default_unit_vin|default:'' }}"
+                            data-vehicle-engine-number="{{ vehicle.default_unit_engine_number|default:'' }}"
+                            data-vehicle-year="{{ vehicle.default_unit_year|default:'' }}"
+                            data-vehicle-color="{{ vehicle.default_unit_color|default:'' }}"
+                            data-vehicle-mileage="{{ vehicle.default_unit_mileage|default:'' }}"
+                            data-vehicle-units="{{ vehicle.available_units_json|escapejs }}"
                             {% if vehicle.active_reservation %}
                               data-reservation-customer-id="{{ vehicle.active_reservation.customer.id }}"
                               data-reservation-customer-name="{{ vehicle.active_reservation.customer.full_name }}"
@@ -2648,6 +2665,13 @@ OOO «MAJOR MOTORS SAM»</div>
                   </div>
                   <div class="row g-3">
                     <div class="col-12 col-md-6 col-lg-4">
+                      <label for="vehicle_unit_id" class="form-label">Выбор VIN из списка</label>
+                      <select id="vehicle_unit_id" name="vehicle_unit_id" class="form-select">
+                        <option value="">Ввести вручную</option>
+                      </select>
+                      <div class="form-text" id="vehicle_unit_hint">Выберите конкретный VIN, если он уже добавлен.</div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
                       <label for="vehicle_vin" class="form-label">VIN code</label>
                       <input id="vehicle_vin" name="vehicle_vin" type="text" class="form-control" placeholder="VIN автомобиля">
                     </div>
@@ -3026,6 +3050,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const saleModalTitle = document.getElementById('sale-modal-title');
     const salePriceInput = document.getElementById('sale_price');
     const saleCurrencyHint = document.getElementById('sale-currency-hint');
+    const saleUnitSelect = document.getElementById('vehicle_unit_id');
     const saleVehicleVinInput = document.getElementById('vehicle_vin');
     const saleVehicleEngineInput = document.getElementById('vehicle_engine_number');
     const saleVehicleYearInput = document.getElementById('vehicle_year');
@@ -4330,6 +4355,44 @@ OOO «MAJOR MOTORS SAM»</div>
       saleModalTitle.textContent = `Оформление продажи: ${button.dataset.vehicleName}`;
     };
 
+    const hydrateUnitSelect = (units) => {
+      if (!saleUnitSelect) {
+        return;
+      }
+      saleUnitSelect.innerHTML = '<option value="">Ввести вручную</option>';
+      if (!Array.isArray(units) || units.length === 0) {
+        return;
+      }
+      units.forEach((unit) => {
+        const option = document.createElement('option');
+        const vinLabel = unit.vin ? `VIN ${unit.vin}` : 'VIN отсутствует';
+        const engineLabel = unit.engine_number ? `Двигатель ${unit.engine_number}` : 'двигатель —';
+        const colorLabel = unit.color ? `цвет ${unit.color}` : '';
+        option.value = unit.id;
+        option.textContent = [vinLabel, engineLabel, colorLabel].filter(Boolean).join(' · ');
+        option.dataset.vin = unit.vin || '';
+        option.dataset.engineNumber = unit.engine_number || '';
+        option.dataset.color = unit.color || '';
+        option.dataset.year = unit.year || '';
+        option.dataset.mileage = unit.mileage || '';
+        saleUnitSelect.appendChild(option);
+      });
+    };
+
+    if (saleUnitSelect) {
+      saleUnitSelect.addEventListener('change', (event) => {
+        const selectedOption = event.target.selectedOptions[0];
+        if (!selectedOption) {
+          return;
+        }
+        setInputValue(saleVehicleVinInput, selectedOption.dataset.vin || '');
+        setInputValue(saleVehicleEngineInput, selectedOption.dataset.engineNumber || '');
+        setInputValue(saleVehicleColorInput, selectedOption.dataset.color || '');
+        setInputValue(saleVehicleYearInput, selectedOption.dataset.year || '');
+        setInputValue(saleVehicleMileageInput, selectedOption.dataset.mileage || '');
+      });
+    }
+
     const toggleReserveCustomerFields = (disabled) => {
       reserveCustomerFields.forEach((fieldId) => {
         const field = document.getElementById(fieldId);
@@ -4348,6 +4411,18 @@ OOO «MAJOR MOTORS SAM»</div>
         if (saleCurrencyHint) {
           const currencyLabel = button.dataset.vehicleCurrency?.toUpperCase() || '';
           saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
+        }
+        let units = [];
+        if (button.dataset.vehicleUnits) {
+          try {
+            units = JSON.parse(button.dataset.vehicleUnits);
+          } catch (error) {
+            units = [];
+          }
+        }
+        hydrateUnitSelect(units);
+        if (saleUnitSelect) {
+          saleUnitSelect.value = '';
         }
         setInputValue(saleVehicleVinInput, button.dataset.vehicleVin || '');
         setInputValue(saleVehicleEngineInput, button.dataset.vehicleEngineNumber || '');

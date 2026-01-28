@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
 from django.db.models import Count, Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -27,6 +28,7 @@ from .models import (
     Reservation,
     Role,
     Vehicle,
+    VehicleUnit,
     VehicleOption,
     VehicleExpense,
     VehicleMedia,
@@ -277,13 +279,17 @@ def _create_vehicle_from_form(request, options_qs):
     model = request.POST.get('model', '').strip()
     make = request.POST.get('make', '').strip() or model or name
     vin = request.POST.get('vin', '').strip() or None
+    engine_number = request.POST.get('engine_number', '').strip()
+    unit_color = request.POST.get('color', '').strip()
+    unit_year = to_int(request.POST.get('year'))
+    unit_mileage = to_int(request.POST.get('mileage'))
     vehicle = Vehicle.objects.create(
         vin=vin,
         name=name,
         make=make,
         model=model,
-        year=to_int(request.POST.get('year')),
-        color=request.POST.get('color', '').strip(),
+        year=unit_year,
+        color=unit_color,
         body_type=request.POST.get('body_type', '').strip(),
         purchase_price=to_decimal(request.POST.get('purchase_price')) or Decimal('0'),
         purchase_currency=purchase_currency,
@@ -298,16 +304,30 @@ def _create_vehicle_from_form(request, options_qs):
         fuel_consumption=to_decimal(request.POST.get('fuel_consumption')),
         range_km=to_int(request.POST.get('range_km')),
         condition=request.POST.get('condition') or Vehicle.Condition.NEW,
-        mileage=to_int(request.POST.get('mileage')),
+        mileage=unit_mileage,
         country=request.POST.get('country', '').strip(),
         model_year=to_int(request.POST.get('model_year')),
-        engine_number=request.POST.get('engine_number', '').strip(),
+        engine_number=engine_number,
         gross_weight=to_int(request.POST.get('gross_weight')),
         description=request.POST.get('description', '').strip(),
         status=request.POST.get('status') or Vehicle.VehicleStatus.FOR_SALE,
         acquisition_type=request.POST.get('acquisition_type') or Vehicle.AcquisitionType.PURCHASE,
         counterparty_name=request.POST.get('counterparty_name', '').strip(),
     )
+    if vin or engine_number or unit_color or unit_year or unit_mileage:
+        try:
+            VehicleUnit.objects.create(
+                vehicle=vehicle,
+                vin=vin,
+                engine_number=engine_number,
+                color=unit_color,
+                year=unit_year,
+                mileage=unit_mileage,
+                status=VehicleUnit.UnitStatus.AVAILABLE,
+            )
+        except IntegrityError:
+            pass
+        _sync_vehicle_stock(vehicle)
 
     for photo in request.FILES.getlist('photos'):
         vehicle.media.create(
@@ -331,6 +351,17 @@ def _create_vehicle_from_form(request, options_qs):
             notes='Автоматический расход при закупе автомобиля',
         )
     return vehicle
+
+
+def _sync_vehicle_stock(vehicle):
+    available_units = vehicle.units.filter(status=VehicleUnit.UnitStatus.AVAILABLE).count()
+    if vehicle.units.exists():
+        vehicle.stock_count = available_units
+        if vehicle.stock_count == 0:
+            vehicle.status = Vehicle.VehicleStatus.SOLD
+        elif vehicle.status != Vehicle.VehicleStatus.RESERVED:
+            vehicle.status = Vehicle.VehicleStatus.FOR_SALE
+        vehicle.save(update_fields=['stock_count', 'status'])
 
 
 def _update_vehicle_from_form(request, vehicle, options_qs):
@@ -560,6 +591,16 @@ def autosalon(request):
             vehicle_id = request.POST.get('vehicle_id')
             if vehicle_id:
                 vehicle = Vehicle.objects.get(pk=vehicle_id)
+                selected_unit = None
+                unit_id = request.POST.get('vehicle_unit_id')
+                if unit_id:
+                    selected_unit = (
+                        VehicleUnit.objects.select_related('vehicle')
+                        .filter(pk=unit_id, status=VehicleUnit.UnitStatus.AVAILABLE)
+                        .first()
+                    )
+                    if selected_unit:
+                        vehicle = selected_unit.vehicle
                 active_reservation = Reservation.objects.select_related('customer').filter(
                     vehicle=vehicle,
                     status=Reservation.ReservationStatus.ACTIVE,
@@ -609,33 +650,74 @@ def autosalon(request):
 
                 vehicle_update_fields = []
                 vehicle_vin = request.POST.get('vehicle_vin', '').strip()
-                if vehicle_vin:
-                    vehicle.vin = vehicle_vin
-                    vehicle_update_fields.append('vin')
                 vehicle_engine_number = request.POST.get('vehicle_engine_number', '').strip()
-                if vehicle_engine_number:
-                    vehicle.engine_number = vehicle_engine_number
-                    vehicle_update_fields.append('engine_number')
                 vehicle_color = request.POST.get('vehicle_color', '').strip()
-                if vehicle_color:
-                    vehicle.color = vehicle_color
-                    vehicle_update_fields.append('color')
                 vehicle_year_value = request.POST.get('vehicle_year', '').strip()
+                vehicle_mileage_value = request.POST.get('vehicle_mileage', '').strip()
+                if not selected_unit and vehicle_vin:
+                    selected_unit = (
+                        VehicleUnit.objects.filter(
+                            vehicle=vehicle,
+                            vin=vehicle_vin,
+                            status=VehicleUnit.UnitStatus.AVAILABLE,
+                        ).first()
+                    )
+                unit_year = None
                 if vehicle_year_value:
                     try:
-                        vehicle.year = int(vehicle_year_value)
-                        vehicle_update_fields.append('year')
+                        unit_year = int(vehicle_year_value)
                     except (TypeError, ValueError):
-                        pass
-                vehicle_mileage_value = request.POST.get('vehicle_mileage', '').strip()
+                        unit_year = None
+                unit_mileage = None
                 if vehicle_mileage_value:
                     try:
-                        vehicle.mileage = int(vehicle_mileage_value)
-                        vehicle_update_fields.append('mileage')
+                        unit_mileage = int(vehicle_mileage_value)
                     except (TypeError, ValueError):
-                        pass
-                if vehicle_update_fields:
-                    vehicle.save(update_fields=vehicle_update_fields)
+                        unit_mileage = None
+                if selected_unit:
+                    unit_update_fields = []
+                    if vehicle_vin:
+                        selected_unit.vin = vehicle_vin
+                        unit_update_fields.append('vin')
+                    if vehicle_engine_number:
+                        selected_unit.engine_number = vehicle_engine_number
+                        unit_update_fields.append('engine_number')
+                    if vehicle_color:
+                        selected_unit.color = vehicle_color
+                        unit_update_fields.append('color')
+                    if unit_year is not None:
+                        selected_unit.year = unit_year
+                        unit_update_fields.append('year')
+                    if unit_mileage is not None:
+                        selected_unit.mileage = unit_mileage
+                        unit_update_fields.append('mileage')
+                    if unit_update_fields:
+                        selected_unit.save(update_fields=unit_update_fields)
+                else:
+                    if vehicle_vin or vehicle_engine_number or vehicle_color or unit_year or unit_mileage:
+                        try:
+                            selected_unit = VehicleUnit.objects.create(
+                                vehicle=vehicle,
+                                vin=vehicle_vin or None,
+                                engine_number=vehicle_engine_number,
+                                color=vehicle_color,
+                                year=unit_year,
+                                mileage=unit_mileage,
+                                status=VehicleUnit.UnitStatus.SOLD,
+                            )
+                        except IntegrityError:
+                            selected_unit = None
+                    if vehicle_color:
+                        vehicle.color = vehicle_color
+                        vehicle_update_fields.append('color')
+                    if unit_year is not None:
+                        vehicle.year = unit_year
+                        vehicle_update_fields.append('year')
+                    if unit_mileage is not None:
+                        vehicle.mileage = unit_mileage
+                        vehicle_update_fields.append('mileage')
+                    if vehicle_update_fields:
+                        vehicle.save(update_fields=vehicle_update_fields)
 
                 sale_price = request.POST.get('sale_price')
                 try:
@@ -657,6 +739,7 @@ def autosalon(request):
                 deal = Deal.objects.create(
                     customer=customer,
                     vehicle=vehicle,
+                    vehicle_unit=selected_unit,
                     manager=manager,
                     sold_by_name=manager_name,
                     sale_price=sale_price_value,
@@ -748,12 +831,17 @@ def autosalon(request):
                             cash_account.uzs_balance += sale_price_value
                             cash_account.save(update_fields=['uzs_balance', 'updated_at'])
 
-                vehicle.stock_count = max(vehicle.stock_count - 1, 0)
-                if vehicle.stock_count == 0:
-                    vehicle.status = Vehicle.VehicleStatus.SOLD
-                elif vehicle.status != Vehicle.VehicleStatus.RESERVED:
-                    vehicle.status = Vehicle.VehicleStatus.FOR_SALE
-                vehicle.save(update_fields=['stock_count', 'status'])
+                if selected_unit and selected_unit.status == VehicleUnit.UnitStatus.AVAILABLE:
+                    selected_unit.status = VehicleUnit.UnitStatus.SOLD
+                    selected_unit.save(update_fields=['status'])
+                    _sync_vehicle_stock(vehicle)
+                else:
+                    vehicle.stock_count = max(vehicle.stock_count - 1, 0)
+                    if vehicle.stock_count == 0:
+                        vehicle.status = Vehicle.VehicleStatus.SOLD
+                    elif vehicle.status != Vehicle.VehicleStatus.RESERVED:
+                        vehicle.status = Vehicle.VehicleStatus.FOR_SALE
+                    vehicle.save(update_fields=['stock_count', 'status'])
                 Reservation.objects.filter(
                     vehicle=vehicle,
                     status=Reservation.ReservationStatus.ACTIVE,
@@ -856,16 +944,19 @@ def autosalon(request):
     active_reservations = Reservation.objects.select_related('customer', 'reserved_by').filter(
         status=Reservation.ReservationStatus.ACTIVE,
     )
+    available_units = VehicleUnit.objects.filter(status=VehicleUnit.UnitStatus.AVAILABLE)
     vehicles_qs = (
         Vehicle.objects.prefetch_related(
             'options',
             'media',
             Prefetch('reservations', queryset=active_reservations, to_attr='active_reservations'),
+            Prefetch('units', queryset=available_units, to_attr='available_units'),
         )
         .filter(
             status__in=[Vehicle.VehicleStatus.FOR_SALE, Vehicle.VehicleStatus.RESERVED],
-            stock_count__gt=0,
         )
+        .filter(Q(stock_count__gt=0) | Q(units__status=VehicleUnit.UnitStatus.AVAILABLE))
+        .distinct()
         .order_by('-created_at')
     )
     showroom_models = sorted({model for model in vehicles_qs.values_list('model', flat=True) if model})
@@ -954,6 +1045,29 @@ def autosalon(request):
     for vehicle in vehicles_qs:
         vehicle.primary_photo = next((media for media in vehicle.media.all() if media.media_type == 'photo'), None)
         vehicle.active_reservation = next(iter(getattr(vehicle, 'active_reservations', [])), None)
+        available_list = getattr(vehicle, 'available_units', [])
+        vehicle.available_units_display = [
+            {
+                'id': unit.id,
+                'vin': unit.vin or '',
+                'engine_number': unit.engine_number or '',
+                'color': unit.color or '',
+                'year': unit.year,
+                'mileage': unit.mileage,
+            }
+            for unit in available_list
+        ]
+        vehicle.available_units_json = json.dumps(vehicle.available_units_display, ensure_ascii=False)
+        vehicle.available_vins = [unit.vin for unit in available_list if unit.vin]
+        vehicle.available_units_count = len(available_list)
+        default_unit = available_list[0] if available_list else None
+        vehicle.default_unit_vin = default_unit.vin if default_unit and default_unit.vin else vehicle.vin
+        vehicle.default_unit_engine_number = (
+            default_unit.engine_number if default_unit and default_unit.engine_number else vehicle.engine_number
+        )
+        vehicle.default_unit_color = default_unit.color if default_unit and default_unit.color else vehicle.color
+        vehicle.default_unit_year = default_unit.year if default_unit and default_unit.year else vehicle.year
+        vehicle.default_unit_mileage = default_unit.mileage if default_unit and default_unit.mileage else vehicle.mileage
     selected_attorney_id = request.GET.get('attorney_id')
     return render(
         request,
@@ -997,6 +1111,35 @@ def inventory(request):
                 if vehicle:
                     _update_vehicle_from_form(request, vehicle, options_qs)
             return redirect('inventory')
+        if action == 'add_vehicle_unit':
+            vehicle_id = request.POST.get('vehicle_id')
+            if vehicle_id:
+                vehicle = Vehicle.objects.get(pk=vehicle_id)
+                vin = request.POST.get('unit_vin', '').strip() or None
+                engine_number = request.POST.get('unit_engine_number', '').strip()
+                color = request.POST.get('unit_color', '').strip()
+                try:
+                    year = int(request.POST.get('unit_year')) if request.POST.get('unit_year') else None
+                except (TypeError, ValueError):
+                    year = None
+                try:
+                    mileage = int(request.POST.get('unit_mileage')) if request.POST.get('unit_mileage') else None
+                except (TypeError, ValueError):
+                    mileage = None
+                try:
+                    VehicleUnit.objects.create(
+                        vehicle=vehicle,
+                        vin=vin,
+                        engine_number=engine_number,
+                        color=color,
+                        year=year,
+                        mileage=mileage,
+                        status=VehicleUnit.UnitStatus.AVAILABLE,
+                    )
+                    _sync_vehicle_stock(vehicle)
+                except IntegrityError:
+                    pass
+            return redirect('inventory')
         if action == 'return_to_autosalon':
             vehicle_id = request.POST.get('vehicle_id')
             if vehicle_id:
@@ -1007,10 +1150,24 @@ def inventory(request):
                 vehicle.save(update_fields=['stock_count', 'status'])
             return redirect('inventory')
 
-    vehicles_qs = Vehicle.objects.prefetch_related('options', 'media', 'deals__customer').order_by('-created_at')[:50]
+    vehicles_qs = Vehicle.objects.prefetch_related(
+        'options',
+        'media',
+        'deals__customer',
+        Prefetch(
+            'units',
+            queryset=VehicleUnit.objects.filter(status=VehicleUnit.UnitStatus.AVAILABLE),
+            to_attr='available_units',
+        ),
+    ).order_by('-created_at')[:50]
     vehicles = list(vehicles_qs)
     for vehicle in vehicles:
         vehicle.latest_deal = next(iter(vehicle.deals.all()), None)
+        available_units = getattr(vehicle, 'available_units', [])
+        vehicle.available_units_count = len(available_units)
+        vehicle.available_units_preview = ', '.join(
+            [unit.vin for unit in available_units if unit.vin]
+        )
     active_vehicles = [vehicle for vehicle in vehicles if vehicle.status != Vehicle.VehicleStatus.SOLD]
     sold_vehicles = [vehicle for vehicle in vehicles if vehicle.status == Vehicle.VehicleStatus.SOLD]
     inventory_models = sorted({vehicle.model for vehicle in vehicles if vehicle.model})
@@ -1022,6 +1179,7 @@ def inventory(request):
             'options': options_qs,
             'vehicles_for_sale': Vehicle.objects.filter(status=Vehicle.VehicleStatus.FOR_SALE).count(),
             'inventory_models': inventory_models,
+            'vehicles_for_unit': Vehicle.objects.order_by('name', 'model'),
         },
     )
 
