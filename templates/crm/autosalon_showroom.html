@@ -2562,15 +2562,6 @@ OOO «MAJOR MOTORS SAM»</div>
             <div class="row g-3">
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="customer_id" class="form-label">Клиент из базы</label>
-                <input
-                  id="customer_search"
-                  type="search"
-                  class="form-control mb-2"
-                  placeholder="Поиск клиента"
-                  list="customer-datalist"
-                  data-customer-search
-                  data-target-select="customer_id"
-                >
                 <select id="customer_id" name="customer_id" class="form-select">
                   <option value="">Новый клиент</option>
                   {% for customer in customers %}
@@ -2741,15 +2732,6 @@ OOO «MAJOR MOTORS SAM»</div>
             <div class="row g-3">
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="reserve_customer_id" class="form-label">Клиент из базы</label>
-                <input
-                  id="reserve_customer_search"
-                  type="search"
-                  class="form-control mb-2"
-                  placeholder="Поиск клиента"
-                  list="customer-datalist"
-                  data-customer-search
-                  data-target-select="reserve_customer_id"
-                >
                 <select id="reserve_customer_id" name="customer_id" class="form-select">
                   <option value="">Новый клиент</option>
                   {% for customer in customers %}
@@ -3031,7 +3013,6 @@ OOO «MAJOR MOTORS SAM»</div>
     const saleBankRateInput = document.getElementById('sale-bank-rate');
     const closeButtons = document.querySelectorAll('[data-close-sale]');
     const customerSelect = document.getElementById('customer_id');
-    const customerSearchInputs = document.querySelectorAll('[data-customer-search]');
     const customerDataList = document.getElementById('customer-datalist');
     const customerFields = [
       'full_name',
@@ -3625,22 +3606,6 @@ OOO «MAJOR MOTORS SAM»</div>
         }
         field.value = data?.[key] || '';
       });
-    };
-
-    const syncCustomerSearchValue = (select) => {
-      if (!select) {
-        return;
-      }
-      const searchInput = document.querySelector(`[data-target-select="${select.id}"]`);
-      if (!searchInput) {
-        return;
-      }
-      if (!select.value) {
-        searchInput.value = '';
-        return;
-      }
-      const option = select.options[select.selectedIndex];
-      searchInput.value = option ? option.textContent.trim() : '';
     };
 
     const updateAttorneyPreview = () => {
@@ -4280,7 +4245,6 @@ OOO «MAJOR MOTORS SAM»</div>
       } else {
         fillCustomerFields(fieldMap, {});
       }
-      syncCustomerSearchValue(select);
     };
 
     const lockSaleCustomer = (button) => {
@@ -4430,30 +4394,6 @@ OOO «MAJOR MOTORS SAM»</div>
       button.addEventListener('click', () => {
         reserveModalInstance?.hide();
       });
-    });
-
-    customerSearchInputs.forEach((input) => {
-      const handleCustomerSearch = () => {
-        const value = input.value.trim();
-        const targetId = input.dataset.targetSelect;
-        const targetSelect = targetId ? document.getElementById(targetId) : null;
-        if (!targetSelect) {
-          return;
-        }
-        if (!value) {
-          targetSelect.value = '';
-          targetSelect.dispatchEvent(new Event('change', { bubbles: true }));
-          return;
-        }
-        const option = findCustomerOptionByValue(value);
-        if (!option) {
-          return;
-        }
-        targetSelect.value = option.dataset.id || '';
-        targetSelect.dispatchEvent(new Event('change', { bubbles: true }));
-      };
-      input.addEventListener('input', handleCustomerSearch);
-      input.addEventListener('change', handleCustomerSearch);
     });
 
     if (customerSelect) {
