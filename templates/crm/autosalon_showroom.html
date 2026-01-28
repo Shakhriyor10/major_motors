@@ -4385,6 +4385,11 @@ OOO «MAJOR MOTORS SAM»</div>
       }
       const selectedOption = saleUnitSelect.selectedOptions[0];
       if (!selectedOption || !selectedOption.value) {
+        setInputValue(saleVehicleVinInput, '');
+        setInputValue(saleVehicleEngineInput, '');
+        setInputValue(saleVehicleColorInput, '');
+        setInputValue(saleVehicleYearInput, '');
+        setInputValue(saleVehicleMileageInput, '');
         return;
       }
       setInputValue(saleVehicleVinInput, selectedOption.dataset.vin || '');
@@ -4395,16 +4400,8 @@ OOO «MAJOR MOTORS SAM»</div>
     };
 
     if (saleUnitSelect) {
-      saleUnitSelect.addEventListener('change', (event) => {
-        const selectedOption = event.target.selectedOptions[0];
-        if (!selectedOption || !selectedOption.value) {
-          return;
-        }
-        setInputValue(saleVehicleVinInput, selectedOption.dataset.vin || '');
-        setInputValue(saleVehicleEngineInput, selectedOption.dataset.engineNumber || '');
-        setInputValue(saleVehicleColorInput, selectedOption.dataset.color || '');
-        setInputValue(saleVehicleYearInput, selectedOption.dataset.year || '');
-        setInputValue(saleVehicleMileageInput, selectedOption.dataset.mileage || '');
+      saleUnitSelect.addEventListener('change', () => {
+        syncUnitFieldsFromSelect();
       });
     }
 
