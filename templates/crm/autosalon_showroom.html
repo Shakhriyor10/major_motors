@@ -2562,7 +2562,16 @@ OOO «MAJOR MOTORS SAM»</div>
             <div class="row g-3">
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="customer_id" class="form-label">Клиент из базы</label>
-                <select id="customer_id" name="customer_id" class="form-select">
+                <input
+                  id="customer_search"
+                  type="search"
+                  class="form-control"
+                  placeholder="Начните вводить ФИО или телефон"
+                  list="customer-datalist"
+                  data-customer-search
+                  data-target-select="customer_id"
+                >
+                <select id="customer_id" name="customer_id" class="form-select d-none" tabindex="-1" aria-hidden="true">
                   <option value="">Новый клиент</option>
                   {% for customer in customers %}
                     <option
@@ -2581,6 +2590,7 @@ OOO «MAJOR MOTORS SAM»</div>
                     </option>
                   {% endfor %}
                 </select>
+                <div class="form-text">Выберите клиента через поиск — данные подставятся автоматически.</div>
               </div>
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="sale_price" class="form-label">Сумма продажи</label>
@@ -2732,7 +2742,22 @@ OOO «MAJOR MOTORS SAM»</div>
             <div class="row g-3">
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="reserve_customer_id" class="form-label">Клиент из базы</label>
-                <select id="reserve_customer_id" name="customer_id" class="form-select">
+                <input
+                  id="reserve_customer_search"
+                  type="search"
+                  class="form-control"
+                  placeholder="Начните вводить ФИО или телефон"
+                  list="customer-datalist"
+                  data-customer-search
+                  data-target-select="reserve_customer_id"
+                >
+                <select
+                  id="reserve_customer_id"
+                  name="customer_id"
+                  class="form-select d-none"
+                  tabindex="-1"
+                  aria-hidden="true"
+                >
                   <option value="">Новый клиент</option>
                   {% for customer in customers %}
                     <option
@@ -2751,6 +2776,7 @@ OOO «MAJOR MOTORS SAM»</div>
                     </option>
                   {% endfor %}
                 </select>
+                <div class="form-text">Можно выбрать существующего клиента через поиск.</div>
               </div>
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="start_at" class="form-label">Начало брони</label>
@@ -3013,6 +3039,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const saleBankRateInput = document.getElementById('sale-bank-rate');
     const closeButtons = document.querySelectorAll('[data-close-sale]');
     const customerSelect = document.getElementById('customer_id');
+    const customerSearchInputs = document.querySelectorAll('[data-customer-search]');
     const customerDataList = document.getElementById('customer-datalist');
     const customerFields = [
       'full_name',
@@ -3596,6 +3623,26 @@ OOO «MAJOR MOTORS SAM»</div>
         return null;
       }
       return Array.from(customerDataList.options).find((option) => option.value === value) || null;
+    };
+
+    const getSearchInputForSelect = (select) => {
+      if (!select) {
+        return null;
+      }
+      return document.querySelector(`[data-customer-search][data-target-select="${select.id}"]`);
+    };
+
+    const syncCustomerSearchValue = (select) => {
+      const searchInput = getSearchInputForSelect(select);
+      if (!select || !searchInput) {
+        return;
+      }
+      if (!select.value) {
+        searchInput.value = '';
+        return;
+      }
+      const option = select.options[select.selectedIndex];
+      searchInput.value = option ? option.textContent.trim() : '';
     };
 
     const fillCustomerFields = (fieldMap, data) => {
@@ -4245,6 +4292,7 @@ OOO «MAJOR MOTORS SAM»</div>
       } else {
         fillCustomerFields(fieldMap, {});
       }
+      syncCustomerSearchValue(select);
     };
 
     const lockSaleCustomer = (button) => {
@@ -4256,6 +4304,10 @@ OOO «MAJOR MOTORS SAM»</div>
           customerSelect.value = reservedCustomerId;
           customerSelect.disabled = true;
           syncCustomerSelection(customerSelect, customerFieldMap);
+          const searchInput = getSearchInputForSelect(customerSelect);
+          if (searchInput) {
+            searchInput.disabled = true;
+          }
         }
         const nameField = document.getElementById('full_name');
         const phoneField = document.getElementById('phone');
@@ -4269,6 +4321,10 @@ OOO «MAJOR MOTORS SAM»</div>
         customerSelect.disabled = false;
         customerSelect.value = '';
         syncCustomerSelection(customerSelect, customerFieldMap);
+        const searchInput = getSearchInputForSelect(customerSelect);
+        if (searchInput) {
+          searchInput.disabled = false;
+        }
       }
       toggleCustomerFields(false);
       saleModalTitle.textContent = `Оформление продажи: ${button.dataset.vehicleName}`;
@@ -4396,10 +4452,41 @@ OOO «MAJOR MOTORS SAM»</div>
       });
     });
 
+    customerSearchInputs.forEach((input) => {
+      const targetId = input.dataset.targetSelect;
+      const targetSelect = targetId ? document.getElementById(targetId) : null;
+      const handleCustomerSearch = () => {
+        const value = input.value.trim();
+        if (!targetSelect) {
+          return;
+        }
+        if (!value) {
+          targetSelect.value = '';
+          targetSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          return;
+        }
+        const option = findCustomerOptionByValue(value);
+        if (!option) {
+          return;
+        }
+        targetSelect.value = option.dataset.id || '';
+        targetSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+      if (targetSelect) {
+        input.disabled = targetSelect.disabled;
+      }
+      input.addEventListener('input', handleCustomerSearch);
+      input.addEventListener('change', handleCustomerSearch);
+    });
+
     if (customerSelect) {
       customerSelect.addEventListener('change', () => {
         toggleCustomerFields(Boolean(customerSelect.value));
         syncCustomerSelection(customerSelect, customerFieldMap);
+        const searchInput = getSearchInputForSelect(customerSelect);
+        if (searchInput) {
+          searchInput.disabled = customerSelect.disabled;
+        }
       });
     }
 
@@ -4671,6 +4758,10 @@ OOO «MAJOR MOTORS SAM»</div>
       reserveCustomerSelect.addEventListener('change', () => {
         toggleReserveCustomerFields(Boolean(reserveCustomerSelect.value));
         syncCustomerSelection(reserveCustomerSelect, reserveCustomerFieldMap);
+        const searchInput = getSearchInputForSelect(reserveCustomerSelect);
+        if (searchInput) {
+          searchInput.disabled = reserveCustomerSelect.disabled;
+        }
       });
     }
 
