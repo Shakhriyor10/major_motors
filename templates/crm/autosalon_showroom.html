@@ -350,6 +350,7 @@
       border-radius: 18px;
       padding: 18px;
       box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.25);
+      white-space: pre-line;
     }
 
     .credit-action-btn {
@@ -1262,7 +1263,7 @@
                             data-vehicle-mileage="{{ vehicle.mileage|default:'—' }}"
                             data-vehicle-consumption="{% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}"
                             data-vehicle-range="{% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}"
-                            data-vehicle-description="{{ vehicle.description|default:'' }}"
+                            data-vehicle-description="{{ vehicle.description|default:''|escapejs }}"
                             data-vehicle-image="{% if vehicle.primary_photo %}{{ vehicle.primary_photo.file.url }}{% endif %}"
                           >
                             Подробнее
@@ -5091,7 +5092,8 @@ OOO «MAJOR MOTORS SAM»</div>
         const mileage = button.dataset.vehicleMileage || '—';
         const consumption = button.dataset.vehicleConsumption || '—';
         const range = button.dataset.vehicleRange || '—';
-        const description = button.dataset.vehicleDescription || '—';
+        const rawDescription = button.dataset.vehicleDescription || '';
+        const description = rawDescription ? JSON.parse(`"${rawDescription}"`) : '';
         const imageSrc = button.dataset.vehicleImage || '';
 
         if (modalTitle) {

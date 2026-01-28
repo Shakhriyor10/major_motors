@@ -346,7 +346,7 @@
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-vin-{{ vehicle.id }}">VIN code (номер кузова)</label>
-                      <input id="edit-vin-{{ vehicle.id }}" name="vin" type="text" class="form-control" value="{{ vehicle.vin }}">
+                      <input id="edit-vin-{{ vehicle.id }}" name="vin" type="text" class="form-control" value="{{ vehicle.vin|default_if_none:'' }}">
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-engine-number-{{ vehicle.id }}">Номер двигателя</label>
