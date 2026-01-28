@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
@@ -170,12 +171,23 @@ def customers(request):
         lead_source_id = request.POST.get('lead_source')
         if lead_source_id:
             lead_source = LeadSource.objects.filter(pk=lead_source_id).first()
+        passport_series = request.POST.get('passport_series', '').strip()
+        passport_number = request.POST.get('passport_number', '').strip()
+        passport_combined = request.POST.get('passport_combined', '').strip()
+        if passport_combined and not (passport_series or passport_number):
+            normalized_passport = re.sub(r'\s+', '', passport_combined)
+            if len(normalized_passport) >= 2:
+                passport_series = normalized_passport[:2]
+                passport_number = normalized_passport[2:]
+            else:
+                passport_series = normalized_passport
+
         customer = Customer.objects.create(
             full_name=request.POST.get('full_name', '').strip(),
             phone=request.POST.get('phone', '').strip(),
             inn=request.POST.get('inn', '').strip(),
-            passport_series=request.POST.get('passport_series', '').strip(),
-            passport_number=request.POST.get('passport_number', '').strip(),
+            passport_series=passport_series,
+            passport_number=passport_number,
             pinfl=request.POST.get('pinfl', '').strip(),
             passport_issued_date=parse_date(request.POST.get('passport_issued_date') or ''),
             passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
