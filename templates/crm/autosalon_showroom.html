@@ -4425,12 +4425,22 @@ OOO «MAJOR MOTORS SAM»</div>
           saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
         }
         let units = [];
-        if (button.dataset.vehicleUnits) {
-          try {
-            units = JSON.parse(button.dataset.vehicleUnits);
-          } catch (error) {
-            units = [];
+        const rawUnits = button.getAttribute('data-vehicle-units') || '';
+        const datasetUnits = button.dataset.vehicleUnits || '';
+        const parseUnits = (value) => {
+          if (!value) {
+            return [];
           }
+          try {
+            return JSON.parse(value);
+          } catch (error) {
+            return [];
+          }
+        };
+        units = parseUnits(datasetUnits);
+        if (!units.length) {
+          const cleaned = rawUnits.replace(/&quot;/g, '"');
+          units = parseUnits(cleaned);
         }
         hydrateUnitSelect(units);
         if (saleUnitSelect && units.length > 0) {
