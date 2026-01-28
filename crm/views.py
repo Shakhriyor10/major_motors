@@ -572,8 +572,10 @@ def autosalon(request):
                         customer = Customer.objects.get(pk=customer_id)
                         customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
                         customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
+                        customer.inn = request.POST.get('inn', customer.inn).strip()
                         customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
                         customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                        customer.pinfl = request.POST.get('pinfl', customer.pinfl).strip()
                         passport_issued_date_value = request.POST.get('passport_issued_date')
                         if passport_issued_date_value:
                             customer.passport_issued_date = parse_date(passport_issued_date_value)
@@ -583,8 +585,10 @@ def autosalon(request):
                             update_fields=[
                                 'full_name',
                                 'phone',
+                                'inn',
                                 'passport_series',
                                 'passport_number',
+                                'pinfl',
                                 'passport_issued_date',
                                 'passport_issued_by',
                                 'address',
@@ -594,12 +598,44 @@ def autosalon(request):
                         customer = Customer.objects.create(
                             full_name=request.POST.get('full_name', '').strip(),
                             phone=request.POST.get('phone', '').strip(),
+                            inn=request.POST.get('inn', '').strip(),
                             passport_series=request.POST.get('passport_series', '').strip(),
                             passport_number=request.POST.get('passport_number', '').strip(),
+                            pinfl=request.POST.get('pinfl', '').strip(),
                             passport_issued_date=parse_date(request.POST.get('passport_issued_date') or ''),
                             passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
                             address=request.POST.get('address', '').strip(),
                         )
+
+                vehicle_update_fields = []
+                vehicle_vin = request.POST.get('vehicle_vin', '').strip()
+                if vehicle_vin:
+                    vehicle.vin = vehicle_vin
+                    vehicle_update_fields.append('vin')
+                vehicle_engine_number = request.POST.get('vehicle_engine_number', '').strip()
+                if vehicle_engine_number:
+                    vehicle.engine_number = vehicle_engine_number
+                    vehicle_update_fields.append('engine_number')
+                vehicle_color = request.POST.get('vehicle_color', '').strip()
+                if vehicle_color:
+                    vehicle.color = vehicle_color
+                    vehicle_update_fields.append('color')
+                vehicle_year_value = request.POST.get('vehicle_year', '').strip()
+                if vehicle_year_value:
+                    try:
+                        vehicle.year = int(vehicle_year_value)
+                        vehicle_update_fields.append('year')
+                    except (TypeError, ValueError):
+                        pass
+                vehicle_mileage_value = request.POST.get('vehicle_mileage', '').strip()
+                if vehicle_mileage_value:
+                    try:
+                        vehicle.mileage = int(vehicle_mileage_value)
+                        vehicle_update_fields.append('mileage')
+                    except (TypeError, ValueError):
+                        pass
+                if vehicle_update_fields:
+                    vehicle.save(update_fields=vehicle_update_fields)
 
                 sale_price = request.POST.get('sale_price')
                 try:
@@ -644,10 +680,21 @@ def autosalon(request):
                 else:
                     financing_type = request.POST.get('financing_type') or Deal.FinancingType.CASH
                     down_payment_value = request.POST.get('down_payment_amount')
+                    down_payment_type = request.POST.get('down_payment_type') or 'amount'
                     try:
-                        down_payment = Decimal(down_payment_value) if down_payment_value not in (None, '') else Decimal('0')
+                        down_payment_raw = (
+                            Decimal(down_payment_value) if down_payment_value not in (None, '') else Decimal('0')
+                        )
                     except InvalidOperation:
-                        down_payment = Decimal('0')
+                        down_payment_raw = Decimal('0')
+                    if down_payment_raw < 0:
+                        down_payment_raw = Decimal('0')
+                    if down_payment_type == 'percent':
+                        if down_payment_raw > 100:
+                            down_payment_raw = Decimal('100')
+                        down_payment = (sale_price_value * down_payment_raw) / Decimal('100')
+                    else:
+                        down_payment = down_payment_raw
                     if down_payment < 0:
                         down_payment = Decimal('0')
                     if down_payment > sale_price_value:
