@@ -270,6 +270,13 @@
       font-weight: 600;
     }
 
+    .sale-vehicle-card {
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: #f8fafc;
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.15);
+    }
+
     .showroom-toolbar {
       border-radius: 18px;
       border: 1px solid rgba(148, 163, 184, 0.25);
@@ -1245,6 +1252,27 @@
                       </div>
                       <div class="d-flex justify-content-end">
                         <div class="d-flex flex-wrap gap-2 showroom-actions">
+                          <button
+                            class="btn btn-primary"
+                            type="button"
+                            data-open-sale
+                            data-vehicle-id="{{ vehicle.id }}"
+                            data-vehicle-name="{{ vehicle.name }}"
+                            data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                            data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                            data-vehicle-vin="{{ vehicle.vin|default:'' }}"
+                            data-vehicle-engine-number="{{ vehicle.engine_number|default:'' }}"
+                            data-vehicle-year="{{ vehicle.year|default:'' }}"
+                            data-vehicle-color="{{ vehicle.color|default:'' }}"
+                            data-vehicle-mileage="{{ vehicle.mileage|default:'' }}"
+                            {% if vehicle.active_reservation %}
+                              data-reservation-customer-id="{{ vehicle.active_reservation.customer.id }}"
+                              data-reservation-customer-name="{{ vehicle.active_reservation.customer.full_name }}"
+                              data-reservation-customer-phone="{{ vehicle.active_reservation.customer.phone }}"
+                            {% endif %}
+                          >
+                            Продать
+                          </button>
                           <button
                             class="btn btn-outline-dark"
                             type="button"
@@ -2550,6 +2578,8 @@ OOO «MAJOR MOTORS SAM»</div>
                       value="{{ customer.id }}"
                       data-full-name="{{ customer.full_name }}"
                       data-phone="{{ customer.phone }}"
+                      data-inn="{{ customer.inn|default:'' }}"
+                      data-pinfl="{{ customer.pinfl|default:'' }}"
                       data-passport-series="{{ customer.passport_series|default:'' }}"
                       data-passport-number="{{ customer.passport_number|default:'' }}"
                       data-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
@@ -2577,15 +2607,21 @@ OOO «MAJOR MOTORS SAM»</div>
               </div>
               <div class="col-12 col-md-6 col-lg-4" id="down-payment-field" hidden>
                 <label for="down_payment_amount" class="form-label">Первоначальный взнос</label>
-                <input
-                  id="down_payment_amount"
-                  name="down_payment_amount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  class="form-control"
-                >
-                <div class="form-text" id="down-payment-hint">Остаток будет зачислен на банковский счет по текущему курсу.</div>
+                <div class="input-group">
+                  <input
+                    id="down_payment_amount"
+                    name="down_payment_amount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    class="form-control"
+                  >
+                  <select id="down_payment_type" name="down_payment_type" class="form-select">
+                    <option value="amount">Сумма</option>
+                    <option value="percent">%</option>
+                  </select>
+                </div>
+                <div class="form-text" id="down-payment-hint">Введите сумму первоначального взноса.</div>
               </div>
               <div class="col-12 col-md-6 col-lg-4">
                 <label for="sale-manager" class="form-label">Сотрудник (кем продано)</label>
@@ -2600,6 +2636,45 @@ OOO «MAJOR MOTORS SAM»</div>
                   <option value="">Выберите сотрудника</option>
                 </select>
               </div>
+              <div class="col-12">
+                <div class="sale-vehicle-card p-3">
+                  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div>
+                      <div class="fw-semibold">Данные автомобиля</div>
+                      <div class="text-muted small">Проверьте VIN и номера перед оформлением сделки.</div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">Авто</span>
+                  </div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6 col-lg-4">
+                      <label for="vehicle_vin" class="form-label">VIN code</label>
+                      <input id="vehicle_vin" name="vehicle_vin" type="text" class="form-control" placeholder="VIN автомобиля">
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                      <label for="vehicle_engine_number" class="form-label">Номер двигателя</label>
+                      <input
+                        id="vehicle_engine_number"
+                        name="vehicle_engine_number"
+                        type="text"
+                        class="form-control"
+                        placeholder="Номер двигателя"
+                      >
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                      <label for="vehicle_year" class="form-label">Год выпуска</label>
+                      <input id="vehicle_year" name="vehicle_year" type="number" min="1900" max="2100" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                      <label for="vehicle_color" class="form-label">Цвет</label>
+                      <input id="vehicle_color" name="vehicle_color" type="text" class="form-control" placeholder="Цвет кузова">
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                      <label for="vehicle_mileage" class="form-label">Пробег (км)</label>
+                      <input id="vehicle_mileage" name="vehicle_mileage" type="number" min="0" class="form-control">
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="col-12 col-md-6">
                 <label for="full_name" class="form-label">ФИО клиента</label>
                 <input id="full_name" name="full_name" type="text" class="form-control" required>
@@ -2607,6 +2682,14 @@ OOO «MAJOR MOTORS SAM»</div>
               <div class="col-12 col-md-6">
                 <label for="phone" class="form-label">Телефон</label>
                 <input id="phone" name="phone" type="text" class="form-control" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="inn" class="form-label">ИНН</label>
+                <input id="inn" name="inn" type="text" class="form-control">
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="pinfl" class="form-label">ПИНФЛ</label>
+                <input id="pinfl" name="pinfl" type="text" class="form-control">
               </div>
               <div class="col-12 col-md-6">
                 <label for="passport_series" class="form-label">Серия паспорта</label>
@@ -2674,6 +2757,8 @@ OOO «MAJOR MOTORS SAM»</div>
                       value="{{ customer.id }}"
                       data-full-name="{{ customer.full_name }}"
                       data-phone="{{ customer.phone }}"
+                      data-inn="{{ customer.inn|default:'' }}"
+                      data-pinfl="{{ customer.pinfl|default:'' }}"
                       data-passport-series="{{ customer.passport_series|default:'' }}"
                       data-passport-number="{{ customer.passport_number|default:'' }}"
                       data-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
@@ -2911,6 +2996,8 @@ OOO «MAJOR MOTORS SAM»</div>
         data-id="{{ customer.id }}"
         data-full-name="{{ customer.full_name }}"
         data-phone="{{ customer.phone }}"
+        data-inn="{{ customer.inn|default:'' }}"
+        data-pinfl="{{ customer.pinfl|default:'' }}"
         data-passport-series="{{ customer.passport_series|default:'' }}"
         data-passport-number="{{ customer.passport_number|default:'' }}"
         data-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
@@ -2931,16 +3018,31 @@ OOO «MAJOR MOTORS SAM»</div>
     const saleModalTitle = document.getElementById('sale-modal-title');
     const salePriceInput = document.getElementById('sale_price');
     const saleCurrencyHint = document.getElementById('sale-currency-hint');
+    const saleVehicleVinInput = document.getElementById('vehicle_vin');
+    const saleVehicleEngineInput = document.getElementById('vehicle_engine_number');
+    const saleVehicleYearInput = document.getElementById('vehicle_year');
+    const saleVehicleColorInput = document.getElementById('vehicle_color');
+    const saleVehicleMileageInput = document.getElementById('vehicle_mileage');
     const financingTypeSelect = document.getElementById('financing_type');
     const downPaymentField = document.getElementById('down-payment-field');
     const downPaymentInput = document.getElementById('down_payment_amount');
+    const downPaymentTypeSelect = document.getElementById('down_payment_type');
     const downPaymentHint = document.getElementById('down-payment-hint');
     const saleBankRateInput = document.getElementById('sale-bank-rate');
     const closeButtons = document.querySelectorAll('[data-close-sale]');
     const customerSelect = document.getElementById('customer_id');
     const customerSearchInputs = document.querySelectorAll('[data-customer-search]');
     const customerDataList = document.getElementById('customer-datalist');
-    const customerFields = ['full_name', 'phone', 'passport_series', 'passport_number', 'passport_issued_by', 'address'];
+    const customerFields = [
+      'full_name',
+      'phone',
+      'inn',
+      'pinfl',
+      'passport_series',
+      'passport_number',
+      'passport_issued_by',
+      'address',
+    ];
     const printButton = document.getElementById('print-receipt');
     const saleModalInstance = saleModal ? bootstrap.Modal.getOrCreateInstance(saleModal) : null;
     const reserveModal = document.getElementById('reserve-modal');
@@ -3485,6 +3587,8 @@ OOO «MAJOR MOTORS SAM»</div>
           id: '',
           fullName: '',
           phone: '',
+          inn: '',
+          pinfl: '',
           passportSeries: '',
           passportNumber: '',
           passportIssuedDate: '',
@@ -3496,6 +3600,8 @@ OOO «MAJOR MOTORS SAM»</div>
         id: option.dataset.id || option.value || '',
         fullName: option.dataset.fullName || '',
         phone: option.dataset.phone || '',
+        inn: option.dataset.inn || '',
+        pinfl: option.dataset.pinfl || '',
         passportSeries: option.dataset.passportSeries || '',
         passportNumber: option.dataset.passportNumber || '',
         passportIssuedDate: option.dataset.passportIssuedDate || '',
@@ -4004,11 +4110,21 @@ OOO «MAJOR MOTORS SAM»</div>
       if (!isCredit && downPaymentInput) {
         downPaymentInput.value = '';
       }
-      if (downPaymentHint) {
-        downPaymentHint.textContent = isCredit
-          ? 'Остаток будет зачислен на банковский счет по текущему курсу.'
-          : '';
+      updateDownPaymentHint(isCredit);
+    };
+
+    const updateDownPaymentHint = (isCredit) => {
+      if (!downPaymentHint) {
+        return;
       }
+      if (!isCredit) {
+        downPaymentHint.textContent = '';
+        return;
+      }
+      const isPercent = downPaymentTypeSelect?.value === 'percent';
+      downPaymentHint.textContent = isPercent
+        ? 'Укажите процент от суммы автомобиля.'
+        : 'Введите сумму первоначального взноса.';
     };
 
     const syncSaleBankRate = () => {
@@ -4136,6 +4252,8 @@ OOO «MAJOR MOTORS SAM»</div>
     const customerFieldMap = {
       full_name: 'fullName',
       phone: 'phone',
+      inn: 'inn',
+      pinfl: 'pinfl',
       passport_series: 'passportSeries',
       passport_number: 'passportNumber',
       passport_issued_by: 'passportIssued',
@@ -4211,6 +4329,11 @@ OOO «MAJOR MOTORS SAM»</div>
           const currencyLabel = button.dataset.vehicleCurrency?.toUpperCase() || '';
           saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
         }
+        setInputValue(saleVehicleVinInput, button.dataset.vehicleVin || '');
+        setInputValue(saleVehicleEngineInput, button.dataset.vehicleEngineNumber || '');
+        setInputValue(saleVehicleYearInput, button.dataset.vehicleYear || '');
+        setInputValue(saleVehicleColorInput, button.dataset.vehicleColor || '');
+        setInputValue(saleVehicleMileageInput, button.dataset.vehicleMileage || '');
         lockSaleCustomer(button);
         updateDownPaymentVisibility();
         syncSaleBankRate();
@@ -4598,6 +4721,10 @@ OOO «MAJOR MOTORS SAM»</div>
     if (financingTypeSelect) {
       financingTypeSelect.addEventListener('change', updateDownPaymentVisibility);
       updateDownPaymentVisibility();
+    }
+
+    if (downPaymentTypeSelect) {
+      downPaymentTypeSelect.addEventListener('change', () => updateDownPaymentHint(true));
     }
 
     if (reserveCustomerSelect) {
