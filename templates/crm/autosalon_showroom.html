@@ -4379,10 +4379,25 @@ OOO «MAJOR MOTORS SAM»</div>
       });
     };
 
+    const syncUnitFieldsFromSelect = () => {
+      if (!saleUnitSelect) {
+        return;
+      }
+      const selectedOption = saleUnitSelect.selectedOptions[0];
+      if (!selectedOption || !selectedOption.value) {
+        return;
+      }
+      setInputValue(saleVehicleVinInput, selectedOption.dataset.vin || '');
+      setInputValue(saleVehicleEngineInput, selectedOption.dataset.engineNumber || '');
+      setInputValue(saleVehicleColorInput, selectedOption.dataset.color || '');
+      setInputValue(saleVehicleYearInput, selectedOption.dataset.year || '');
+      setInputValue(saleVehicleMileageInput, selectedOption.dataset.mileage || '');
+    };
+
     if (saleUnitSelect) {
       saleUnitSelect.addEventListener('change', (event) => {
         const selectedOption = event.target.selectedOptions[0];
-        if (!selectedOption) {
+        if (!selectedOption || !selectedOption.value) {
           return;
         }
         setInputValue(saleVehicleVinInput, selectedOption.dataset.vin || '');
@@ -4421,14 +4436,19 @@ OOO «MAJOR MOTORS SAM»</div>
           }
         }
         hydrateUnitSelect(units);
-        if (saleUnitSelect) {
+        if (saleUnitSelect && units.length > 0) {
+          saleUnitSelect.value = `${units[0].id}`;
+          syncUnitFieldsFromSelect();
+        } else if (saleUnitSelect) {
           saleUnitSelect.value = '';
         }
-        setInputValue(saleVehicleVinInput, button.dataset.vehicleVin || '');
-        setInputValue(saleVehicleEngineInput, button.dataset.vehicleEngineNumber || '');
-        setInputValue(saleVehicleYearInput, button.dataset.vehicleYear || '');
-        setInputValue(saleVehicleColorInput, button.dataset.vehicleColor || '');
-        setInputValue(saleVehicleMileageInput, button.dataset.vehicleMileage || '');
+        if (units.length === 0) {
+          setInputValue(saleVehicleVinInput, button.dataset.vehicleVin || '');
+          setInputValue(saleVehicleEngineInput, button.dataset.vehicleEngineNumber || '');
+          setInputValue(saleVehicleYearInput, button.dataset.vehicleYear || '');
+          setInputValue(saleVehicleColorInput, button.dataset.vehicleColor || '');
+          setInputValue(saleVehicleMileageInput, button.dataset.vehicleMileage || '');
+        }
         lockSaleCustomer(button);
         updateDownPaymentVisibility();
         syncSaleBankRate();
