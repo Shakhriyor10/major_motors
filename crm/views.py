@@ -963,6 +963,8 @@ def autosalon(request):
     vehicles = list(vehicles_qs)
     model_units_map = defaultdict(list)
     model_units_seen = defaultdict(set)
+    showroom_units = []
+    showroom_units_seen = set()
     for vehicle in vehicles:
         model_key = (vehicle.model or '').strip().lower() or f'__vehicle_{vehicle.id}'
         active_reservation = next(iter(getattr(vehicle, 'active_reservations', [])), None)
@@ -976,45 +978,51 @@ def autosalon(request):
                 if unique_key in model_units_seen[model_key]:
                     continue
                 model_units_seen[model_key].add(unique_key)
-                model_units_map[model_key].append(
-                    {
-                        'id': unit.id,
-                        'vin': unit.vin or '',
-                        'engine_number': unit.engine_number or '',
-                        'color': unit.color or '',
-                        'year': unit.year,
-                        'mileage': unit.mileage,
+                unit_payload = {
+                    'id': unit.id,
+                    'vin': unit.vin or '',
+                    'engine_number': unit.engine_number or '',
+                    'color': unit.color or '',
+                    'year': unit.year,
+                    'mileage': unit.mileage,
+                    'vehicle_id': vehicle.id,
+                    'vehicle_name': vehicle.name,
+                    'vehicle_model': vehicle.model or '',
+                    'reservation_customer_id': reservation_customer_id,
+                    'reservation_customer_name': reservation_customer_name,
+                    'reservation_customer_phone': reservation_customer_phone,
+                    'sale_price': str(vehicle.sale_price or vehicle.purchase_price or ''),
+                    'sale_currency': vehicle.sale_currency or vehicle.purchase_currency,
+                }
+                model_units_map[model_key].append(unit_payload)
+                if unique_key not in showroom_units_seen:
+                    showroom_units_seen.add(unique_key)
+                    showroom_units.append(unit_payload)
+        else:
+            if vehicle.vin or vehicle.engine_number or vehicle.color or vehicle.year or vehicle.mileage:
+                unique_key = f'vehicle-{vehicle.id}'
+                if unique_key not in model_units_seen[model_key]:
+                    model_units_seen[model_key].add(unique_key)
+                    vehicle_payload = {
+                        'id': None,
+                        'vin': vehicle.vin or '',
+                        'engine_number': vehicle.engine_number or '',
+                        'color': vehicle.color or '',
+                        'year': vehicle.year,
+                        'mileage': vehicle.mileage,
                         'vehicle_id': vehicle.id,
                         'vehicle_name': vehicle.name,
+                        'vehicle_model': vehicle.model or '',
                         'reservation_customer_id': reservation_customer_id,
                         'reservation_customer_name': reservation_customer_name,
                         'reservation_customer_phone': reservation_customer_phone,
                         'sale_price': str(vehicle.sale_price or vehicle.purchase_price or ''),
                         'sale_currency': vehicle.sale_currency or vehicle.purchase_currency,
                     }
-                )
-        else:
-            if vehicle.vin or vehicle.engine_number or vehicle.color or vehicle.year or vehicle.mileage:
-                unique_key = f'vehicle-{vehicle.id}'
-                if unique_key not in model_units_seen[model_key]:
-                    model_units_seen[model_key].add(unique_key)
-                    model_units_map[model_key].append(
-                        {
-                            'id': None,
-                            'vin': vehicle.vin or '',
-                            'engine_number': vehicle.engine_number or '',
-                            'color': vehicle.color or '',
-                            'year': vehicle.year,
-                            'mileage': vehicle.mileage,
-                            'vehicle_id': vehicle.id,
-                            'vehicle_name': vehicle.name,
-                            'reservation_customer_id': reservation_customer_id,
-                            'reservation_customer_name': reservation_customer_name,
-                            'reservation_customer_phone': reservation_customer_phone,
-                            'sale_price': str(vehicle.sale_price or vehicle.purchase_price or ''),
-                            'sale_currency': vehicle.sale_currency or vehicle.purchase_currency,
-                        }
-                    )
+                    model_units_map[model_key].append(vehicle_payload)
+                    if unique_key not in showroom_units_seen:
+                        showroom_units_seen.add(unique_key)
+                        showroom_units.append(vehicle_payload)
     showroom_models = sorted({model for model in vehicles_qs.values_list('model', flat=True) if model})
     customers_qs = Customer.objects.order_by('full_name')
     receipt_deal = None
@@ -1133,6 +1141,7 @@ def autosalon(request):
         {
             'vehicles': vehicles,
             'showroom_models': showroom_models,
+            'showroom_units': showroom_units,
             'customers': customers_qs,
             'receipt': receipt_deal,
             'sold_deals': sold_deals,
