@@ -1122,6 +1122,13 @@
                 </select>
               </div>
               <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="showroom-availability-filter">Наличие</label>
+                <select id="showroom-availability-filter" class="form-select">
+                  <option value="">Все авто</option>
+                  <option value="in-stock">В наличии</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4 col-lg-2">
                 <label class="form-label" for="showroom-sort">Сортировка</label>
                 <select id="showroom-sort" class="form-select">
                   <option value="default">По умолчанию</option>
@@ -1147,6 +1154,7 @@
                 data-order="{{ forloop.counter }}"
                 data-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                 data-model="{{ vehicle.model|default:''|lower }}"
+                data-available="{% if vehicle.available_units_count %}{{ vehicle.available_units_count }}{% else %}{{ vehicle.stock_count|default:0 }}{% endif %}"
                 data-search="{{ vehicle.name|default:'' }} {{ vehicle.make|default:'' }} {{ vehicle.model|default:'' }} {{ vehicle.vin|default:'' }} {{ vehicle.available_vins|join:' ' }} {{ vehicle.description|default:'' }}"
               >
                 <div class="row g-0 align-items-stretch">
@@ -1179,7 +1187,7 @@
                             {% elif vehicle.vin %}
                               VIN {{ vehicle.vin }}
                             {% else %}
-                              VIN не указан
+                              —
                             {% endif %}
                           </div>
                         </div>
@@ -5442,6 +5450,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const showroomList = document.getElementById('showroom-list');
     const showroomSearchInput = document.getElementById('showroom-search');
     const showroomModelFilter = document.getElementById('showroom-model-filter');
+    const showroomAvailabilityFilter = document.getElementById('showroom-availability-filter');
     const showroomSort = document.getElementById('showroom-sort');
     const showroomCount = document.getElementById('showroom-count');
     const showroomEmpty = document.getElementById('showroom-empty');
@@ -5453,14 +5462,17 @@ OOO «MAJOR MOTORS SAM»</div>
       }
       const searchTerm = showroomSearchInput ? showroomSearchInput.value.trim().toLowerCase() : '';
       const selectedModel = showroomModelFilter ? showroomModelFilter.value : '';
+      const selectedAvailability = showroomAvailabilityFilter ? showroomAvailabilityFilter.value : '';
       let visibleCount = 0;
 
       showroomItems.forEach((item) => {
         const searchValue = (item.dataset.search || '').toLowerCase();
         const modelValue = item.dataset.model || '';
+        const availableCount = Number(item.dataset.available || 0);
         const matchesSearch = !searchTerm || searchValue.includes(searchTerm);
         const matchesModel = !selectedModel || modelValue === selectedModel;
-        const shouldShow = matchesSearch && matchesModel;
+        const matchesAvailability = !selectedAvailability || (selectedAvailability === 'in-stock' && availableCount > 0);
+        const shouldShow = matchesSearch && matchesModel && matchesAvailability;
         item.classList.toggle('d-none', !shouldShow);
         if (shouldShow) {
           visibleCount += 1;
@@ -5498,6 +5510,9 @@ OOO «MAJOR MOTORS SAM»</div>
     }
     if (showroomModelFilter) {
       showroomModelFilter.addEventListener('change', updateShowroom);
+    }
+    if (showroomAvailabilityFilter) {
+      showroomAvailabilityFilter.addEventListener('change', updateShowroom);
     }
     if (showroomSort) {
       showroomSort.addEventListener('change', updateShowroom);
