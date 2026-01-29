@@ -4453,15 +4453,16 @@ OOO «MAJOR MOTORS SAM»</div>
           saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
         }
         const units = Array.isArray(showroomUnits) ? showroomUnits : [];
-        hydrateUnitSelect(units);
-        if (saleUnitSelect && units.length === 1) {
-          saleUnitSelect.value = `${units[0].id}`;
+        const unitsForVehicle = units.filter((unit) => `${unit.vehicle_id || ''}` === `${button.dataset.vehicleId || ''}`);
+        hydrateUnitSelect(unitsForVehicle);
+        if (saleUnitSelect && unitsForVehicle.length === 1) {
+          saleUnitSelect.value = `${unitsForVehicle[0].id}`;
           syncUnitFieldsFromSelect();
         } else if (saleUnitSelect) {
           saleUnitSelect.value = '';
           syncUnitFieldsFromSelect();
         }
-        if (units.length === 0) {
+        if (unitsForVehicle.length === 0) {
           setInputValue(saleVehicleVinInput, button.dataset.vehicleVin || '');
           setInputValue(saleVehicleEngineInput, button.dataset.vehicleEngineNumber || '');
           setInputValue(saleVehicleYearInput, button.dataset.vehicleYear || '');
