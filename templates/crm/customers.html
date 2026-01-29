@@ -108,7 +108,7 @@
                     data-customer-power-of-attorney-file="{% if customer.power_of_attorney_file %}{{ customer.power_of_attorney_file.url }}{% endif %}"
                     data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                     data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
-                    data-customer-purchases="[{% for deal in customer.deals.all %}{\"name\":\"{{ deal.vehicle.name|escapejs }}\",\"make\":\"{{ deal.vehicle.make|escapejs }}\",\"model\":\"{{ deal.vehicle.model|escapejs }}\",\"vin\":\"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}\"}{% if not forloop.last %},{% endif %}{% endfor %}]"
+                    data-customer-purchases='[{% for deal in customer.deals.all %}{"name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
                   >
                     👁️
                   </button>
