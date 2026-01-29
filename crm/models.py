@@ -555,6 +555,9 @@ class Deal(TimeStampedModel):
     trade_in_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     signed_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
+    contract_number = models.CharField(max_length=64, blank=True)
+    contract_file = models.FileField(upload_to='deal_contracts/', blank=True, null=True)
+    power_of_attorney_file = models.FileField(upload_to='deal_powers_of_attorney/', blank=True, null=True)
 
     def __str__(self):
         return f'Сделка #{self.pk} - {self.customer.full_name}'

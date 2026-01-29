@@ -101,14 +101,10 @@
                     data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
                     data-customer-address="{{ customer.address|default:'' }}"
                     data-customer-notes="{{ customer.notes|default:'' }}"
-                    data-customer-contract-number="{{ customer.contract_number|default:'' }}"
                     data-customer-created="{{ customer.created_at|date:'d.m.Y H:i' }}"
-                    data-customer-contract-file="{% if customer.contract_file %}{{ customer.contract_file.url }}{% endif %}"
-                    data-customer-contract-file-second="{% if customer.contract_file_second %}{{ customer.contract_file_second.url }}{% endif %}"
-                    data-customer-power-of-attorney-file="{% if customer.power_of_attorney_file %}{{ customer.power_of_attorney_file.url }}{% endif %}"
                     data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                     data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
-                    data-customer-purchases='[{% for deal in customer.deals.all %}{"name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
                   >
                     👁️
                   </button>
@@ -129,12 +125,9 @@
                     data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
                     data-customer-address="{{ customer.address|default:'' }}"
                     data-customer-notes="{{ customer.notes|default:'' }}"
-                    data-customer-contract-number="{{ customer.contract_number|default:'' }}"
-                    data-customer-contract-file="{% if customer.contract_file %}{{ customer.contract_file.url }}{% endif %}"
-                    data-customer-contract-file-second="{% if customer.contract_file_second %}{{ customer.contract_file_second.url }}{% endif %}"
-                    data-customer-power-of-attorney-file="{% if customer.power_of_attorney_file %}{{ customer.power_of_attorney_file.url }}{% endif %}"
                     data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                     data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
+                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
                   >
                     ✏️
                   </button>
@@ -211,15 +204,11 @@
               <div id="customerDetailsNotes" class="border rounded bg-light p-2">—</div>
             </div>
             <div class="col-md-6">
-              <div class="small text-muted">Номер договора</div>
-              <div id="customerDetailsContractNumber">—</div>
-            </div>
-            <div class="col-md-6">
               <div class="small text-muted">Создано</div>
               <div id="customerDetailsCreatedAt">—</div>
             </div>
             <div class="col-12">
-              <div class="small text-muted">Купленные автомобили</div>
+              <div class="small text-muted">Покупки и документы</div>
               <div id="customerDetailsPurchases" class="border rounded bg-light p-2">—</div>
             </div>
           </div>
@@ -234,51 +223,6 @@
               <div class="small text-muted mb-2">Паспорт (обратная сторона)</div>
               <img id="customerDetailsPassportBack" class="img-fluid rounded border d-none" alt="Паспорт обратная сторона" />
               <div id="customerDetailsPassportBackEmpty" class="text-muted small">Фото не загружено</div>
-            </div>
-          </div>
-          <hr class="my-4" />
-          <div class="row g-3">
-            <div class="col-md-4">
-              <div class="small text-muted mb-2">Договор</div>
-              <a
-                id="customerDetailsContractFile"
-                class="btn btn-sm btn-outline-primary d-none"
-                href="#"
-                download
-                target="_blank"
-                rel="noopener"
-              >
-                Скачать
-              </a>
-              <div id="customerDetailsContractFileEmpty" class="text-muted small">Файл не загружен</div>
-            </div>
-            <div class="col-md-4">
-              <div class="small text-muted mb-2">Договор 2</div>
-              <a
-                id="customerDetailsContractFileSecond"
-                class="btn btn-sm btn-outline-primary d-none"
-                href="#"
-                download
-                target="_blank"
-                rel="noopener"
-              >
-                Скачать
-              </a>
-              <div id="customerDetailsContractFileSecondEmpty" class="text-muted small">Файл не загружен</div>
-            </div>
-            <div class="col-md-4">
-              <div class="small text-muted mb-2">Доверенность</div>
-              <a
-                id="customerDetailsPowerOfAttorneyFile"
-                class="btn btn-sm btn-outline-primary d-none"
-                href="#"
-                download
-                target="_blank"
-                rel="noopener"
-              >
-                Скачать
-              </a>
-              <div id="customerDetailsPowerOfAttorneyFileEmpty" class="text-muted small">Файл не загружен</div>
             </div>
           </div>
         </div>
@@ -338,10 +282,6 @@
               </div>
             </div>
             <div>
-              <label class="form-label">Номер договора</label>
-              <input type="text" name="contract_number" id="customerEditContractNumber" class="form-control" />
-            </div>
-            <div>
               <label class="form-label">Кем выдан</label>
               <input type="text" name="passport_issued_by" id="customerEditPassportIssued" class="form-control" />
             </div>
@@ -349,20 +289,12 @@
               <label class="form-label">Адрес</label>
               <input type="text" name="address" id="customerEditAddress" class="form-control" />
             </div>
-            <div>
-              <label class="form-label">Файл договора</label>
-              <input type="file" name="contract_file" class="form-control" />
-              <div class="form-text" id="customerEditContractFileHint">Файл не загружен.</div>
-            </div>
-            <div>
-              <label class="form-label">Файл договора 2</label>
-              <input type="file" name="contract_file_second" class="form-control" />
-              <div class="form-text" id="customerEditContractFileSecondHint">Файл не загружен.</div>
-            </div>
-            <div>
-              <label class="form-label">Доверенность</label>
-              <input type="file" name="power_of_attorney_file" class="form-control" />
-              <div class="form-text" id="customerEditPowerOfAttorneyHint">Файл не загружен.</div>
+            <div class="border rounded p-3 bg-light">
+              <div class="fw-semibold mb-2">Документы по покупкам</div>
+              <div class="text-muted small mb-3">
+                Номер договора, файл договора и доверенность привязываются к конкретной покупке.
+              </div>
+              <div id="customerEditDeals" class="vstack gap-3"></div>
             </div>
             <div>
               <label class="form-label">Фото паспорта (лицевая сторона)</label>
@@ -456,10 +388,6 @@
               <label class="form-label">ПИНФЛ</label>
               <input type="text" name="pinfl" class="form-control" placeholder="Необязательно" />
             </div>
-            <div>
-              <label class="form-label">Номер договора</label>
-              <input type="text" name="contract_number" class="form-control" placeholder="Необязательно" />
-            </div>
             <div id="customerPassportIssuedGroup">
               <label class="form-label">Кем выдан</label>
               <input type="text" name="passport_issued_by" class="form-control" placeholder="ОВД ... " />
@@ -467,21 +395,6 @@
             <div>
               <label class="form-label">Адрес</label>
               <input type="text" name="address" class="form-control" placeholder="Город, улица, дом" />
-            </div>
-            <div>
-              <label class="form-label">Файл договора</label>
-              <input type="file" name="contract_file" class="form-control" />
-              <div class="form-text">Любой формат, загрузка необязательна.</div>
-            </div>
-            <div>
-              <label class="form-label">Файл договора 2</label>
-              <input type="file" name="contract_file_second" class="form-control" />
-              <div class="form-text">Любой формат, загрузка необязательна.</div>
-            </div>
-            <div>
-              <label class="form-label">Доверенность</label>
-              <input type="file" name="power_of_attorney_file" class="form-control" />
-              <div class="form-text">Любой формат, загрузка необязательна.</div>
             </div>
             <div>
               <label class="form-label">Фото паспорта (лицевая сторона)</label>
@@ -634,6 +547,17 @@
       applyCustomerType();
     }
 
+    const parsePurchases = (button) => {
+      if (!button) {
+        return [];
+      }
+      try {
+        return JSON.parse(button.dataset.customerPurchases || '[]');
+      } catch (error) {
+        return [];
+      }
+    };
+
     const detailsModal = document.getElementById('customerDetailsModal');
     if (detailsModal) {
       detailsModal.addEventListener('show.bs.modal', (event) => {
@@ -658,17 +582,11 @@
         setText('customerDetailsPinfl', button.dataset.customerPinfl);
         setText('customerDetailsPassportIssued', button.dataset.customerPassportIssued);
         setText('customerDetailsNotes', button.dataset.customerNotes);
-        setText('customerDetailsContractNumber', button.dataset.customerContractNumber);
         setText('customerDetailsCreatedAt', button.dataset.customerCreated);
 
         const purchasesContainer = document.getElementById('customerDetailsPurchases');
         if (purchasesContainer) {
-          let purchases = [];
-          try {
-            purchases = JSON.parse(button.dataset.customerPurchases || '[]');
-          } catch (error) {
-            purchases = [];
-          }
+          const purchases = parsePurchases(button);
           purchasesContainer.innerHTML = '';
           if (!purchases.length) {
             purchasesContainer.textContent = 'Покупок пока нет.';
@@ -681,6 +599,9 @@
                   <th>Авто</th>
                   <th>Модель</th>
                   <th>VIN</th>
+                  <th>Договор №</th>
+                  <th>Файл договора</th>
+                  <th>Доверенность</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -691,10 +612,43 @@
               const nameCell = document.createElement('td');
               const modelCell = document.createElement('td');
               const vinCell = document.createElement('td');
+              const contractNumberCell = document.createElement('td');
+              const contractFileCell = document.createElement('td');
+              const powerOfAttorneyCell = document.createElement('td');
               nameCell.textContent = `${item.make || ''} ${item.name || ''}`.trim() || '—';
               modelCell.textContent = item.model || '—';
               vinCell.textContent = item.vin || '—';
-              row.append(nameCell, modelCell, vinCell);
+              contractNumberCell.textContent = item.contractNumber || '—';
+              if (item.contractFile) {
+                const contractLink = document.createElement('a');
+                contractLink.className = 'btn btn-sm btn-outline-primary';
+                contractLink.href = item.contractFile;
+                contractLink.target = '_blank';
+                contractLink.rel = 'noopener';
+                contractLink.textContent = 'Скачать';
+                contractFileCell.appendChild(contractLink);
+              } else {
+                contractFileCell.textContent = '—';
+              }
+              if (item.powerOfAttorneyFile) {
+                const powerLink = document.createElement('a');
+                powerLink.className = 'btn btn-sm btn-outline-secondary';
+                powerLink.href = item.powerOfAttorneyFile;
+                powerLink.target = '_blank';
+                powerLink.rel = 'noopener';
+                powerLink.textContent = 'Скачать';
+                powerOfAttorneyCell.appendChild(powerLink);
+              } else {
+                powerOfAttorneyCell.textContent = '—';
+              }
+              row.append(
+                nameCell,
+                modelCell,
+                vinCell,
+                contractNumberCell,
+                contractFileCell,
+                powerOfAttorneyCell,
+              );
               tbody.appendChild(row);
             });
             purchasesContainer.appendChild(table);
@@ -707,26 +661,6 @@
         const backEmpty = document.getElementById('customerDetailsPassportBackEmpty');
         const frontSrc = button.dataset.customerPassportFront || '';
         const backSrc = button.dataset.customerPassportBack || '';
-        const contractFileSrc = button.dataset.customerContractFile || '';
-        const contractFileSecondSrc = button.dataset.customerContractFileSecond || '';
-        const powerOfAttorneyFileSrc = button.dataset.customerPowerOfAttorneyFile || '';
-
-        const toggleDownloadLink = (linkId, emptyId, href) => {
-          const link = document.getElementById(linkId);
-          const empty = document.getElementById(emptyId);
-          if (!link || !empty) {
-            return;
-          }
-          if (href) {
-            link.href = href;
-            link.classList.remove('d-none');
-            empty.classList.add('d-none');
-          } else {
-            link.href = '#';
-            link.classList.add('d-none');
-            empty.classList.remove('d-none');
-          }
-        };
 
         if (frontImg && frontEmpty) {
           if (frontSrc) {
@@ -748,21 +682,6 @@
             backEmpty.classList.remove('d-none');
           }
         }
-        toggleDownloadLink(
-          'customerDetailsContractFile',
-          'customerDetailsContractFileEmpty',
-          contractFileSrc,
-        );
-        toggleDownloadLink(
-          'customerDetailsContractFileSecond',
-          'customerDetailsContractFileSecondEmpty',
-          contractFileSecondSrc,
-        );
-        toggleDownloadLink(
-          'customerDetailsPowerOfAttorneyFile',
-          'customerDetailsPowerOfAttorneyFileEmpty',
-          powerOfAttorneyFileSrc,
-        );
       });
     }
 
@@ -790,19 +709,6 @@
         setValue('customerEditPassportIssued', button.dataset.customerPassportIssued);
         setValue('customerEditAddress', button.dataset.customerAddress);
         setValue('customerEditNotes', button.dataset.customerNotes);
-        setValue('customerEditContractNumber', button.dataset.customerContractNumber);
-
-        const setFileHint = (hintId, href) => {
-          const hint = document.getElementById(hintId);
-          if (!hint) {
-            return;
-          }
-          if (href) {
-            hint.innerHTML = `<a href="${href}" target="_blank" rel="noopener">Текущий файл</a>`;
-          } else {
-            hint.textContent = 'Файл не загружен.';
-          }
-        };
 
         const setImageHint = (hintId, href) => {
           const hint = document.getElementById(hintId);
@@ -816,11 +722,89 @@
           }
         };
 
-        setFileHint('customerEditContractFileHint', button.dataset.customerContractFile);
-        setFileHint('customerEditContractFileSecondHint', button.dataset.customerContractFileSecond);
-        setFileHint('customerEditPowerOfAttorneyHint', button.dataset.customerPowerOfAttorneyFile);
         setImageHint('customerEditPassportFrontHint', button.dataset.customerPassportFront);
         setImageHint('customerEditPassportBackHint', button.dataset.customerPassportBack);
+
+        const dealsContainer = document.getElementById('customerEditDeals');
+        if (dealsContainer) {
+          dealsContainer.innerHTML = '';
+          const purchases = parsePurchases(button);
+          if (!purchases.length) {
+            dealsContainer.innerHTML = '<div class="text-muted">Покупок пока нет.</div>';
+          } else {
+            purchases.forEach((item) => {
+              const wrapper = document.createElement('div');
+              wrapper.className = 'border rounded bg-white p-3';
+              const title = document.createElement('div');
+              title.className = 'fw-semibold mb-2';
+              title.textContent = `${item.make || ''} ${item.name || ''}`.trim() || 'Покупка';
+
+              const meta = document.createElement('div');
+              meta.className = 'text-muted small mb-3';
+              meta.textContent = `VIN: ${item.vin || '—'} · Модель: ${item.model || '—'}`;
+
+              const contractNumberGroup = document.createElement('div');
+              contractNumberGroup.className = 'mb-3';
+              const contractNumberLabel = document.createElement('label');
+              contractNumberLabel.className = 'form-label';
+              contractNumberLabel.textContent = 'Номер договора';
+              const contractNumberInput = document.createElement('input');
+              contractNumberInput.type = 'text';
+              contractNumberInput.className = 'form-control';
+              contractNumberInput.name = `deal_contract_number_${item.id}`;
+              contractNumberInput.value = item.contractNumber || '';
+              contractNumberGroup.append(contractNumberLabel, contractNumberInput);
+
+              const contractFileGroup = document.createElement('div');
+              contractFileGroup.className = 'mb-3';
+              const contractFileLabel = document.createElement('label');
+              contractFileLabel.className = 'form-label';
+              contractFileLabel.textContent = 'Файл договора';
+              const contractFileInput = document.createElement('input');
+              contractFileInput.type = 'file';
+              contractFileInput.className = 'form-control';
+              contractFileInput.name = `deal_contract_file_${item.id}`;
+              const contractFileHint = document.createElement('div');
+              contractFileHint.className = 'form-text';
+              if (item.contractFile) {
+                const contractLink = document.createElement('a');
+                contractLink.href = item.contractFile;
+                contractLink.target = '_blank';
+                contractLink.rel = 'noopener';
+                contractLink.textContent = 'Текущий файл';
+                contractFileHint.appendChild(contractLink);
+              } else {
+                contractFileHint.textContent = 'Файл не загружен.';
+              }
+              contractFileGroup.append(contractFileLabel, contractFileInput, contractFileHint);
+
+              const powerFileGroup = document.createElement('div');
+              const powerFileLabel = document.createElement('label');
+              powerFileLabel.className = 'form-label';
+              powerFileLabel.textContent = 'Доверенность';
+              const powerFileInput = document.createElement('input');
+              powerFileInput.type = 'file';
+              powerFileInput.className = 'form-control';
+              powerFileInput.name = `deal_power_of_attorney_file_${item.id}`;
+              const powerFileHint = document.createElement('div');
+              powerFileHint.className = 'form-text';
+              if (item.powerOfAttorneyFile) {
+                const powerLink = document.createElement('a');
+                powerLink.href = item.powerOfAttorneyFile;
+                powerLink.target = '_blank';
+                powerLink.rel = 'noopener';
+                powerLink.textContent = 'Текущий файл';
+                powerFileHint.appendChild(powerLink);
+              } else {
+                powerFileHint.textContent = 'Файл не загружен.';
+              }
+              powerFileGroup.append(powerFileLabel, powerFileInput, powerFileHint);
+
+              wrapper.append(title, meta, contractNumberGroup, contractFileGroup, powerFileGroup);
+              dealsContainer.appendChild(wrapper);
+            });
+          }
+        }
       });
     }
   </script>
