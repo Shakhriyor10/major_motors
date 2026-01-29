@@ -1281,6 +1281,7 @@
                             data-vehicle-year="{{ vehicle.default_unit_year|default:'' }}"
                             data-vehicle-color="{{ vehicle.default_unit_color|default:'' }}"
                             data-vehicle-mileage="{{ vehicle.default_unit_mileage|default:'' }}"
+                            data-vehicle-units="{{ vehicle.available_units_json|escapejs }}"
                             {% if vehicle.active_reservation %}
                               data-reservation-customer-id="{{ vehicle.active_reservation.customer.id }}"
                               data-reservation-customer-name="{{ vehicle.active_reservation.customer.full_name }}"
@@ -3040,12 +3041,9 @@ OOO «MAJOR MOTORS SAM»</div>
 {% endblock %}
 
 {% block extra_scripts %}
-  {{ showroom_units|json_script:"showroom-units" }}
   {{ attorney_data|json_script:"attorney-data" }}
   <div id="selected-attorney-id" data-selected-attorney-id="{{ selected_attorney_id|default:'' }}"></div>
   <script>
-    const showroomUnitsScript = document.getElementById('showroom-units');
-    const showroomUnits = showroomUnitsScript ? JSON.parse(showroomUnitsScript.textContent) : [];
     const saleModal = document.getElementById('sale-modal');
     const saleForm = document.getElementById('sale-form');
     const saleVehicleId = document.getElementById('sale-vehicle-id');
@@ -4376,9 +4374,8 @@ OOO «MAJOR MOTORS SAM»</div>
         const engineLabel = unit.engine_number ? `Двигатель ${unit.engine_number}` : 'двигатель —';
         const colorLabel = unit.color ? `цвет ${unit.color}` : '';
         const nameLabel = unit.vehicle_name ? unit.vehicle_name : '';
-        const modelLabel = unit.vehicle_model ? unit.vehicle_model : '';
-        option.value = unit.id ? `${unit.id}` : `vehicle-${unit.vehicle_id}`;
-        option.textContent = [modelLabel, nameLabel, vinLabel, engineLabel, colorLabel].filter(Boolean).join(' · ');
+        option.value = unit.id;
+        option.textContent = [nameLabel, vinLabel, engineLabel, colorLabel].filter(Boolean).join(' · ');
         option.dataset.vin = unit.vin || '';
         option.dataset.engineNumber = unit.engine_number || '';
         option.dataset.color = unit.color || '';
@@ -4452,7 +4449,24 @@ OOO «MAJOR MOTORS SAM»</div>
           const currencyLabel = button.dataset.vehicleCurrency?.toUpperCase() || '';
           saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
         }
-        const units = Array.isArray(showroomUnits) ? showroomUnits : [];
+        let units = [];
+        const rawUnits = button.getAttribute('data-vehicle-units') || '';
+        const datasetUnits = button.dataset.vehicleUnits || '';
+        const parseUnits = (value) => {
+          if (!value) {
+            return [];
+          }
+          try {
+            return JSON.parse(value);
+          } catch (error) {
+            return [];
+          }
+        };
+        units = parseUnits(datasetUnits);
+        if (!units.length) {
+          const cleaned = rawUnits.replace(/&quot;/g, '"');
+          units = parseUnits(cleaned);
+        }
         hydrateUnitSelect(units);
         if (saleUnitSelect && units.length === 1) {
           saleUnitSelect.value = `${units[0].id}`;
