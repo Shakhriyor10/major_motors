@@ -959,6 +959,7 @@ def autosalon(request):
         .distinct()
         .order_by('-created_at')
     )
+    vehicles = list(vehicles_qs)
     showroom_models = sorted({model for model in vehicles_qs.values_list('model', flat=True) if model})
     customers_qs = Customer.objects.order_by('full_name')
     receipt_deal = None
@@ -1042,7 +1043,7 @@ def autosalon(request):
                 'doc_image_data': record.doc_image_data,
             },
         )
-    for vehicle in vehicles_qs:
+    for vehicle in vehicles:
         vehicle.primary_photo = next((media for media in vehicle.media.all() if media.media_type == 'photo'), None)
         vehicle.active_reservation = next(iter(getattr(vehicle, 'active_reservations', [])), None)
         available_list = getattr(vehicle, 'available_units', [])
@@ -1073,7 +1074,7 @@ def autosalon(request):
         request,
         'crm/autosalon_showroom.html',
         {
-            'vehicles': vehicles_qs,
+            'vehicles': vehicles,
             'showroom_models': showroom_models,
             'customers': customers_qs,
             'receipt': receipt_deal,

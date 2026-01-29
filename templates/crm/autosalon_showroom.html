@@ -4320,10 +4320,11 @@ OOO «MAJOR MOTORS SAM»</div>
       syncCustomerSearchValue(select);
     };
 
-    const lockSaleCustomer = (button) => {
-      const reservedCustomerId = button.dataset.reservationCustomerId;
-      const reservedCustomerName = button.dataset.reservationCustomerName;
-      const reservedCustomerPhone = button.dataset.reservationCustomerPhone;
+    const applySaleCustomerLock = (data, { forceReset = false } = {}) => {
+      const reservedCustomerId = data?.reservationCustomerId;
+      const reservedCustomerName = data?.reservationCustomerName;
+      const reservedCustomerPhone = data?.reservationCustomerPhone;
+      const vehicleName = data?.vehicleName || 'Автомобиль';
       if (reservedCustomerId) {
         if (customerSelect) {
           customerSelect.value = reservedCustomerId;
@@ -4339,20 +4340,23 @@ OOO «MAJOR MOTORS SAM»</div>
         if (nameField && reservedCustomerName) nameField.value = reservedCustomerName;
         if (phoneField && reservedCustomerPhone) phoneField.value = reservedCustomerPhone;
         toggleCustomerFields(true);
-        saleModalTitle.textContent = `Оформление продажи: ${button.dataset.vehicleName} (клиент по брони)`;
+        saleModalTitle.textContent = `Оформление продажи: ${vehicleName} (клиент по брони)`;
         return;
       }
       if (customerSelect) {
+        const wasLocked = customerSelect.disabled || forceReset;
         customerSelect.disabled = false;
-        customerSelect.value = '';
-        syncCustomerSelection(customerSelect, customerFieldMap);
+        if (wasLocked) {
+          customerSelect.value = '';
+          syncCustomerSelection(customerSelect, customerFieldMap);
+        }
         const searchInput = getSearchInputForSelect(customerSelect);
         if (searchInput) {
           searchInput.disabled = false;
         }
       }
       toggleCustomerFields(false);
-      saleModalTitle.textContent = `Оформление продажи: ${button.dataset.vehicleName}`;
+      saleModalTitle.textContent = `Оформление продажи: ${vehicleName}`;
     };
 
     const hydrateUnitSelect = (units) => {
@@ -4369,13 +4373,22 @@ OOO «MAJOR MOTORS SAM»</div>
         const vinLabel = unit.vin ? `VIN ${unit.vin}` : 'VIN отсутствует';
         const engineLabel = unit.engine_number ? `Двигатель ${unit.engine_number}` : 'двигатель —';
         const colorLabel = unit.color ? `цвет ${unit.color}` : '';
+        const nameLabel = unit.vehicle_name ? unit.vehicle_name : '';
         option.value = unit.id;
-        option.textContent = [vinLabel, engineLabel, colorLabel].filter(Boolean).join(' · ');
+        option.textContent = [nameLabel, vinLabel, engineLabel, colorLabel].filter(Boolean).join(' · ');
         option.dataset.vin = unit.vin || '';
         option.dataset.engineNumber = unit.engine_number || '';
         option.dataset.color = unit.color || '';
         option.dataset.year = unit.year || '';
         option.dataset.mileage = unit.mileage || '';
+        option.dataset.unitId = unit.id ? `${unit.id}` : '';
+        option.dataset.vehicleId = unit.vehicle_id ? `${unit.vehicle_id}` : '';
+        option.dataset.vehicleName = unit.vehicle_name || '';
+        option.dataset.reservationCustomerId = unit.reservation_customer_id || '';
+        option.dataset.reservationCustomerName = unit.reservation_customer_name || '';
+        option.dataset.reservationCustomerPhone = unit.reservation_customer_phone || '';
+        option.dataset.salePrice = unit.sale_price || '';
+        option.dataset.saleCurrency = unit.sale_currency || '';
         saleUnitSelect.appendChild(option);
       });
     };
@@ -4385,7 +4398,7 @@ OOO «MAJOR MOTORS SAM»</div>
         return;
       }
       const selectedOption = saleUnitSelect.selectedOptions[0];
-      if (!selectedOption || !selectedOption.value) {
+      if (!selectedOption || (!selectedOption.value && !selectedOption.dataset.vehicleId)) {
         setInputValue(saleVehicleVinInput, '');
         setInputValue(saleVehicleEngineInput, '');
         setInputValue(saleVehicleColorInput, '');
@@ -4398,6 +4411,17 @@ OOO «MAJOR MOTORS SAM»</div>
       setInputValue(saleVehicleColorInput, selectedOption.dataset.color || '');
       setInputValue(saleVehicleYearInput, selectedOption.dataset.year || '');
       setInputValue(saleVehicleMileageInput, selectedOption.dataset.mileage || '');
+      if (selectedOption.dataset.vehicleId) {
+        saleVehicleId.value = selectedOption.dataset.vehicleId;
+      }
+      applySaleCustomerLock(selectedOption.dataset);
+      if (selectedOption.dataset.salePrice && salePriceInput) {
+        salePriceInput.value = selectedOption.dataset.salePrice;
+      }
+      if (saleCurrencyHint) {
+        const currencyLabel = selectedOption.dataset.saleCurrency?.toUpperCase() || '';
+        saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
+      }
     };
 
     if (saleUnitSelect) {
@@ -4458,7 +4482,7 @@ OOO «MAJOR MOTORS SAM»</div>
           setInputValue(saleVehicleColorInput, button.dataset.vehicleColor || '');
           setInputValue(saleVehicleMileageInput, button.dataset.vehicleMileage || '');
         }
-        lockSaleCustomer(button);
+        applySaleCustomerLock(button.dataset, { forceReset: true });
         updateDownPaymentVisibility();
         syncSaleBankRate();
       });
@@ -4493,6 +4517,12 @@ OOO «MAJOR MOTORS SAM»</div>
 
     if (saleForm) {
       saleForm.addEventListener('submit', () => {
+        if (saleUnitSelect) {
+          const selectedOption = saleUnitSelect.selectedOptions[0];
+          if (selectedOption && !selectedOption.dataset.unitId) {
+            saleUnitSelect.value = '';
+          }
+        }
         syncSaleBankRate();
       });
     }
