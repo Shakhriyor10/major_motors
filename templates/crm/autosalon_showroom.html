@@ -4359,7 +4359,8 @@ OOO «MAJOR MOTORS SAM»</div>
       if (!saleUnitSelect) {
         return;
       }
-      saleUnitSelect.innerHTML = '<option value="">Ввести вручную</option>';
+      const placeholderLabel = Array.isArray(units) && units.length > 1 ? 'Выберите VIN' : 'Ввести вручную';
+      saleUnitSelect.innerHTML = `<option value="">${placeholderLabel}</option>`;
       if (!Array.isArray(units) || units.length === 0) {
         return;
       }
@@ -4443,11 +4444,12 @@ OOO «MAJOR MOTORS SAM»</div>
           units = parseUnits(cleaned);
         }
         hydrateUnitSelect(units);
-        if (saleUnitSelect && units.length > 0) {
+        if (saleUnitSelect && units.length === 1) {
           saleUnitSelect.value = `${units[0].id}`;
           syncUnitFieldsFromSelect();
         } else if (saleUnitSelect) {
           saleUnitSelect.value = '';
+          syncUnitFieldsFromSelect();
         }
         if (units.length === 0) {
           setInputValue(saleVehicleVinInput, button.dataset.vehicleVin || '');
