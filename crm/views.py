@@ -1224,6 +1224,11 @@ def inventory(request):
                 vehicle.status = Vehicle.VehicleStatus.FOR_SALE
                 vehicle.save(update_fields=['stock_count', 'status'])
             return redirect('inventory')
+        if action == 'delete_vehicle':
+            vehicle_id = request.POST.get('vehicle_id')
+            if vehicle_id:
+                Vehicle.objects.filter(pk=vehicle_id).delete()
+            return redirect('inventory')
 
     vehicles_qs = Vehicle.objects.prefetch_related(
         'options',
