@@ -28,7 +28,11 @@
                 <td>{{ vehicle.make }} {{ vehicle.model }}</td>
                 <td>{{ vehicle.year }}</td>
                 <td><span class="badge rounded-pill text-bg-info-subtle text-info">{{ vehicle.get_status_display }}</span></td>
-                <td>{{ vehicle.sale_price|default:vehicle.purchase_price }}</td>
+                <td>
+                  <span data-inventory-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
+                    {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                  </span>
+                </td>
               </tr>
             {% empty %}
               <tr>
@@ -40,4 +44,20 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script>
+    const formatInventoryNumber = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    document.querySelectorAll('[data-inventory-price]').forEach((node) => {
+      const rawValue = node.dataset.inventoryPrice;
+      if (!rawValue) {
+        return;
+      }
+      const normalized = `${rawValue}`.replace(/\s+/g, '').replace(',', '.');
+      const [integerPart, decimalPart] = normalized.split('.');
+      const formattedInteger = formatInventoryNumber(integerPart.replace(/\D/g, ''));
+      node.textContent = decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+    });
+  </script>
 {% endblock %}
