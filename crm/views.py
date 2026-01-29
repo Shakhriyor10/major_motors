@@ -953,10 +953,7 @@ def autosalon(request):
             Prefetch('reservations', queryset=active_reservations, to_attr='active_reservations'),
             Prefetch('units', queryset=available_units, to_attr='available_units'),
         )
-        .filter(
-            status__in=[Vehicle.VehicleStatus.FOR_SALE, Vehicle.VehicleStatus.RESERVED],
-        )
-        .filter(Q(stock_count__gt=0) | Q(units__status=VehicleUnit.UnitStatus.AVAILABLE))
+        .exclude(status=Vehicle.VehicleStatus.INACTIVE)
         .distinct()
         .order_by('-created_at')
     )
