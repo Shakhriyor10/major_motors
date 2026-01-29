@@ -728,6 +728,15 @@ def autosalon(request):
                     sale_price_value = None
                 if sale_price_value is None:
                     sale_price_value = vehicle.sale_price or vehicle.purchase_price
+                certificate_amount = request.POST.get('certificate_amount')
+                try:
+                    certificate_value = (
+                        Decimal(certificate_amount) if certificate_amount not in (None, '') else Decimal('0')
+                    )
+                except InvalidOperation:
+                    certificate_value = Decimal('0')
+                if certificate_value < 0:
+                    certificate_value = Decimal('0')
 
                 manager = None
                 manager_name = request.POST.get('manager_name', '').strip()
@@ -745,6 +754,7 @@ def autosalon(request):
                     manager=manager,
                     sold_by_name=manager_name,
                     sale_price=sale_price_value,
+                    certificate_amount=certificate_value,
                     financing_type=request.POST.get('financing_type') or Deal.FinancingType.CASH,
                     status=Deal.DealStatus.COMPLETED,
                     signed_at=timezone.now(),

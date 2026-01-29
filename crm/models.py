@@ -549,6 +549,7 @@ class Deal(TimeStampedModel):
     discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     commission_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     financing_type = models.CharField(max_length=16, choices=FinancingType.choices)
+    certificate_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     down_payment_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     bank_transfer_amount_uzs = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     bank_rate_used = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
