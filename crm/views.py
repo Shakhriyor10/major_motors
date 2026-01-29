@@ -110,23 +110,25 @@ def customers(request):
                 update_fields.append('address')
                 customer.notes = request.POST.get('notes', customer.notes).strip()
                 update_fields.append('notes')
-                customer.contract_number = request.POST.get('contract_number', customer.contract_number).strip()
-                update_fields.append('contract_number')
-
-                contract_file = request.FILES.get('contract_file')
-                if contract_file:
-                    customer.contract_file = contract_file
-                    update_fields.append('contract_file')
-                contract_file_second = request.FILES.get('contract_file_second')
-                if contract_file_second:
-                    customer.contract_file_second = contract_file_second
-                    update_fields.append('contract_file_second')
-                power_of_attorney_file = request.FILES.get('power_of_attorney_file')
-                if power_of_attorney_file:
-                    customer.power_of_attorney_file = power_of_attorney_file
-                    update_fields.append('power_of_attorney_file')
 
                 customer.save(update_fields=update_fields)
+
+                for deal in customer.deals.all():
+                    deal_update_fields = []
+                    contract_number_key = f'deal_contract_number_{deal.id}'
+                    if contract_number_key in request.POST:
+                        deal.contract_number = request.POST.get(contract_number_key, '').strip()
+                        deal_update_fields.append('contract_number')
+                    contract_file = request.FILES.get(f'deal_contract_file_{deal.id}')
+                    if contract_file:
+                        deal.contract_file = contract_file
+                        deal_update_fields.append('contract_file')
+                    power_of_attorney_file = request.FILES.get(f'deal_power_of_attorney_file_{deal.id}')
+                    if power_of_attorney_file:
+                        deal.power_of_attorney_file = power_of_attorney_file
+                        deal_update_fields.append('power_of_attorney_file')
+                    if deal_update_fields:
+                        deal.save(update_fields=deal_update_fields)
 
                 passport_front = request.FILES.get('passport_front')
                 if passport_front:
@@ -197,10 +199,6 @@ def customers(request):
             address=request.POST.get('address', '').strip(),
             lead_source=lead_source,
             notes=request.POST.get('notes', '').strip(),
-            contract_number=request.POST.get('contract_number', '').strip(),
-            contract_file=request.FILES.get('contract_file'),
-            contract_file_second=request.FILES.get('contract_file_second'),
-            power_of_attorney_file=request.FILES.get('power_of_attorney_file'),
         )
         passport_front = request.FILES.get('passport_front')
         if passport_front:
