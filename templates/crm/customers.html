@@ -104,7 +104,7 @@
                     data-customer-created="{{ customer.created_at|date:'d.m.Y H:i' }}"
                     data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                     data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
-                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","salePrice":"{{ deal.sale_price }}","financingType":"{{ deal.financing_type }}","downPayment":"{{ deal.down_payment_amount|default:'0' }}","certificateAmount":"{{ deal.certificate_amount|default:'0' }}","currency":"{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
                   >
                     👁️
                   </button>
@@ -127,7 +127,7 @@
                     data-customer-notes="{{ customer.notes|default:'' }}"
                     data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                     data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
-                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","salePrice":"{{ deal.sale_price }}","financingType":"{{ deal.financing_type }}","downPayment":"{{ deal.down_payment_amount|default:'0' }}","certificateAmount":"{{ deal.certificate_amount|default:'0' }}","currency":"{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
                   >
                     ✏️
                   </button>
@@ -151,7 +151,7 @@
   </div>
 
   <div class="modal fade" id="customerDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="customerDetailsTitle">Карточка клиента</h5>
@@ -557,6 +557,24 @@
         return [];
       }
     };
+    const parseMoney = (value) => {
+      if (value === null || value === undefined || value === '') {
+        return null;
+      }
+      const normalized = `${value}`.replace(/\s/g, '').replace(',', '.');
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+    const formatMoney = (value, currency) => {
+      if (value === null || value === undefined) {
+        return '—';
+      }
+      const formatted = new Intl.NumberFormat('ru-RU', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(value);
+      return currency ? `${formatted} ${currency}` : formatted;
+    };
 
     const detailsModal = document.getElementById('customerDetailsModal');
     if (detailsModal) {
@@ -599,6 +617,10 @@
                   <th>Авто</th>
                   <th>Модель</th>
                   <th>VIN</th>
+                  <th>Сумма</th>
+                  <th>Оплачено</th>
+                  <th>Взнос</th>
+                  <th>Сертификат</th>
                   <th>Договор №</th>
                   <th>Файл договора</th>
                   <th>Доверенность</th>
@@ -612,12 +634,27 @@
               const nameCell = document.createElement('td');
               const modelCell = document.createElement('td');
               const vinCell = document.createElement('td');
+              const salePriceCell = document.createElement('td');
+              const paidCell = document.createElement('td');
+              const downPaymentCell = document.createElement('td');
+              const certificateCell = document.createElement('td');
               const contractNumberCell = document.createElement('td');
               const contractFileCell = document.createElement('td');
               const powerOfAttorneyCell = document.createElement('td');
               nameCell.textContent = `${item.make || ''} ${item.name || ''}`.trim() || '—';
               modelCell.textContent = item.model || '—';
               vinCell.textContent = item.vin || '—';
+              const currency = item.currency || '';
+              const salePrice = parseMoney(item.salePrice);
+              const downPayment = parseMoney(item.downPayment);
+              const certificateAmount = parseMoney(item.certificateAmount);
+              const paidAmount = item.financingType === 'credit' ? downPayment : salePrice;
+              salePriceCell.textContent = formatMoney(salePrice, currency);
+              paidCell.textContent = formatMoney(paidAmount, currency);
+              downPaymentCell.textContent = item.financingType === 'credit'
+                ? formatMoney(downPayment, currency)
+                : '—';
+              certificateCell.textContent = formatMoney(certificateAmount, currency);
               contractNumberCell.textContent = item.contractNumber || '—';
               if (item.contractFile) {
                 const contractLink = document.createElement('a');
@@ -645,6 +682,10 @@
                 nameCell,
                 modelCell,
                 vinCell,
+                salePriceCell,
+                paidCell,
+                downPaymentCell,
+                certificateCell,
                 contractNumberCell,
                 contractFileCell,
                 powerOfAttorneyCell,

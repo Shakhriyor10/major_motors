@@ -2648,6 +2648,21 @@ OOO «MAJOR MOTORS SAM»</div>
                 <div class="form-text" id="sale-currency-hint"></div>
               </div>
               <div class="col-12 col-md-6 col-lg-4">
+                <label for="certificate_amount" class="form-label">Сумма сертификата</label>
+                <div class="input-group">
+                  <input
+                    id="certificate_amount"
+                    name="certificate_amount"
+                    type="text"
+                    inputmode="decimal"
+                    class="form-control"
+                    autocomplete="off"
+                  >
+                  <span class="input-group-text" id="sale-certificate-currency">UZS</span>
+                </div>
+                <div class="form-text">Введите сумму сертификата соответствия.</div>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
                 <label for="financing_type" class="form-label">Тип оплаты</label>
                 <select id="financing_type" name="financing_type" class="form-select">
                   <option value="cash">Наличные</option>
@@ -3086,6 +3101,8 @@ OOO «MAJOR MOTORS SAM»</div>
     const saleModalTitle = document.getElementById('sale-modal-title');
     const salePriceInput = document.getElementById('sale_price');
     const saleCurrencyHint = document.getElementById('sale-currency-hint');
+    const saleCertificateInput = document.getElementById('certificate_amount');
+    const saleCertificateCurrency = document.getElementById('sale-certificate-currency');
     const saleUnitSelect = document.getElementById('vehicle_unit_id');
     const saleVehicleVinInput = document.getElementById('vehicle_vin');
     const saleVehicleEngineInput = document.getElementById('vehicle_engine_number');
@@ -4471,6 +4488,10 @@ OOO «MAJOR MOTORS SAM»</div>
         const currencyLabel = selectedOption.dataset.saleCurrency?.toUpperCase() || '';
         saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
       }
+      if (saleCertificateCurrency) {
+        const currencyLabel = selectedOption.dataset.saleCurrency?.toUpperCase() || '';
+        saleCertificateCurrency.textContent = currencyLabel || 'UZS';
+      }
     };
 
     if (saleUnitSelect) {
@@ -4495,9 +4516,15 @@ OOO «MAJOR MOTORS SAM»</div>
         saleVehicleId.value = button.dataset.vehicleId;
         salePriceInput.value = button.dataset.vehiclePrice || '';
         applyMoneyFormatting(salePriceInput);
+        if (saleCertificateInput) {
+          saleCertificateInput.value = '';
+        }
         if (saleCurrencyHint) {
           const currencyLabel = button.dataset.vehicleCurrency?.toUpperCase() || '';
           saleCurrencyHint.textContent = currencyLabel ? `Валюта сделки: ${currencyLabel}` : '';
+        }
+        if (saleCertificateCurrency) {
+          saleCertificateCurrency.textContent = button.dataset.vehicleCurrency?.toUpperCase() || 'UZS';
         }
         const units = Array.isArray(showroomUnits) ? showroomUnits : [];
         const unitsForVehicle = units.filter((unit) => `${unit.vehicle_id || ''}` === `${button.dataset.vehicleId || ''}`);
@@ -4559,6 +4586,9 @@ OOO «MAJOR MOTORS SAM»</div>
         }
         if (salePriceInput) {
           salePriceInput.value = normalizeMoneyValue(salePriceInput.value);
+        }
+        if (saleCertificateInput) {
+          saleCertificateInput.value = normalizeMoneyValue(saleCertificateInput.value);
         }
         if (downPaymentInput) {
           downPaymentInput.value = normalizeMoneyValue(downPaymentInput.value);
@@ -4673,6 +4703,7 @@ OOO «MAJOR MOTORS SAM»</div>
     }
 
     bindMoneyInput(salePriceInput);
+    bindMoneyInput(saleCertificateInput);
     bindMoneyInput(downPaymentInput);
 
     if (creditVehiclePriceInput) {
