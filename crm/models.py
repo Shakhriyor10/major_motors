@@ -417,6 +417,27 @@ class Vehicle(TimeStampedModel):
         return [labels.get(code, code) for code in self.engine_type_list]
 
 
+class VehicleUnit(TimeStampedModel):
+    class UnitStatus(models.TextChoices):
+        AVAILABLE = 'available', 'В наличии'
+        SOLD = 'sold', 'Продано'
+
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='units')
+    vin = models.CharField(max_length=32, unique=True, null=True, blank=True)
+    engine_number = models.CharField(max_length=128, blank=True)
+    color = models.CharField(max_length=64, blank=True)
+    year = models.PositiveIntegerField(null=True, blank=True)
+    mileage = models.PositiveIntegerField(null=True, blank=True)
+    status = models.CharField(max_length=16, choices=UnitStatus.choices, default=UnitStatus.AVAILABLE)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        vin_display = self.vin or '—'
+        return f'{self.vehicle} · VIN {vin_display}'
+
+
 class VehicleMedia(TimeStampedModel):
     class MediaType(models.TextChoices):
         PHOTO = 'photo', 'Фото'
@@ -514,6 +535,13 @@ class Deal(TimeStampedModel):
 
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='deals')
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name='deals')
+    vehicle_unit = models.ForeignKey(
+        VehicleUnit,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='deals',
+    )
     manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     sold_by_name = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=16, choices=DealStatus.choices, default=DealStatus.DRAFT)
