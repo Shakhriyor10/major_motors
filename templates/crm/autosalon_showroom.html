@@ -110,14 +110,19 @@
 
     .receipt-table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       font-size: 12.5px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
     }
 
     .receipt-table th,
     .receipt-table td {
       border-bottom: 1px solid var(--border);
-      padding: 8px 6px;
+      padding: 9px 10px;
       vertical-align: top;
     }
 
@@ -126,8 +131,15 @@
       font-size: 12px;
       color: var(--muted);
       font-weight: 800;
-      border-top: 1px solid var(--border);
-      background: #fafafa;
+      background: #f5f6f8;
+    }
+
+    .receipt-table tbody tr:nth-child(even) td {
+      background: #fcfcfd;
+    }
+
+    .receipt-table tbody tr:last-child td {
+      border-bottom: none;
     }
 
     .receipt-table .right {
@@ -902,167 +914,181 @@
 {% block content %}
 
   {% if receipt %}
-    <div class="d-flex justify-content-end mb-3 d-print-none">
-      <button class="btn btn-primary" type="button" id="print-receipt">Печать</button>
-    </div>
-    <section class="receipt-page print-receipt-area" id="sale-receipt">
-      <div class="receipt-top">
-        <div class="receipt-brand">
-          <h1>Major Motors</h1>
-          <div class="meta">
-            Тел: +998 (00) 000-00-00<br>
-            Адрес: ул. Демонстрационная, 10<br>
-            ИНН: 000000000 • Банк: Major Bank • Р/с: 0000 0000 0000 0000
-          </div>
-        </div>
-        <div class="receipt-doc">
-          <div class="title">КВИТАНЦИЯ / ЧЕК</div>
-          <div class="receipt-kv">
-            <div>Номер документа</div><div>{{ receipt.id|default:"—" }}</div>
-            <div>Номер заказа</div><div>SALE-{{ receipt.id|default:"—" }}</div>
-            <div>Дата и время</div><div>{{ receipt.signed_at|date:"d.m.Y H:i" }}</div>
-            <div>Способ оплаты</div><div>{{ receipt.get_financing_type_display }}</div>
-            <div>Статус</div><div>Оплачено</div>
-            <div>Кассир</div>
+    <div class="modal fade" id="saleReceiptModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
             <div>
-              {% if receipt.manager %}
-                {{ receipt.manager.get_full_name|default:receipt.manager.username }}
-              {% elif receipt.sold_by_name %}
-                {{ receipt.sold_by_name }}
-              {% else %}
-                —
-              {% endif %}
+              <h5 class="modal-title mb-0">Квитанция о покупке автомобиля № {{ receipt.id|default:"—" }}</h5>
             </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <section class="receipt-page print-receipt-area" id="sale-receipt">
+              <div class="receipt-top">
+                <div class="receipt-brand">
+                  <h1>Major Motors</h1>
+                  <div class="meta">
+                    Тел: +998 (00) 000-00-00<br>
+                    Адрес: ул. Демонстрационная, 10<br>
+                    ИНН: 000000000 • Банк: Major Bank • Р/с: 0000 0000 0000 0000
+                  </div>
+                </div>
+                <div class="receipt-doc">
+                  <div class="title">КВИТАНЦИЯ / ЧЕК</div>
+                  <div class="receipt-kv">
+                    <div>Номер документа</div><div>{{ receipt.id|default:"—" }}</div>
+                    <div>Номер заказа</div><div>SALE-{{ receipt.id|default:"—" }}</div>
+                    <div>Дата и время</div><div>{{ receipt.signed_at|date:"d.m.Y H:i" }}</div>
+                    <div>Способ оплаты</div><div>{{ receipt.get_financing_type_display }}</div>
+                    <div>Статус</div><div>Оплачено</div>
+                    <div>Кассир</div>
+                    <div>
+                      {% if receipt.manager %}
+                        {{ receipt.manager.get_full_name|default:receipt.manager.username }}
+                      {% elif receipt.sold_by_name %}
+                        {{ receipt.sold_by_name }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="receipt-hr"></div>
+
+              <div class="receipt-two-cols">
+                <div class="receipt-box">
+                  <h3>Покупатель</h3>
+                  <div class="small">
+                    <b>ФИО:</b> {{ receipt.customer.full_name }}<br>
+                    <b>Телефон:</b> {{ receipt.customer.phone }}<br>
+                    <b>Паспорт:</b> {{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}<br>
+                    <b>Адрес:</b> {{ receipt.customer.address|default:"—" }}<br>
+                    <b>Комментарий:</b> {{ receipt.notes|default:"—" }}
+                  </div>
+                </div>
+                <div class="receipt-box">
+                  <h3>Информация о доставке</h3>
+                  <div class="small">
+                    <b>Способ:</b> Самовывоз<br>
+                    <b>Окно:</b> По договоренности<br>
+                    <b>Стоимость:</b> 0<br>
+                    <b>Трек/номер:</b> —<br>
+                    <b>Получатель:</b> {{ receipt.customer.full_name }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="receipt-hr"></div>
+
+              <h3 style="margin:0 0 6px 0; font-size: 13px;">Автомобиль / услуги</h3>
+              <table class="receipt-table">
+                <thead>
+                  <tr>
+                    <th style="width:38px" class="center">№</th>
+                    <th>Наименование</th>
+                    <th style="width:90px" class="right">Цена</th>
+                    <th style="width:90px" class="right">Сумма</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="center">1</td>
+                    <td>
+                      <b>{{ receipt.vehicle.name }}</b><br>
+                      <span style="color:#666; font-size:12px;">
+                        {{ receipt.vehicle.make }} · {{ receipt.vehicle.model }} · {{ receipt.vehicle.get_condition_display }}
+                        {% if receipt.vehicle.condition == 'used' %}
+                          · Пробег {{ receipt.vehicle.mileage|default:"—" }} км
+                        {% endif %}
+                      </span>
+                    </td>
+                    <td class="right">{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</td>
+                    <td class="right"><b>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</b></td>
+                  </tr>
+                  {% if receipt.vehicle.options.exists %}
+                    {% for option in receipt.vehicle.options.all %}
+                      <tr>
+                        <td class="center">{{ forloop.counter|add:1 }}</td>
+                        <td>
+                          <b>{{ option.name }}</b><br>
+                          <span style="color:#666; font-size:12px;">Дополнительная опция</span>
+                        </td>
+                        <td class="right">0</td>
+                        <td class="right"><b>0</b></td>
+                      </tr>
+                    {% endfor %}
+                  {% endif %}
+                </tbody>
+              </table>
+
+              <div class="receipt-totals">
+                <div class="receipt-note">
+                  <b>Условия:</b> Автомобиль передан покупателю после оплаты.<br>
+                  <b>Гарантия:</b> Согласно условиям дилера и законодательства.<br>
+                  <b>Примечание:</b> Данный документ является подтверждением покупки автомобиля.
+                </div>
+                <div class="receipt-sum">
+                  <div class="row"><span>Подытог</span><strong>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</strong></div>
+                  <div class="row"><span>Скидка</span><strong>0</strong></div>
+                  <div class="row"><span>Доставка</span><strong>0</strong></div>
+                  <div class="row"><span>Налог (если есть)</span><strong>0</strong></div>
+                  <div class="row grand"><span>ИТОГО К ОПЛАТЕ</span><strong>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</strong></div>
+                </div>
+              </div>
+
+              <div class="receipt-signs">
+                <div class="receipt-sign">
+                  <div class="label">Подпись продавца</div>
+                  <div class="receipt-line"></div>
+                </div>
+                <div class="receipt-sign">
+                  <div class="label">Подпись покупателя</div>
+                  <div class="receipt-line"></div>
+                </div>
+              </div>
+
+              <div class="receipt-footer">
+                <div>Служба поддержки: +998 (00) 000-00-00 • majormotors.uz</div>
+                <div>Стр. 1 / 1</div>
+              </div>
+            </section>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" type="button" id="print-receipt">Печать</button>
           </div>
         </div>
       </div>
-
-      <div class="receipt-hr"></div>
-
-      <div class="receipt-two-cols">
-        <div class="receipt-box">
-          <h3>Покупатель</h3>
-          <div class="small">
-            <b>ФИО:</b> {{ receipt.customer.full_name }}<br>
-            <b>Телефон:</b> {{ receipt.customer.phone }}<br>
-            <b>Паспорт:</b> {{ receipt.customer.passport_series }} {{ receipt.customer.passport_number }}<br>
-            <b>Адрес:</b> {{ receipt.customer.address|default:"—" }}<br>
-            <b>Комментарий:</b> {{ receipt.notes|default:"—" }}
-          </div>
-        </div>
-        <div class="receipt-box">
-          <h3>Информация о доставке</h3>
-          <div class="small">
-            <b>Способ:</b> Самовывоз<br>
-            <b>Окно:</b> По договоренности<br>
-            <b>Стоимость:</b> 0<br>
-            <b>Трек/номер:</b> —<br>
-            <b>Получатель:</b> {{ receipt.customer.full_name }}
-          </div>
-        </div>
-      </div>
-
-      <div class="receipt-hr"></div>
-
-      <h3 style="margin:0 0 6px 0; font-size: 13px;">Автомобиль / услуги</h3>
-      <table class="receipt-table">
-        <thead>
-          <tr>
-            <th style="width:38px" class="center">№</th>
-            <th>Наименование</th>
-            <th style="width:90px" class="right">Цена</th>
-            <th style="width:90px" class="right">Сумма</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="center">1</td>
-            <td>
-              <b>{{ receipt.vehicle.name }}</b><br>
-              <span style="color:#666; font-size:12px;">
-                {{ receipt.vehicle.make }} · {{ receipt.vehicle.model }} · {{ receipt.vehicle.get_condition_display }}
-                {% if receipt.vehicle.condition == 'used' %}
-                  · Пробег {{ receipt.vehicle.mileage|default:"—" }} км
-                {% endif %}
-              </span>
-            </td>
-            <td class="right">{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</td>
-            <td class="right"><b>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</b></td>
-          </tr>
-          {% if receipt.vehicle.options.exists %}
-            {% for option in receipt.vehicle.options.all %}
-              <tr>
-                <td class="center">{{ forloop.counter|add:1 }}</td>
-                <td>
-                  <b>{{ option.name }}</b><br>
-                  <span style="color:#666; font-size:12px;">Дополнительная опция</span>
-                </td>
-                <td class="right">0</td>
-                <td class="right"><b>0</b></td>
-              </tr>
-            {% endfor %}
-          {% endif %}
-        </tbody>
-      </table>
-
-      <div class="receipt-totals">
-        <div class="receipt-note">
-          <b>Условия:</b> Автомобиль передан покупателю после оплаты.<br>
-          <b>Гарантия:</b> Согласно условиям дилера и законодательства.<br>
-          <b>Примечание:</b> Данный документ является подтверждением покупки автомобиля.
-        </div>
-        <div class="receipt-sum">
-          <div class="row"><span>Подытог</span><strong>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</strong></div>
-          <div class="row"><span>Скидка</span><strong>0</strong></div>
-          <div class="row"><span>Доставка</span><strong>0</strong></div>
-          <div class="row"><span>Налог (если есть)</span><strong>0</strong></div>
-          <div class="row grand"><span>ИТОГО К ОПЛАТЕ</span><strong>{{ receipt.sale_price }} {{ receipt.vehicle.sale_currency|default:receipt.vehicle.purchase_currency|upper }}</strong></div>
-        </div>
-      </div>
-
-      <div class="receipt-signs">
-        <div class="receipt-sign">
-          <div class="label">Подпись продавца</div>
-          <div class="receipt-line"></div>
-        </div>
-        <div class="receipt-sign">
-          <div class="label">Подпись покупателя</div>
-          <div class="receipt-line"></div>
-        </div>
-      </div>
-
-      <div class="receipt-footer">
-        <div>Служба поддержки: +998 (00) 000-00-00 • majormotors.uz</div>
-        <div>Стр. 1 / 1</div>
-      </div>
-    </section>
+    </div>
   {% endif %}
 
   <ul class="nav nav-tabs mb-4" id="autosalonTabs" role="tablist">
     <li class="nav-item" role="presentation">
       <button
-        class="nav-link"
+        class="nav-link active"
         id="autosalon-showroom-tab"
         data-bs-toggle="tab"
         data-bs-target="#autosalon-showroom"
         type="button"
         role="tab"
         aria-controls="autosalon-showroom"
-        aria-selected="false"
+        aria-selected="true"
       >
         В продаже
       </button>
     </li>
     <li class="nav-item" role="presentation">
       <button
-        class="nav-link active"
+        class="nav-link"
         id="autosalon-credit-tab"
         data-bs-toggle="tab"
         data-bs-target="#autosalon-credit"
         type="button"
         role="tab"
         aria-controls="autosalon-credit"
-        aria-selected="true"
+        aria-selected="false"
       >
         Кредитный калькулятор
       </button>
@@ -1098,7 +1124,7 @@
   </ul>
 
   <div class="tab-content">
-    <div class="tab-pane fade" id="autosalon-showroom" role="tabpanel" aria-labelledby="autosalon-showroom-tab">
+    <div class="tab-pane fade show active" id="autosalon-showroom" role="tabpanel" aria-labelledby="autosalon-showroom-tab">
       <div class="vstack gap-4">
         <div class="card showroom-toolbar">
           <div class="card-body">
@@ -1119,13 +1145,6 @@
                   {% for model_name in showroom_models %}
                     <option value="{{ model_name|lower }}">{{ model_name }}</option>
                   {% endfor %}
-                </select>
-              </div>
-              <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label" for="showroom-availability-filter">Наличие</label>
-                <select id="showroom-availability-filter" class="form-select">
-                  <option value="">Все авто</option>
-                  <option value="in-stock">В наличии</option>
                 </select>
               </div>
               <div class="col-12 col-md-4 col-lg-2">
@@ -1349,7 +1368,7 @@
       </div>
     </div>
 
-    <div class="tab-pane fade show active" id="autosalon-credit" role="tabpanel" aria-labelledby="autosalon-credit-tab">
+    <div class="tab-pane fade" id="autosalon-credit" role="tabpanel" aria-labelledby="autosalon-credit-tab">
       <div id="credit-print-area" class="credit-print-area">
         <div class="credit-print-header d-none d-print-flex">
           <div class="credit-print-brand">
@@ -5546,6 +5565,12 @@ OOO «MAJOR MOTORS SAM»</div>
           modalImage.src = '';
         }
       });
+    }
+
+    const saleReceiptModal = document.getElementById('saleReceiptModal');
+    if (saleReceiptModal && typeof bootstrap !== 'undefined') {
+      const saleReceiptInstance = bootstrap.Modal.getOrCreateInstance(saleReceiptModal);
+      saleReceiptInstance.show();
     }
   </script>
 {% endblock %}

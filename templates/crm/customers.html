@@ -108,6 +108,7 @@
                     data-customer-power-of-attorney-file="{% if customer.power_of_attorney_file %}{{ customer.power_of_attorney_file.url }}{% endif %}"
                     data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                     data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
+                    data-customer-purchases="[{% for deal in customer.deals.all %}{\"name\":\"{{ deal.vehicle.name|escapejs }}\",\"make\":\"{{ deal.vehicle.make|escapejs }}\",\"model\":\"{{ deal.vehicle.model|escapejs }}\",\"vin\":\"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}\"}{% if not forloop.last %},{% endif %}{% endfor %}]"
                   >
                     👁️
                   </button>
@@ -216,6 +217,10 @@
             <div class="col-md-6">
               <div class="small text-muted">Создано</div>
               <div id="customerDetailsCreatedAt">—</div>
+            </div>
+            <div class="col-12">
+              <div class="small text-muted">Купленные автомобили</div>
+              <div id="customerDetailsPurchases" class="border rounded bg-light p-2">—</div>
             </div>
           </div>
           <hr class="my-4" />
@@ -655,6 +660,46 @@
         setText('customerDetailsNotes', button.dataset.customerNotes);
         setText('customerDetailsContractNumber', button.dataset.customerContractNumber);
         setText('customerDetailsCreatedAt', button.dataset.customerCreated);
+
+        const purchasesContainer = document.getElementById('customerDetailsPurchases');
+        if (purchasesContainer) {
+          let purchases = [];
+          try {
+            purchases = JSON.parse(button.dataset.customerPurchases || '[]');
+          } catch (error) {
+            purchases = [];
+          }
+          purchasesContainer.innerHTML = '';
+          if (!purchases.length) {
+            purchasesContainer.textContent = 'Покупок пока нет.';
+          } else {
+            const table = document.createElement('table');
+            table.className = 'table table-sm align-middle mb-0';
+            table.innerHTML = `
+              <thead>
+                <tr>
+                  <th>Авто</th>
+                  <th>Модель</th>
+                  <th>VIN</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+            purchases.forEach((item) => {
+              const row = document.createElement('tr');
+              const nameCell = document.createElement('td');
+              const modelCell = document.createElement('td');
+              const vinCell = document.createElement('td');
+              nameCell.textContent = `${item.make || ''} ${item.name || ''}`.trim() || '—';
+              modelCell.textContent = item.model || '—';
+              vinCell.textContent = item.vin || '—';
+              row.append(nameCell, modelCell, vinCell);
+              tbody.appendChild(row);
+            });
+            purchasesContainer.appendChild(table);
+          }
+        }
 
         const frontImg = document.getElementById('customerDetailsPassportFront');
         const frontEmpty = document.getElementById('customerDetailsPassportFrontEmpty');

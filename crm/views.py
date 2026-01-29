@@ -223,9 +223,12 @@ def customers(request):
         return redirect('customers')
 
     search_query = request.GET.get('q', '').strip()
+    completed_deals = Deal.objects.filter(
+        status__in=[Deal.DealStatus.SIGNED, Deal.DealStatus.COMPLETED],
+    ).select_related('vehicle', 'vehicle_unit')
     customers_qs = (
         Customer.objects.select_related('lead_source', 'assigned_manager')
-        .prefetch_related('documents')
+        .prefetch_related('documents', Prefetch('deals', queryset=completed_deals))
         .order_by('full_name')
     )
     if search_query:
