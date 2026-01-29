@@ -369,10 +369,22 @@
                   </div>
                 </form>
               {% endif %}
-              <div class="mt-3">
+              <div class="mt-3 d-flex flex-wrap gap-2">
                 <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#vehicle-edit-{{ vehicle.id }}">
                   Редактировать данные
                 </button>
+                <form method="post" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_vehicle">
+                  <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                  <button
+                    class="btn btn-outline-danger btn-sm"
+                    type="submit"
+                    onclick="return confirm('Удалить автомобиль из общего списка?');"
+                  >
+                    Удалить
+                  </button>
+                </form>
               </div>
               <div class="collapse mt-3" id="vehicle-edit-{{ vehicle.id }}">
                 <form method="post" enctype="multipart/form-data" class="vstack gap-3">
