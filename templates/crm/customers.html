@@ -93,8 +93,7 @@
                     data-customer-phone="{{ customer.phone }}"
                     data-customer-inn="{{ customer.inn|default:'' }}"
                     data-customer-source="{{ customer.lead_source|default:'—' }}"
-                    data-customer-passport-series="{{ customer.passport_series|default:'' }}"
-                    data-customer-passport-number="{{ customer.passport_number|default:'' }}"
+                    data-customer-passport="{{ customer.passport_series|default:'' }} {{ customer.passport_number|default:'' }}"
                     data-customer-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
                     data-customer-passport-issued-date-display="{{ customer.passport_issued_date|date:'d.m.Y' }}"
                     data-customer-pinfl="{{ customer.pinfl|default:'' }}"
@@ -118,8 +117,7 @@
                     data-customer-phone="{{ customer.phone }}"
                     data-customer-inn="{{ customer.inn|default:'' }}"
                     data-customer-pinfl="{{ customer.pinfl|default:'' }}"
-                    data-customer-passport-series="{{ customer.passport_series|default:'' }}"
-                    data-customer-passport-number="{{ customer.passport_number|default:'' }}"
+                    data-customer-passport="{{ customer.passport_series|default:'' }} {{ customer.passport_number|default:'' }}"
                     data-customer-passport-issued-date="{{ customer.passport_issued_date|date:'Y-m-d' }}"
                     data-customer-passport-issued-date-display="{{ customer.passport_issued_date|date:'d.m.Y' }}"
                     data-customer-passport-issued="{{ customer.passport_issued_by|default:'' }}"
@@ -180,12 +178,8 @@
               <div id="customerDetailsAddress">—</div>
             </div>
             <div class="col-md-6">
-              <div class="small text-muted">Серия паспорта</div>
-              <div id="customerDetailsPassportSeries">—</div>
-            </div>
-            <div class="col-md-6">
-              <div class="small text-muted">Номер паспорта</div>
-              <div id="customerDetailsPassportNumber">—</div>
+              <div class="small text-muted">Серия и номер паспорта</div>
+              <div id="customerDetailsPassport">—</div>
             </div>
             <div class="col-md-6">
               <div class="small text-muted">Дата выдачи паспорта</div>
@@ -267,12 +261,8 @@
             </div>
             <div class="row g-2">
               <div class="col-md-6">
-                <label class="form-label">Серия паспорта</label>
-                <input type="text" name="passport_series" id="customerEditPassportSeries" class="form-control" />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Номер паспорта</label>
-                <input type="text" name="passport_number" id="customerEditPassportNumber" class="form-control" />
+                <label class="form-label">Серия и номер паспорта</label>
+                <input type="text" name="passport_combined" id="customerEditPassportCombined" class="form-control" />
               </div>
             </div>
             <div class="row g-2">
@@ -594,8 +584,7 @@
         setText('customerDetailsInn', button.dataset.customerInn);
         setText('customerDetailsSource', button.dataset.customerSource);
         setText('customerDetailsAddress', button.dataset.customerAddress);
-        setText('customerDetailsPassportSeries', button.dataset.customerPassportSeries);
-        setText('customerDetailsPassportNumber', button.dataset.customerPassportNumber);
+        setText('customerDetailsPassport', button.dataset.customerPassport?.trim());
         setText('customerDetailsPassportIssuedDate', button.dataset.customerPassportIssuedDateDisplay);
         setText('customerDetailsPinfl', button.dataset.customerPinfl);
         setText('customerDetailsPassportIssued', button.dataset.customerPassportIssued);
@@ -744,8 +733,7 @@
         setValue('customerEditPhone', button.dataset.customerPhone);
         setValue('customerEditInn', button.dataset.customerInn);
         setValue('customerEditPinfl', button.dataset.customerPinfl);
-        setValue('customerEditPassportSeries', button.dataset.customerPassportSeries);
-        setValue('customerEditPassportNumber', button.dataset.customerPassportNumber);
+        setValue('customerEditPassportCombined', button.dataset.customerPassport?.trim());
         setValue('customerEditPassportIssuedDate', button.dataset.customerPassportIssuedDate);
         setValue('customerEditPassportIssued', button.dataset.customerPassportIssued);
         setValue('customerEditAddress', button.dataset.customerAddress);

@@ -36,6 +36,28 @@ from .models import (
 )
 
 
+def _split_passport_combined(passport_combined):
+    normalized = re.sub(r'\s+', '', (passport_combined or '').strip())
+    if not normalized:
+        return '', ''
+    if len(normalized) >= 2:
+        return normalized[:2], normalized[2:]
+    return normalized, ''
+
+
+def _get_passport_parts(request, fallback_series='', fallback_number=''):
+    passport_series = request.POST.get('passport_series', fallback_series).strip()
+    passport_number = request.POST.get('passport_number', fallback_number).strip()
+    if 'passport_combined' in request.POST:
+        passport_combined = request.POST.get('passport_combined', '')
+        passport_series, passport_number = _split_passport_combined(passport_combined)
+        return passport_series, passport_number
+    passport_combined = request.POST.get('passport_combined', '').strip()
+    if passport_combined:
+        passport_series, passport_number = _split_passport_combined(passport_combined)
+    return passport_series, passport_number
+
+
 @login_required
 def home(request):
     return redirect('autosalon')
@@ -94,9 +116,14 @@ def customers(request):
                 update_fields.append('inn')
                 customer.pinfl = request.POST.get('pinfl', customer.pinfl).strip()
                 update_fields.append('pinfl')
-                customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
+                passport_series, passport_number = _get_passport_parts(
+                    request,
+                    customer.passport_series,
+                    customer.passport_number,
+                )
+                customer.passport_series = passport_series
                 update_fields.append('passport_series')
-                customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                customer.passport_number = passport_number
                 update_fields.append('passport_number')
                 passport_issued_date_value = request.POST.get('passport_issued_date')
                 customer.passport_issued_date = parse_date(passport_issued_date_value) if passport_issued_date_value else None
@@ -176,16 +203,7 @@ def customers(request):
         lead_source_id = request.POST.get('lead_source')
         if lead_source_id:
             lead_source = LeadSource.objects.filter(pk=lead_source_id).first()
-        passport_series = request.POST.get('passport_series', '').strip()
-        passport_number = request.POST.get('passport_number', '').strip()
-        passport_combined = request.POST.get('passport_combined', '').strip()
-        if passport_combined and not (passport_series or passport_number):
-            normalized_passport = re.sub(r'\s+', '', passport_combined)
-            if len(normalized_passport) >= 2:
-                passport_series = normalized_passport[:2]
-                passport_number = normalized_passport[2:]
-            else:
-                passport_series = normalized_passport
+        passport_series, passport_number = _get_passport_parts(request)
 
         customer = Customer.objects.create(
             full_name=request.POST.get('full_name', '').strip(),
@@ -616,8 +634,13 @@ def autosalon(request):
                         customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
                         customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
                         customer.inn = request.POST.get('inn', customer.inn).strip()
-                        customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
-                        customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                        passport_series, passport_number = _get_passport_parts(
+                            request,
+                            customer.passport_series,
+                            customer.passport_number,
+                        )
+                        customer.passport_series = passport_series
+                        customer.passport_number = passport_number
                         customer.pinfl = request.POST.get('pinfl', customer.pinfl).strip()
                         passport_issued_date_value = request.POST.get('passport_issued_date')
                         if passport_issued_date_value:
@@ -638,12 +661,13 @@ def autosalon(request):
                             ],
                         )
                     else:
+                        passport_series, passport_number = _get_passport_parts(request)
                         customer = Customer.objects.create(
                             full_name=request.POST.get('full_name', '').strip(),
                             phone=request.POST.get('phone', '').strip(),
                             inn=request.POST.get('inn', '').strip(),
-                            passport_series=request.POST.get('passport_series', '').strip(),
-                            passport_number=request.POST.get('passport_number', '').strip(),
+                            passport_series=passport_series,
+                            passport_number=passport_number,
                             pinfl=request.POST.get('pinfl', '').strip(),
                             passport_issued_date=parse_date(request.POST.get('passport_issued_date') or ''),
                             passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
@@ -869,8 +893,13 @@ def autosalon(request):
                     customer = Customer.objects.get(pk=customer_id)
                     customer.full_name = request.POST.get('full_name', customer.full_name).strip() or customer.full_name
                     customer.phone = request.POST.get('phone', customer.phone).strip() or customer.phone
-                    customer.passport_series = request.POST.get('passport_series', customer.passport_series).strip()
-                    customer.passport_number = request.POST.get('passport_number', customer.passport_number).strip()
+                    passport_series, passport_number = _get_passport_parts(
+                        request,
+                        customer.passport_series,
+                        customer.passport_number,
+                    )
+                    customer.passport_series = passport_series
+                    customer.passport_number = passport_number
                     passport_issued_date_value = request.POST.get('passport_issued_date')
                     if passport_issued_date_value:
                         customer.passport_issued_date = parse_date(passport_issued_date_value)
@@ -888,11 +917,12 @@ def autosalon(request):
                         ],
                     )
                 else:
+                    passport_series, passport_number = _get_passport_parts(request)
                     customer = Customer.objects.create(
                         full_name=request.POST.get('full_name', '').strip(),
                         phone=request.POST.get('phone', '').strip(),
-                        passport_series=request.POST.get('passport_series', '').strip(),
-                        passport_number=request.POST.get('passport_number', '').strip(),
+                        passport_series=passport_series,
+                        passport_number=passport_number,
                         passport_issued_date=parse_date(request.POST.get('passport_issued_date') or ''),
                         passport_issued_by=request.POST.get('passport_issued_by', '').strip(),
                         address=request.POST.get('address', '').strip(),
