@@ -262,7 +262,17 @@
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label">Серия и номер паспорта</label>
-                <input type="text" name="passport_combined" id="customerEditPassportCombined" class="form-control" />
+                <input
+                  type="text"
+                  name="passport_combined"
+                  id="customerEditPassportCombined"
+                  class="form-control"
+                  placeholder="AA1234567"
+                  minlength="9"
+                  maxlength="9"
+                  pattern="^[A-Z]{2}\\d{7}$"
+                  data-passport-combined
+                />
               </div>
             </div>
             <div class="row g-2">
@@ -365,6 +375,10 @@
                   name="passport_combined"
                   class="form-control"
                   placeholder="AA1234567"
+                  minlength="9"
+                  maxlength="9"
+                  pattern="^[A-Z]{2}\\d{7}$"
+                  data-passport-combined
                 />
               </div>
             </div>
@@ -434,6 +448,43 @@
       });
     };
 
+    const normalizePassportCombined = (value) => {
+      const cleaned = (value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const letters = cleaned.replace(/[^A-Z]/g, '').slice(0, 2);
+      const digits = cleaned.replace(/[^0-9]/g, '').slice(0, 7);
+      return `${letters}${digits}`;
+    };
+
+    const validatePassportCombined = (input) => {
+      if (!input) {
+        return;
+      }
+      const value = input.value.trim();
+      if (!value) {
+        input.setCustomValidity('');
+        return;
+      }
+      const isValid = /^[A-Z]{2}\d{7}$/.test(value);
+      input.setCustomValidity(isValid ? '' : 'Введите 2 латинские буквы и 7 цифр.');
+    };
+
+    const setupPassportCombinedInputs = () => {
+      const inputs = document.querySelectorAll('[data-passport-combined]');
+      inputs.forEach((input) => {
+        const applyFormat = () => {
+          const formatted = normalizePassportCombined(input.value);
+          if (input.value !== formatted) {
+            input.value = formatted;
+          }
+          validatePassportCombined(input);
+        };
+        applyFormat();
+        input.addEventListener('input', applyFormat);
+        input.addEventListener('blur', applyFormat);
+        input.addEventListener('change', applyFormat);
+      });
+    };
+
     if (searchInput) {
       searchInput.addEventListener('input', applyFilters);
     }
@@ -443,6 +494,8 @@
     if (dateToInput) {
       dateToInput.addEventListener('change', applyFilters);
     }
+
+    setupPassportCombinedInputs();
 
     const sortButtons = document.querySelectorAll('[data-sort-key]');
     const sortIndicators = document.querySelectorAll('[data-sort-indicator]');
@@ -725,7 +778,13 @@
         const setValue = (id, value) => {
           const el = document.getElementById(id);
           if (el) {
-            el.value = value || '';
+            const nextValue = value || '';
+            if (el.hasAttribute('data-passport-combined')) {
+              el.value = normalizePassportCombined(nextValue);
+              validatePassportCombined(el);
+            } else {
+              el.value = nextValue;
+            }
           }
         };
         setValue('customerEditId', button.dataset.customerId);
