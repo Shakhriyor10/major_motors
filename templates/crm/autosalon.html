@@ -74,7 +74,16 @@
             </div>
             <div class="col-12 col-md-6 col-lg-4">
               <label for="sale_price" class="form-label">Цена</label>
-              <input id="sale_price" name="sale_price" type="number" min="0" step="0.01" class="form-control" required>
+              <input
+                id="sale_price"
+                type="text"
+                inputmode="decimal"
+                class="form-control"
+                data-price-input
+                data-price-target="sale_price_value"
+                required
+              >
+              <input id="sale_price_value" name="sale_price" type="hidden">
               <div class="form-text">Укажите сумму в сумах.</div>
             </div>
             <div class="col-12 col-md-6 col-lg-4">
@@ -278,7 +287,7 @@
                   <div class="text-muted small">{{ vehicle.make }} · {{ vehicle.model }}</div>
                 </div>
                 <span class="badge rounded-pill text-bg-primary-subtle text-primary fs-6">
-                  {{ vehicle.sale_price|default:vehicle.purchase_price }} сум
+                  <span data-price-display data-price-value="{{ vehicle.sale_price|default:vehicle.purchase_price }}"></span> сум
                 </span>
               </div>
               <div class="d-flex flex-wrap gap-2 mt-2">
@@ -426,7 +435,10 @@
                 </div>
                 <div class="row g-2 text-muted small mt-2">
                   <div class="col-12 col-md-6"><strong class="text-dark">Паспорт:</strong> {{ vehicle.latest_deal.customer.passport_series }} {{ vehicle.latest_deal.customer.passport_number }}</div>
-                  <div class="col-12 col-md-6"><strong class="text-dark">Сумма сделки:</strong> {{ vehicle.latest_deal.sale_price }}</div>
+                  <div class="col-12 col-md-6">
+                    <strong class="text-dark">Сумма сделки:</strong>
+                    <span data-price-display data-price-value="{{ vehicle.latest_deal.sale_price }}"></span>
+                  </div>
                 </div>
               {% endif %}
               {% if vehicle.status == 'sold' or vehicle.status == 'inactive' %}
@@ -496,7 +508,21 @@
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-sale-price-{{ vehicle.id }}">Цена продажи</label>
-                      <input id="edit-sale-price-{{ vehicle.id }}" name="sale_price" type="number" min="0" step="0.01" class="form-control" value="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
+                      <input
+                        id="edit-sale-price-{{ vehicle.id }}"
+                        type="text"
+                        inputmode="decimal"
+                        class="form-control"
+                        data-price-input
+                        data-price-target="edit-sale-price-value-{{ vehicle.id }}"
+                        data-price-initial="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                      >
+                      <input
+                        id="edit-sale-price-value-{{ vehicle.id }}"
+                        name="sale_price"
+                        type="hidden"
+                        value="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                      >
                       <div class="form-text">Укажите сумму в сумах.</div>
                     </div>
                     <div class="col-12 col-md-6 col-lg-4">
@@ -642,6 +668,47 @@
     const inventoryEmpty = document.getElementById('inventory-empty');
     const inventoryCreateToggle = document.getElementById('inventoryCreateToggle');
     const inventoryCreateForm = document.getElementById('inventoryCreateForm');
+    const priceInputs = document.querySelectorAll('[data-price-input]');
+    const priceDisplays = document.querySelectorAll('[data-price-display]');
+
+    const formatThousands = (value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+    const sanitizePrice = (value) => {
+      const cleaned = value.replace(/[^\d.,]/g, '').replace(/,/g, '.');
+      const [integerPartRaw, decimalRaw = ''] = cleaned.split('.');
+      const integerPart = integerPartRaw.replace(/^0+(?=\d)/, '');
+      const decimalPart = decimalRaw.slice(0, 2);
+      const formattedInteger = integerPart ? formatThousands(integerPart) : '';
+      const formatted = decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+      const normalized = decimalPart ? `${integerPart || '0'}.${decimalPart}` : integerPart;
+      return { formatted, normalized };
+    };
+
+    const syncPriceInput = (input) => {
+      const targetId = input.dataset.priceTarget;
+      const target = targetId ? document.getElementById(targetId) : null;
+      const { formatted, normalized } = sanitizePrice(input.value);
+      input.value = formatted;
+      if (target) {
+        target.value = normalized;
+      }
+    };
+
+    priceInputs.forEach((input) => {
+      const initialValue = input.dataset.priceInitial;
+      if (initialValue) {
+        const { formatted } = sanitizePrice(initialValue);
+        input.value = formatted;
+      }
+      input.addEventListener('input', () => syncPriceInput(input));
+      input.addEventListener('blur', () => syncPriceInput(input));
+    });
+
+    priceDisplays.forEach((element) => {
+      const value = element.dataset.priceValue || '';
+      const { formatted } = sanitizePrice(value);
+      element.textContent = formatted || '0';
+    });
 
     const toggleMileage = (select) => {
       const targetId = select.dataset.target;
