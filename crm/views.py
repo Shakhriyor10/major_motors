@@ -1245,6 +1245,48 @@ def inventory(request):
                 except IntegrityError:
                     pass
             return redirect('inventory')
+        if action == 'update_vehicle_unit':
+            unit_id = request.POST.get('unit_id')
+            if unit_id:
+                unit = VehicleUnit.objects.select_related('vehicle').filter(pk=unit_id).first()
+                if unit:
+                    vin = request.POST.get('unit_vin', '').strip()
+                    update_fields = []
+                    if vin:
+                        unit.vin = vin
+                        update_fields.append('vin')
+                    elif vin == '':
+                        unit.vin = None
+                        update_fields.append('vin')
+                    unit.engine_number = request.POST.get('unit_engine_number', '').strip()
+                    update_fields.append('engine_number')
+                    unit.color = request.POST.get('unit_color', '').strip()
+                    update_fields.append('color')
+                    try:
+                        unit.year = int(request.POST.get('unit_year')) if request.POST.get('unit_year') else None
+                    except (TypeError, ValueError):
+                        unit.year = None
+                    update_fields.append('year')
+                    try:
+                        unit.mileage = int(request.POST.get('unit_mileage')) if request.POST.get('unit_mileage') else None
+                    except (TypeError, ValueError):
+                        unit.mileage = None
+                    update_fields.append('mileage')
+                    if update_fields:
+                        try:
+                            unit.save(update_fields=update_fields)
+                        except IntegrityError:
+                            pass
+            return redirect('inventory')
+        if action == 'delete_vehicle_unit':
+            unit_id = request.POST.get('unit_id')
+            if unit_id:
+                unit = VehicleUnit.objects.select_related('vehicle').filter(pk=unit_id).first()
+                if unit:
+                    vehicle = unit.vehicle
+                    unit.delete()
+                    _sync_vehicle_stock(vehicle)
+            return redirect('inventory')
         if action == 'return_to_autosalon':
             vehicle_id = request.POST.get('vehicle_id')
             if vehicle_id:
