@@ -2755,7 +2755,17 @@ OOO «MAJOR MOTORS SAM»</div>
               </div>
               <div class="col-12 col-md-6">
                 <label for="passport_combined" class="form-label">Серия и номер паспорта</label>
-                <input id="passport_combined" name="passport_combined" type="text" class="form-control">
+                <input
+                  id="passport_combined"
+                  name="passport_combined"
+                  type="text"
+                  class="form-control"
+                  placeholder="AA1234567"
+                  minlength="9"
+                  maxlength="9"
+                  pattern="^[A-Z]{2}\\d{7}$"
+                  data-passport-combined
+                >
               </div>
               <div class="col-12">
                 <label for="passport_issued_by" class="form-label">Кем выдан</label>
@@ -2873,7 +2883,17 @@ OOO «MAJOR MOTORS SAM»</div>
               </div>
               <div class="col-12 col-md-6">
                 <label for="reserve_passport_combined" class="form-label">Серия и номер паспорта</label>
-                <input id="reserve_passport_combined" name="passport_combined" type="text" class="form-control">
+                <input
+                  id="reserve_passport_combined"
+                  name="passport_combined"
+                  type="text"
+                  class="form-control"
+                  placeholder="AA1234567"
+                  minlength="9"
+                  maxlength="9"
+                  pattern="^[A-Z]{2}\\d{7}$"
+                  data-passport-combined
+                >
               </div>
               <div class="col-12">
                 <label for="reserve_passport_issued_by" class="form-label">Кем выдан</label>
@@ -3203,6 +3223,43 @@ OOO «MAJOR MOTORS SAM»</div>
     const attorneyAddressBoldInput = document.getElementById('attorney-address-bold');
     const attorneyAddressItalicInput = document.getElementById('attorney-address-italic');
     const attorneyAddressUnderlineInput = document.getElementById('attorney-address-underline');
+
+    const normalizePassportCombined = (value) => {
+      const cleaned = (value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const letters = cleaned.replace(/[^A-Z]/g, '').slice(0, 2);
+      const digits = cleaned.replace(/[^0-9]/g, '').slice(0, 7);
+      return `${letters}${digits}`;
+    };
+
+    const validatePassportCombined = (input) => {
+      if (!input) {
+        return;
+      }
+      const value = input.value.trim();
+      if (!value) {
+        input.setCustomValidity('');
+        return;
+      }
+      const isValid = /^[A-Z]{2}\d{7}$/.test(value);
+      input.setCustomValidity(isValid ? '' : 'Введите 2 латинские буквы и 7 цифр.');
+    };
+
+    const setupPassportCombinedInputs = () => {
+      const inputs = document.querySelectorAll('[data-passport-combined]');
+      inputs.forEach((input) => {
+        const applyFormat = () => {
+          const formatted = normalizePassportCombined(input.value);
+          if (input.value !== formatted) {
+            input.value = formatted;
+          }
+          validatePassportCombined(input);
+        };
+        applyFormat();
+        input.addEventListener('input', applyFormat);
+        input.addEventListener('blur', applyFormat);
+        input.addEventListener('change', applyFormat);
+      });
+    };
     const attorneyDocSrcInput = document.getElementById('attorney-doc-src');
     const attorneyDocUploadInput = document.getElementById('attorney-doc-upload');
     const attorneyDocShowImageInput = document.getElementById('attorney-doc-show-image');
@@ -3715,7 +3772,13 @@ OOO «MAJOR MOTORS SAM»</div>
         if (!field) {
           return;
         }
-        field.value = data?.[key] || '';
+        const nextValue = data?.[key] || '';
+        if (field.hasAttribute('data-passport-combined')) {
+          field.value = normalizePassportCombined(nextValue);
+          validatePassportCombined(field);
+        } else {
+          field.value = nextValue;
+        }
       });
     };
 
@@ -4305,6 +4368,7 @@ OOO «MAJOR MOTORS SAM»</div>
     populateEmployeeSelects();
     populateCreditCustomerDatalist();
     updateCreditDownPaymentUI();
+    setupPassportCombinedInputs();
 
     if (creditCustomerNameInput && creditCustomerDataList) {
       creditCustomerNameInput.addEventListener('change', fillCreditCustomerPhone);
