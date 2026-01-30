@@ -4374,11 +4374,6 @@ OOO «MAJOR MOTORS SAM»</div>
       creditCustomerNameInput.addEventListener('change', fillCreditCustomerPhone);
     }
 
-    if (creditTabButton && typeof bootstrap !== 'undefined') {
-      const creditTab = bootstrap.Tab.getOrCreateInstance(creditTabButton);
-      creditTab.show();
-    }
-
     const toggleCustomerFields = (disabled) => {
       customerFields.forEach((fieldId) => {
         const field = document.getElementById(fieldId);
