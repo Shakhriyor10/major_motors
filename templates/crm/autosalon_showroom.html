@@ -1181,6 +1181,7 @@
                 data-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                 data-model="{{ vehicle.model|default:''|lower }}"
                 data-available="{% if vehicle.available_units_count %}{{ vehicle.available_units_count }}{% else %}{{ vehicle.stock_count|default:0 }}{% endif %}"
+                data-has-vin="{% if vehicle.available_vins or vehicle.vin or vehicle.default_unit_vin %}1{% else %}0{% endif %}"
                 data-search="{{ vehicle.name|default:'' }} {{ vehicle.make|default:'' }} {{ vehicle.model|default:'' }} {{ vehicle.vin|default:'' }} {{ vehicle.available_vins|join:' ' }} {{ vehicle.description|default:'' }}"
               >
                 <div class="row g-0 align-items-stretch">
@@ -5590,9 +5591,11 @@ OOO «MAJOR MOTORS SAM»</div>
         const searchValue = (item.dataset.search || '').toLowerCase();
         const modelValue = item.dataset.model || '';
         const availableCount = Number(item.dataset.available || 0);
+        const hasVin = Number(item.dataset.hasVin || 0);
         const matchesSearch = !searchTerm || searchValue.includes(searchTerm);
         const matchesModel = !selectedModel || modelValue === selectedModel;
-        const matchesAvailability = !selectedAvailability || (selectedAvailability === 'in-stock' && availableCount > 0);
+        const matchesAvailability = !selectedAvailability
+          || (selectedAvailability === 'in-stock' && hasVin > 0);
         const shouldShow = matchesSearch && matchesModel && matchesAvailability;
         item.classList.toggle('d-none', !shouldShow);
         if (shouldShow) {
