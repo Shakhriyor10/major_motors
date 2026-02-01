@@ -452,7 +452,13 @@
       const cleaned = (value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
       const letters = cleaned.replace(/[^A-Z]/g, '').slice(0, 2);
       const digits = cleaned.replace(/[^0-9]/g, '').slice(0, 7);
-      return `${letters}${digits}`;
+      if (!letters) {
+        return '';
+      }
+      if (!digits) {
+        return letters;
+      }
+      return `${letters} ${digits}`;
     };
 
     const validatePassportCombined = (input) => {
@@ -464,7 +470,7 @@
         input.setCustomValidity('');
         return;
       }
-      const isValid = /^[A-Z]{2}\d{7}$/.test(value);
+      const isValid = /^[A-Z]{2}\s?\d{7}$/.test(value);
       input.setCustomValidity(isValid ? '' : 'Введите 2 латинские буквы и 7 цифр.');
     };
 

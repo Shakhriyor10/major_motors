@@ -1883,7 +1883,7 @@ OOO «MAJOR MOTORS SAM»</textarea>
                 </div>
                 <div class="col-12 col-md-6">
                   <label class="form-label" for="attorney-passport-1">Паспорт серия и номер</label>
-                  <input type="text" class="form-control" id="attorney-passport-1" name="attorney_passport_1" placeholder="AB 1234567">
+                  <input type="text" class="form-control" id="attorney-passport-1" name="attorney_passport_1" placeholder="AB 1234567" data-passport-combined>
                 </div>
                 <div class="col-12 col-md-6">
                   <label class="form-label" for="attorney-passport-issued-date-1">Дата выдачи</label>
@@ -1916,7 +1916,7 @@ OOO «MAJOR MOTORS SAM»</textarea>
                   </div>
                   <div class="col-12 col-md-6">
                     <label class="form-label" for="attorney-passport-2">Паспорт серия и номер 2</label>
-                    <input type="text" class="form-control" id="attorney-passport-2" name="attorney_passport_2" placeholder="AB 1234567">
+                    <input type="text" class="form-control" id="attorney-passport-2" name="attorney_passport_2" placeholder="AB 1234567" data-passport-combined>
                   </div>
                   <div class="col-12 col-md-6">
                     <label class="form-label" for="attorney-passport-issued-date-2">Дата выдачи 2</label>
@@ -1950,7 +1950,7 @@ OOO «MAJOR MOTORS SAM»</textarea>
                   </div>
                   <div class="col-12 col-md-6">
                     <label class="form-label" for="attorney-passport-3">Паспорт серия и номер 3</label>
-                    <input type="text" class="form-control" id="attorney-passport-3" name="attorney_passport_3" placeholder="AB 1234567">
+                    <input type="text" class="form-control" id="attorney-passport-3" name="attorney_passport_3" placeholder="AB 1234567" data-passport-combined>
                   </div>
                   <div class="col-12 col-md-6">
                     <label class="form-label" for="attorney-passport-issued-date-3">Дата выдачи 3</label>
@@ -3228,7 +3228,13 @@ OOO «MAJOR MOTORS SAM»</div>
       const cleaned = (value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
       const letters = cleaned.replace(/[^A-Z]/g, '').slice(0, 2);
       const digits = cleaned.replace(/[^0-9]/g, '').slice(0, 7);
-      return `${letters}${digits}`;
+      if (!letters) {
+        return '';
+      }
+      if (!digits) {
+        return letters;
+      }
+      return `${letters} ${digits}`;
     };
 
     const validatePassportCombined = (input) => {
@@ -3240,7 +3246,7 @@ OOO «MAJOR MOTORS SAM»</div>
         input.setCustomValidity('');
         return;
       }
-      const isValid = /^[A-Z]{2}\d{7}$/.test(value);
+      const isValid = /^[A-Z]{2}\s?\d{7}$/.test(value);
       input.setCustomValidity(isValid ? '' : 'Введите 2 латинские буквы и 7 цифр.');
     };
 
