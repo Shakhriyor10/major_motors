@@ -103,7 +103,7 @@
                     data-customer-created="{{ customer.created_at|date:'d.m.Y H:i' }}"
                     data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                     data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
-                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","salePrice":"{{ deal.sale_price }}","financingType":"{{ deal.financing_type }}","downPayment":"{{ deal.down_payment_amount|default:'0' }}","certificateAmount":"{{ deal.certificate_amount|default:'0' }}","currency":"{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","status":"{{ deal.status|escapejs }}","salePrice":"{{ deal.sale_price }}","financingType":"{{ deal.financing_type }}","downPayment":"{{ deal.down_payment_amount|default:'0' }}","certificateAmount":"{{ deal.certificate_amount|default:'0' }}","currency":"{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
                   >
                     👁️
                   </button>
@@ -125,7 +125,7 @@
                     data-customer-notes="{{ customer.notes|default:'' }}"
                     data-customer-passport-front="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (лицевая сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
                     data-customer-passport-back="{% for doc in customer.documents.all %}{% if doc.description == 'Паспорт (обратная сторона)' %}{{ doc.file.url }}{% endif %}{% endfor %}"
-                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","salePrice":"{{ deal.sale_price }}","financingType":"{{ deal.financing_type }}","downPayment":"{{ deal.down_payment_amount|default:'0' }}","certificateAmount":"{{ deal.certificate_amount|default:'0' }}","currency":"{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+                    data-customer-purchases='[{% for deal in customer.deals.all %}{"id":"{{ deal.id }}","name":"{{ deal.vehicle.name|escapejs }}","make":"{{ deal.vehicle.make|escapejs }}","model":"{{ deal.vehicle.model|escapejs }}","vin":"{{ deal.vehicle_unit.vin|default:deal.vehicle.vin|default:'—'|escapejs }}","status":"{{ deal.status|escapejs }}","salePrice":"{{ deal.sale_price }}","financingType":"{{ deal.financing_type }}","downPayment":"{{ deal.down_payment_amount|default:'0' }}","certificateAmount":"{{ deal.certificate_amount|default:'0' }}","currency":"{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}","contractNumber":"{{ deal.contract_number|default:''|escapejs }}","contractFile":"{% if deal.contract_file %}{{ deal.contract_file.url }}{% endif %}","powerOfAttorneyFile":"{% if deal.power_of_attorney_file %}{{ deal.power_of_attorney_file.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
                   >
                     ✏️
                   </button>
@@ -237,8 +237,9 @@
         <div class="modal-body">
           <form id="customerEditForm" method="post" enctype="multipart/form-data" class="vstack gap-3">
             {% csrf_token %}
-            <input type="hidden" name="action" value="update_customer" />
+            <input type="hidden" name="action" value="update_customer" id="customerEditAction" />
             <input type="hidden" name="customer_id" id="customerEditId" />
+            <input type="hidden" name="return_deal_id" id="customerReturnDealId" />
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label">ФИО</label>
@@ -663,7 +664,6 @@
               <thead>
                 <tr>
                   <th>Авто</th>
-                  <th>Модель</th>
                   <th>VIN</th>
                   <th>Сумма</th>
                   <th>Оплачено</th>
@@ -680,7 +680,6 @@
             purchases.forEach((item) => {
               const row = document.createElement('tr');
               const nameCell = document.createElement('td');
-              const modelCell = document.createElement('td');
               const vinCell = document.createElement('td');
               const salePriceCell = document.createElement('td');
               const paidCell = document.createElement('td');
@@ -690,7 +689,6 @@
               const contractFileCell = document.createElement('td');
               const powerOfAttorneyCell = document.createElement('td');
               nameCell.textContent = `${item.make || ''} ${item.name || ''}`.trim() || '—';
-              modelCell.textContent = item.model || '—';
               vinCell.textContent = item.vin || '—';
               const currency = item.currency || '';
               const salePrice = parseMoney(item.salePrice);
@@ -728,7 +726,6 @@
               }
               row.append(
                 nameCell,
-                modelCell,
                 vinCell,
                 salePriceCell,
                 paidCell,
@@ -780,6 +777,14 @@
         const button = event.relatedTarget;
         if (!button) {
           return;
+        }
+        const actionInput = document.getElementById('customerEditAction');
+        const returnDealInput = document.getElementById('customerReturnDealId');
+        if (actionInput) {
+          actionInput.value = 'update_customer';
+        }
+        if (returnDealInput) {
+          returnDealInput.value = '';
         }
         const setValue = (id, value) => {
           const el = document.getElementById(id);
@@ -836,6 +841,27 @@
               const meta = document.createElement('div');
               meta.className = 'text-muted small mb-3';
               meta.textContent = `VIN: ${item.vin || '—'} · Модель: ${item.model || '—'}`;
+              if (item.status === 'completed') {
+                const returnButton = document.createElement('button');
+                returnButton.type = 'button';
+                returnButton.className = 'btn btn-outline-danger btn-sm';
+                returnButton.textContent = 'Отменить покупку';
+                returnButton.addEventListener('click', () => {
+                  if (!confirm('Вернуть автомобиль в автосалон?')) {
+                    return;
+                  }
+                  const form = document.getElementById('customerEditForm');
+                  if (actionInput) {
+                    actionInput.value = 'return_deal_vehicle';
+                  }
+                  if (returnDealInput) {
+                    returnDealInput.value = item.id || '';
+                  }
+                  form?.submit();
+                });
+                meta.appendChild(document.createElement('br'));
+                meta.appendChild(returnButton);
+              }
 
               const contractNumberGroup = document.createElement('div');
               contractNumberGroup.className = 'mb-3';

@@ -103,6 +103,30 @@ def roles(request):
 def customers(request):
     if request.method == 'POST':
         action = request.POST.get('action')
+        if action == 'return_deal_vehicle':
+            deal_id = request.POST.get('return_deal_id')
+            customer_id = request.POST.get('customer_id')
+            deal = (
+                Deal.objects.select_related('vehicle', 'vehicle_unit')
+                .filter(pk=deal_id, customer_id=customer_id)
+                .first()
+            )
+            if deal:
+                if deal.status != Deal.DealStatus.CANCELED:
+                    deal.status = Deal.DealStatus.CANCELED
+                    deal.save(update_fields=['status'])
+                if deal.vehicle_unit:
+                    deal.vehicle_unit.status = VehicleUnit.UnitStatus.AVAILABLE
+                    deal.vehicle_unit.save(update_fields=['status'])
+                    _sync_vehicle_stock(deal.vehicle_unit.vehicle)
+                else:
+                    vehicle = deal.vehicle
+                    if vehicle.stock_count == 0:
+                        vehicle.stock_count = 1
+                    if vehicle.status != Vehicle.VehicleStatus.RESERVED:
+                        vehicle.status = Vehicle.VehicleStatus.FOR_SALE
+                    vehicle.save(update_fields=['stock_count', 'status'])
+            return redirect('customers')
         if action == 'update_customer':
             customer_id = request.POST.get('customer_id')
             customer = Customer.objects.filter(pk=customer_id).first()

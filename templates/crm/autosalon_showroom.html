@@ -1129,7 +1129,7 @@
         <div class="card showroom-toolbar">
           <div class="card-body">
             <div class="row g-3 align-items-end">
-              <div class="col-12 col-lg-5">
+              <div class="col-12 col-lg-4">
                 <label class="form-label" for="showroom-search">Поиск автомобиля</label>
                 <input
                   type="text"
@@ -1138,13 +1138,20 @@
                   placeholder="Марка, модель, VIN или описание"
                 >
               </div>
-              <div class="col-12 col-md-4 col-lg-3">
+              <div class="col-12 col-md-4 col-lg-2">
                 <label class="form-label" for="showroom-model-filter">Фильтр по модели</label>
                 <select id="showroom-model-filter" class="form-select">
                   <option value="">Все модели</option>
                   {% for model_name in showroom_models %}
                     <option value="{{ model_name|lower }}">{{ model_name }}</option>
                   {% endfor %}
+                </select>
+              </div>
+              <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="showroom-availability-filter">Наличие</label>
+                <select id="showroom-availability-filter" class="form-select">
+                  <option value="">Все</option>
+                  <option value="in-stock">В наличии</option>
                 </select>
               </div>
               <div class="col-12 col-md-4 col-lg-2">
