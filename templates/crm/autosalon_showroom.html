@@ -3225,7 +3225,24 @@ OOO «MAJOR MOTORS SAM»</div>
     const attorneyAddressUnderlineInput = document.getElementById('attorney-address-underline');
 
     const normalizePassportCombined = (value) => {
-      const cleaned = (value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const rawValue = (value || '').toString().toUpperCase();
+      const cyrillicMap = {
+        А: 'A',
+        В: 'B',
+        Е: 'E',
+        К: 'K',
+        М: 'M',
+        Н: 'H',
+        О: 'O',
+        Р: 'P',
+        С: 'C',
+        Т: 'T',
+        Х: 'X',
+        У: 'Y',
+        І: 'I',
+      };
+      const transliterated = rawValue.replace(/[АВЕКМНОРСТХУІ]/g, (char) => cyrillicMap[char] || char);
+      const cleaned = transliterated.replace(/[^a-zA-Z0-9]/g, '');
       const letters = cleaned.replace(/[^A-Z]/g, '').slice(0, 2);
       const digits = cleaned.replace(/[^0-9]/g, '').slice(0, 7);
       return `${letters}${digits}`;
