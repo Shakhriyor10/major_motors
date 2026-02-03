@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Документы · Major Motors{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .document-preview img {
+    max-height: 140px;
+    object-fit: contain;
+  }
+  .range-hint {
+    font-size: 0.85rem;
+  }
+  .editor-card {
+    min-height: 100%;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between gap-3 mb-4">
+  <div>
+    <h1 class="h3 mb-1">Документы</h1>
+    <p class="text-muted mb-0">
+      Объединяйте PDF, разделяйте по страницам и превращайте фото в готовые документы.
+    </p>
+  </div>
+  <span class="badge bg-secondary-subtle text-secondary">Все операции выполняются в браузере</span>
+</div>
+
+<ul class="nav nav-pills mb-4" id="documents-tabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="merge-tab" data-bs-toggle="pill" data-bs-target="#merge-pane" type="button" role="tab">
+      Объединить PDF
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="split-tab" data-bs-toggle="pill" data-bs-target="#split-pane" type="button" role="tab">
+      Разделить PDF
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="scan-tab" data-bs-toggle="pill" data-bs-target="#scan-pane" type="button" role="tab">
+      Сканер фото → PDF
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="merge-pane" role="tabpanel" aria-labelledby="merge-tab">
+    <div class="card shadow-sm editor-card">
+      <div class="card-body">
+        <h2 class="h5">Объединить PDF-файлы</h2>
+        <p class="text-muted">
+          Выберите несколько PDF и скачайте единый файл. Порядок объединения соответствует порядку выбора.
+        </p>
+        <form id="merge-form" class="row g-3">
+          <div class="col-12 col-lg-8">
+            <label class="form-label" for="merge-files">PDF-файлы</label>
+            <input class="form-control" type="file" id="merge-files" accept="application/pdf" multiple required>
+          </div>
+          <div class="col-12 col-lg-4 d-flex align-items-end">
+            <button class="btn btn-primary w-100" type="submit">Скачать объединённый PDF</button>
+          </div>
+          <div class="col-12">
+            <div id="merge-status" class="small text-muted"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="split-pane" role="tabpanel" aria-labelledby="split-tab">
+    <div class="card shadow-sm editor-card">
+      <div class="card-body">
+        <h2 class="h5">Разделить PDF</h2>
+        <p class="text-muted">
+          Укажите диапазоны страниц, чтобы получить отдельные PDF-файлы. Пример: <code>1-3,5,7-9</code>.
+        </p>
+        <form id="split-form" class="row g-3">
+          <div class="col-12 col-lg-6">
+            <label class="form-label" for="split-file">PDF-файл</label>
+            <input class="form-control" type="file" id="split-file" accept="application/pdf" required>
+          </div>
+          <div class="col-12 col-lg-4">
+            <label class="form-label" for="split-ranges">Диапазоны страниц</label>
+            <input class="form-control" type="text" id="split-ranges" placeholder="1-2,4,6-7" required>
+            <div class="range-hint text-muted mt-1">Страницы нумеруются с 1.</div>
+          </div>
+          <div class="col-12 col-lg-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" type="submit">Скачать PDF</button>
+          </div>
+          <div class="col-12">
+            <div id="split-status" class="small text-muted"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="scan-pane" role="tabpanel" aria-labelledby="scan-tab">
+    <div class="card shadow-sm editor-card">
+      <div class="card-body">
+        <div class="d-flex flex-column flex-lg-row justify-content-lg-between gap-3">
+          <div>
+            <h2 class="h5">Сканер фото → PDF</h2>
+            <p class="text-muted mb-0">
+              Добавьте фотографии, отредактируйте поворот и поля, выберите ориентацию и создайте PDF.
+            </p>
+          </div>
+          <span class="badge bg-info-subtle text-info align-self-start">Поддерживаются любые форматы изображений</span>
+        </div>
+        <form id="scan-form" class="mt-4">
+          <div class="row g-3">
+            <div class="col-12 col-lg-6">
+              <label class="form-label" for="scan-files">Фотографии</label>
+              <input class="form-control" type="file" id="scan-files" accept="image/*" multiple required>
+            </div>
+            <div class="col-12 col-lg-3">
+              <label class="form-label" for="scan-orientation">Ориентация PDF</label>
+              <select class="form-select" id="scan-orientation">
+                <option value="auto" selected>Авто</option>
+                <option value="portrait">Книжная</option>
+                <option value="landscape">Альбомная</option>
+              </select>
+            </div>
+            <div class="col-12 col-lg-3">
+              <label class="form-label" for="scan-margin">Поля (внутренний отступ)</label>
+              <input class="form-control" type="number" id="scan-margin" min="0" max="60" value="24">
+              <div class="range-hint text-muted mt-1">Значение в пунктах PDF.</div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <h3 class="h6">Обрезка полей на фото</h3>
+            <div class="row g-3">
+              <div class="col-6 col-lg-3">
+                <label class="form-label" for="crop-top">Верх (%)</label>
+                <input class="form-range" type="range" id="crop-top" min="0" max="20" value="0">
+              </div>
+              <div class="col-6 col-lg-3">
+                <label class="form-label" for="crop-bottom">Низ (%)</label>
+                <input class="form-range" type="range" id="crop-bottom" min="0" max="20" value="0">
+              </div>
+              <div class="col-6 col-lg-3">
+                <label class="form-label" for="crop-left">Лево (%)</label>
+                <input class="form-range" type="range" id="crop-left" min="0" max="20" value="0">
+              </div>
+              <div class="col-6 col-lg-3">
+                <label class="form-label" for="crop-right">Право (%)</label>
+                <input class="form-range" type="range" id="crop-right" min="0" max="20" value="0">
+              </div>
+            </div>
+            <div class="range-hint text-muted mt-1">
+              Используйте ползунки, чтобы убрать поля перед созданием PDF.
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <h3 class="h6">Предпросмотр и поворот</h3>
+            <div id="scan-preview" class="row g-3 document-preview"></div>
+          </div>
+
+          <div class="d-flex flex-column flex-lg-row gap-3 align-items-lg-center mt-4">
+            <button class="btn btn-primary" type="submit">Создать PDF</button>
+            <div id="scan-status" class="small text-muted"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+  const downloadBlob = (blob, filename) => {
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  };
+
+  const formatFileList = (files) => Array.from(files).map((file) => file.name).join(', ');
+
+  const parseRanges = (input, totalPages) => {
+    const ranges = [];
+    const parts = input.split(',').map((part) => part.trim()).filter(Boolean);
+    for (const part of parts) {
+      const [startRaw, endRaw] = part.split('-').map((value) => value.trim());
+      const start = Number(startRaw);
+      const end = endRaw ? Number(endRaw) : start;
+      if (!Number.isFinite(start) || !Number.isFinite(end)) {
+        throw new Error('Некорректный формат диапазона.');
+      }
+      const normalizedStart = Math.max(1, Math.min(start, totalPages));
+      const normalizedEnd = Math.max(1, Math.min(end, totalPages));
+      if (normalizedStart > normalizedEnd) {
+        throw new Error('Диапазон должен идти по возрастанию.');
+      }
+      ranges.push({ start: normalizedStart, end: normalizedEnd });
+    }
+    return ranges;
+  };
+
+  const mergeForm = document.getElementById('merge-form');
+  const mergeStatus = document.getElementById('merge-status');
+  mergeForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const files = document.getElementById('merge-files').files;
+    if (!files.length) {
+      mergeStatus.textContent = 'Добавьте минимум два PDF файла.';
+      return;
+    }
+    mergeStatus.textContent = `Обрабатываем: ${formatFileList(files)}`;
+    const mergedPdf = await PDFLib.PDFDocument.create();
+    for (const file of files) {
+      const bytes = await file.arrayBuffer();
+      const pdf = await PDFLib.PDFDocument.load(bytes);
+      const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+      pages.forEach((page) => mergedPdf.addPage(page));
+    }
+    const mergedBytes = await mergedPdf.save();
+    downloadBlob(new Blob([mergedBytes], { type: 'application/pdf' }), 'merged.pdf');
+    mergeStatus.textContent = 'Готово! PDF скачан.';
+  });
+
+  const splitForm = document.getElementById('split-form');
+  const splitStatus = document.getElementById('split-status');
+  splitForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const file = document.getElementById('split-file').files[0];
+    const rangesValue = document.getElementById('split-ranges').value;
+    if (!file) {
+      splitStatus.textContent = 'Выберите PDF файл.';
+      return;
+    }
+    splitStatus.textContent = `Разделяем ${file.name}...`;
+    const bytes = await file.arrayBuffer();
+    const sourcePdf = await PDFLib.PDFDocument.load(bytes);
+    const totalPages = sourcePdf.getPageCount();
+    let ranges;
+    try {
+      ranges = parseRanges(rangesValue, totalPages);
+    } catch (error) {
+      splitStatus.textContent = error.message;
+      return;
+    }
+    let index = 1;
+    for (const range of ranges) {
+      const newPdf = await PDFLib.PDFDocument.create();
+      const pagesToCopy = [];
+      for (let i = range.start - 1; i <= range.end - 1; i += 1) {
+        pagesToCopy.push(i);
+      }
+      const pages = await newPdf.copyPages(sourcePdf, pagesToCopy);
+      pages.forEach((page) => newPdf.addPage(page));
+      const pdfBytes = await newPdf.save();
+      const name = `split_${index}_${range.start}-${range.end}.pdf`;
+      downloadBlob(new Blob([pdfBytes], { type: 'application/pdf' }), name);
+      index += 1;
+    }
+    splitStatus.textContent = 'Готово! Файлы скачаны.';
+  });
+
+  const scanForm = document.getElementById('scan-form');
+  const scanStatus = document.getElementById('scan-status');
+  const scanPreview = document.getElementById('scan-preview');
+  const scanFilesInput = document.getElementById('scan-files');
+  const scanOrientation = document.getElementById('scan-orientation');
+  const scanMargin = document.getElementById('scan-margin');
+  const cropInputs = {
+    top: document.getElementById('crop-top'),
+    bottom: document.getElementById('crop-bottom'),
+    left: document.getElementById('crop-left'),
+    right: document.getElementById('crop-right'),
+  };
+
+  const imageState = [];
+
+  const updatePreview = () => {
+    scanPreview.innerHTML = '';
+    imageState.forEach((item, index) => {
+      const col = document.createElement('div');
+      col.className = 'col-12 col-md-6 col-lg-4';
+      col.innerHTML = `
+        <div class="card h-100">
+          <img src="${item.url}" class="card-img-top p-3" style="transform: rotate(${item.rotation}deg);" alt="${item.file.name}">
+          <div class="card-body">
+            <div class="fw-semibold small">${item.file.name}</div>
+            <div class="d-flex gap-2 mt-2">
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-action="left" data-index="${index}">↺ Повернуть</button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-action="right" data-index="${index}">↻ Повернуть</button>
+            </div>
+          </div>
+        </div>
+      `;
+      scanPreview.appendChild(col);
+    });
+  };
+
+  scanPreview.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) {
+      return;
+    }
+    const index = Number(button.dataset.index);
+    const action = button.dataset.action;
+    if (!imageState[index]) {
+      return;
+    }
+    const delta = action === 'left' ? -90 : 90;
+    imageState[index].rotation = (imageState[index].rotation + delta + 360) % 360;
+    updatePreview();
+  });
+
+  scanFilesInput.addEventListener('change', () => {
+    imageState.splice(0, imageState.length);
+    Array.from(scanFilesInput.files).forEach((file) => {
+      imageState.push({
+        file,
+        url: URL.createObjectURL(file),
+        rotation: 0,
+      });
+    });
+    updatePreview();
+  });
+
+  const loadImage = (file) => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+
+  const renderImageToCanvas = (image, rotation, crop) => {
+    const cropLeft = crop.left / 100;
+    const cropRight = crop.right / 100;
+    const cropTop = crop.top / 100;
+    const cropBottom = crop.bottom / 100;
+    const cropWidth = image.width * (1 - cropLeft - cropRight);
+    const cropHeight = image.height * (1 - cropTop - cropBottom);
+    const sourceX = image.width * cropLeft;
+    const sourceY = image.height * cropTop;
+
+    const radians = (rotation * Math.PI) / 180;
+    const isQuarterTurn = rotation % 180 !== 0;
+    const canvas = document.createElement('canvas');
+    canvas.width = isQuarterTurn ? cropHeight : cropWidth;
+    canvas.height = isQuarterTurn ? cropWidth : cropHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(radians);
+    ctx.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      cropWidth,
+      cropHeight,
+      -cropWidth / 2,
+      -cropHeight / 2,
+      cropWidth,
+      cropHeight
+    );
+    return canvas;
+  };
+
+  scanForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!imageState.length) {
+      scanStatus.textContent = 'Добавьте хотя бы одну фотографию.';
+      return;
+    }
+    scanStatus.textContent = 'Создаём PDF...';
+    const pdfDoc = await PDFLib.PDFDocument.create();
+    const margin = Number(scanMargin.value) || 0;
+    const crop = {
+      top: Number(cropInputs.top.value) || 0,
+      bottom: Number(cropInputs.bottom.value) || 0,
+      left: Number(cropInputs.left.value) || 0,
+      right: Number(cropInputs.right.value) || 0,
+    };
+
+    for (const item of imageState) {
+      const image = await loadImage(item.file);
+      const canvas = renderImageToCanvas(image, item.rotation, crop);
+      const dataUrl = canvas.toDataURL('image/png');
+      const bytes = await fetch(dataUrl).then((res) => res.arrayBuffer());
+      const pngImage = await pdfDoc.embedPng(bytes);
+      const { width, height } = pngImage;
+      let pageWidth = 595;
+      let pageHeight = 842;
+      const orientation = scanOrientation.value;
+      const isLandscape = orientation === 'landscape'
+        || (orientation === 'auto' && width > height);
+      if (isLandscape) {
+        [pageWidth, pageHeight] = [pageHeight, pageWidth];
+      }
+      const page = pdfDoc.addPage([pageWidth, pageHeight]);
+      const availableWidth = pageWidth - margin * 2;
+      const availableHeight = pageHeight - margin * 2;
+      const scale = Math.min(availableWidth / width, availableHeight / height);
+      const drawWidth = width * scale;
+      const drawHeight = height * scale;
+      const x = (pageWidth - drawWidth) / 2;
+      const y = (pageHeight - drawHeight) / 2;
+      page.drawImage(pngImage, { x, y, width: drawWidth, height: drawHeight });
+    }
+    const pdfBytes = await pdfDoc.save();
+    downloadBlob(new Blob([pdfBytes], { type: 'application/pdf' }), 'scanned.pdf');
+    scanStatus.textContent = 'Готово! PDF скачан.';
+  });
+</script>
+{% endblock %}

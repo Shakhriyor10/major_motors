@@ -14,6 +14,7 @@ urlpatterns = [
     path('autosalon/', views.autosalon, name='autosalon'),
     path('inventory/', views.inventory, name='inventory'),
     path('deals/', views.deals, name='deals'),
+    path('documents/', views.documents, name='documents'),
     path('cash/', views.cash_dashboard, name='cash-dashboard'),
     path('cash/employees/save/', views.cash_employee_save, name='cash-employee-save'),
     path('cash/employees/delete/', views.cash_employee_delete, name='cash-employee-delete'),
