@@ -597,6 +597,45 @@ class CashEmployee(TimeStampedModel):
         return f'{self.last_name} {self.first_name}'.strip()
 
 
+class CashExpense(TimeStampedModel):
+    class Category(models.TextChoices):
+        RENT = 'rent', 'Аренда'
+        MARKETING = 'marketing', 'Маркетинг'
+        UTILITIES = 'utilities', 'Коммунальные'
+        LOGISTICS = 'logistics', 'Логистика'
+        OFFICE = 'office', 'Офисные расходы'
+        OTHER = 'other', 'Другое'
+        SALARY = 'salary', 'Зарплата сотрудникам'
+
+    class Currency(models.TextChoices):
+        UZS = 'uzs', 'UZS'
+        USD = 'usd', 'USD'
+
+    class SalaryType(models.TextChoices):
+        SALARY = 'salary', 'Зарплата'
+        ADVANCE = 'advance', 'Аванс'
+
+    category = models.CharField(max_length=16, choices=Category.choices)
+    currency = models.CharField(max_length=8, choices=Currency.choices)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    comment = models.TextField(blank=True)
+    employee = models.ForeignKey(
+        CashEmployee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='expenses',
+    )
+    salary_type = models.CharField(max_length=16, choices=SalaryType.choices, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.get_category_display()} {self.amount}'
+
+
 class DealExtra(TimeStampedModel):
     deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name='extras')
     name = models.CharField(max_length=128)

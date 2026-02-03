@@ -19,6 +19,7 @@ from .models import (
     CashAccount,
     CashConversion,
     CashEmployee,
+    CashExpense,
     CurrencyRate,
     Customer,
     CustomerDocument,
@@ -1366,49 +1367,62 @@ def deals(request):
     return render(request, 'crm/deals.html', {'deals': deals_qs})
 
 
+def _serialize_cash_employee(employee):
+    return {
+        'id': employee.external_id,
+        'firstName': employee.first_name,
+        'lastName': employee.last_name,
+        'position': employee.position,
+        'startDate': employee.start_date.isoformat() if employee.start_date else '',
+        'phonePrimary': employee.phone_primary,
+        'phoneSecondary': employee.phone_secondary,
+        'salaryDay': employee.salary_day,
+        'salaryAmount': float(employee.salary_amount) if employee.salary_amount is not None else None,
+        'status': employee.status,
+        'createdBy': employee.created_by.get_full_name() if employee.created_by else '',
+        'createdAt': employee.created_at.isoformat() if employee.created_at else '',
+        'updatedAt': employee.updated_at.isoformat() if employee.updated_at else '',
+    }
+
+
+def _serialize_cash_expense(expense):
+    category_label = (
+        'Зарплата сотрудникам (Аванс)'
+        if expense.category == CashExpense.Category.SALARY and expense.salary_type == CashExpense.SalaryType.ADVANCE
+        else expense.get_category_display()
+    )
+    return {
+        'id': str(expense.pk),
+        'category': expense.category,
+        'categoryLabel': category_label,
+        'currency': expense.currency,
+        'amount': float(expense.amount),
+        'comment': expense.comment or '',
+        'createdBy': expense.created_by.get_full_name() if expense.created_by else '',
+        'createdAt': expense.created_at.isoformat() if expense.created_at else '',
+        'employeeId': expense.employee.external_id if expense.employee else None,
+        'salaryType': expense.salary_type or None,
+    }
+
+
+def _serialize_cash_conversion(conversion):
+    return {
+        'id': str(conversion.pk),
+        'fromCurrency': conversion.from_currency,
+        'toCurrency': conversion.to_currency,
+        'amountFrom': float(conversion.amount_from),
+        'amountTo': float(conversion.amount_to),
+        'rate': float(conversion.rate_used),
+        'note': conversion.notes or '',
+        'createdAt': conversion.created_at.isoformat() if conversion.created_at else '',
+    }
+
+
 @login_required
 def cash_dashboard(request):
     cash_account = CashAccount.get_current()
-    bank_account = BankAccount.get_current()
     if request.method == 'POST' and request.user.is_superuser:
-        action = request.POST.get('action')
         try:
-            if action == 'update_bank_account':
-                bank_account.uzs_balance = Decimal(request.POST.get('bank_uzs_balance', bank_account.uzs_balance))
-                bank_account.usd_balance = Decimal(request.POST.get('bank_usd_balance', bank_account.usd_balance))
-                bank_account.updated_by = request.user
-                bank_account.save(update_fields=['uzs_balance', 'usd_balance', 'updated_by', 'updated_at'])
-                return redirect('/cash/?reset_cash=1')
-            if action == 'transfer_bank_cash':
-                direction = request.POST.get('transfer_direction')
-                currency = request.POST.get('transfer_currency')
-                amount = Decimal(request.POST.get('transfer_amount', '0'))
-                if amount <= 0:
-                    return redirect('/cash/?reset_cash=1')
-                if direction == 'bank_to_cash':
-                    source_account = bank_account
-                    target_account = cash_account
-                elif direction == 'cash_to_bank':
-                    source_account = cash_account
-                    target_account = bank_account
-                else:
-                    return redirect('/cash/?reset_cash=1')
-
-                if currency == 'usd':
-                    if source_account.usd_balance < amount:
-                        return redirect('/cash/?reset_cash=1')
-                    source_account.usd_balance -= amount
-                    target_account.usd_balance += amount
-                else:
-                    if source_account.uzs_balance < amount:
-                        return redirect('/cash/?reset_cash=1')
-                    source_account.uzs_balance -= amount
-                    target_account.uzs_balance += amount
-                source_account.updated_by = request.user
-                target_account.updated_by = request.user
-                source_account.save(update_fields=['uzs_balance', 'usd_balance', 'updated_by', 'updated_at'])
-                target_account.save(update_fields=['uzs_balance', 'usd_balance', 'updated_by', 'updated_at'])
-                return redirect('/cash/?reset_cash=1')
             cash_account.uzs_balance = Decimal(request.POST.get('uzs_balance', cash_account.uzs_balance))
             cash_account.usd_balance = Decimal(request.POST.get('usd_balance', cash_account.usd_balance))
         except (InvalidOperation, TypeError):
@@ -1418,6 +1432,8 @@ def cash_dashboard(request):
         return redirect('/cash/?reset_cash=1')
     exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
     conversions = CashConversion.objects.select_related('shift').order_by('-created_at')[:10]
+    employees = CashEmployee.objects.select_related('created_by').order_by('last_name', 'first_name')
+    expenses = CashExpense.objects.select_related('employee', 'created_by').order_by('-created_at')[:50]
     recent_deals = (
         Deal.objects.select_related('vehicle', 'customer')
         .filter(status=Deal.DealStatus.COMPLETED)
@@ -1448,9 +1464,11 @@ def cash_dashboard(request):
         'crm/cash.html',
         {
             'cash_account': cash_account,
-            'bank_account': bank_account,
             'exchange_rate': exchange_rate,
             'conversions': conversions,
+            'employees': [_serialize_cash_employee(employee) for employee in employees],
+            'expenses': [_serialize_cash_expense(expense) for expense in expenses],
+            'conversions_data': [_serialize_cash_conversion(conversion) for conversion in conversions],
             'incomes': incomes,
         },
     )
@@ -1513,7 +1531,7 @@ def cash_employee_save(request):
         employee.created_by = request.user
         employee.save(update_fields=['created_by'])
 
-    return JsonResponse({'status': 'ok'})
+    return JsonResponse({'status': 'ok', 'employee': _serialize_cash_employee(employee)})
 
 
 @login_required
@@ -1530,3 +1548,162 @@ def cash_employee_delete(request):
 
     CashEmployee.objects.filter(external_id=external_id).delete()
     return JsonResponse({'status': 'ok'})
+
+
+@login_required
+@require_POST
+def cash_expense_create(request):
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid_json'}, status=400)
+
+    category = (payload.get('category') or '').strip()
+    currency = (payload.get('currency') or '').strip()
+    amount_value = payload.get('amount')
+    if not category or not currency:
+        return JsonResponse({'error': 'missing_fields'}, status=400)
+    try:
+        amount = Decimal(str(amount_value))
+    except (InvalidOperation, TypeError, ValueError):
+        return JsonResponse({'error': 'invalid_amount'}, status=400)
+    if amount <= 0:
+        return JsonResponse({'error': 'invalid_amount'}, status=400)
+
+    employee = None
+    employee_id = payload.get('employeeId')
+    if employee_id:
+        employee = CashEmployee.objects.filter(external_id=employee_id).first()
+
+    salary_type = (payload.get('salaryType') or '').strip()
+    if category != CashExpense.Category.SALARY:
+        salary_type = ''
+
+    expense = CashExpense.objects.create(
+        category=category,
+        currency=currency,
+        amount=amount,
+        comment=(payload.get('comment') or '').strip(),
+        employee=employee,
+        salary_type=salary_type,
+        created_by=request.user,
+    )
+
+    cash_account = CashAccount.get_current()
+    if currency == CashExpense.Currency.USD:
+        cash_account.usd_balance = max(cash_account.usd_balance - amount, Decimal('0'))
+        cash_account.updated_by = request.user
+        cash_account.save(update_fields=['usd_balance', 'updated_by', 'updated_at'])
+    else:
+        cash_account.uzs_balance = max(cash_account.uzs_balance - amount, Decimal('0'))
+        cash_account.updated_by = request.user
+        cash_account.save(update_fields=['uzs_balance', 'updated_by', 'updated_at'])
+
+    return JsonResponse(
+        {
+            'status': 'ok',
+            'expense': _serialize_cash_expense(expense),
+            'cash': {
+                'uzs': float(cash_account.uzs_balance),
+                'usd': float(cash_account.usd_balance),
+            },
+        },
+    )
+
+
+@login_required
+@require_POST
+def cash_rate_save(request):
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid_json'}, status=400)
+
+    rate_value = payload.get('rate')
+    try:
+        rate = Decimal(str(rate_value))
+    except (InvalidOperation, TypeError, ValueError):
+        return JsonResponse({'error': 'invalid_rate'}, status=400)
+    if rate <= 0:
+        return JsonResponse({'error': 'invalid_rate'}, status=400)
+
+    rate_record = CurrencyRate.objects.create(
+        base_currency=CurrencyRate.Currency.USD,
+        quote_currency=CurrencyRate.Currency.UZS,
+        rate=rate,
+        effective_date=timezone.localdate(),
+        created_by=request.user,
+        notes=(payload.get('note') or '').strip(),
+    )
+
+    return JsonResponse(
+        {
+            'status': 'ok',
+            'rate': float(rate_record.rate),
+            'updatedAt': rate_record.created_at.isoformat(),
+        },
+    )
+
+
+@login_required
+@require_POST
+def cash_conversion_create(request):
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid_json'}, status=400)
+
+    from_currency = (payload.get('fromCurrency') or '').strip()
+    to_currency = (payload.get('toCurrency') or '').strip()
+    amount_value = payload.get('amount')
+    rate_value = payload.get('rate')
+
+    if not from_currency or not to_currency or from_currency == to_currency:
+        return JsonResponse({'error': 'invalid_currency'}, status=400)
+    try:
+        amount = Decimal(str(amount_value))
+        rate = Decimal(str(rate_value))
+    except (InvalidOperation, TypeError, ValueError):
+        return JsonResponse({'error': 'invalid_amount'}, status=400)
+    if amount <= 0 or rate <= 0:
+        return JsonResponse({'error': 'invalid_amount'}, status=400)
+
+    if from_currency == CashConversion.Currency.USD:
+        amount_to = amount * rate
+    else:
+        amount_to = amount / rate
+
+    cash_account = CashAccount.get_current()
+    if from_currency == CashConversion.Currency.USD:
+        if cash_account.usd_balance < amount:
+            return JsonResponse({'error': 'insufficient_funds'}, status=400)
+        cash_account.usd_balance -= amount
+        cash_account.uzs_balance += amount_to
+    else:
+        if cash_account.uzs_balance < amount:
+            return JsonResponse({'error': 'insufficient_funds'}, status=400)
+        cash_account.uzs_balance -= amount
+        cash_account.usd_balance += amount_to
+    cash_account.updated_by = request.user
+    cash_account.save(update_fields=['uzs_balance', 'usd_balance', 'updated_by', 'updated_at'])
+
+    conversion = CashConversion.objects.create(
+        from_currency=from_currency,
+        to_currency=to_currency,
+        amount_from=amount,
+        amount_to=amount_to,
+        rate_used=rate,
+        created_by=request.user,
+        notes=(payload.get('note') or '').strip(),
+    )
+
+    return JsonResponse(
+        {
+            'status': 'ok',
+            'cash': {
+                'uzs': float(cash_account.uzs_balance),
+                'usd': float(cash_account.usd_balance),
+            },
+            'conversion': _serialize_cash_conversion(conversion),
+        },
+    )

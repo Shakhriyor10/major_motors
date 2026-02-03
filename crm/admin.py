@@ -143,6 +143,13 @@ class CashEmployeeAdmin(admin.ModelAdmin):
     search_fields = ('last_name', 'first_name', 'phone_primary')
 
 
+@admin.register(models.CashExpense)
+class CashExpenseAdmin(admin.ModelAdmin):
+    list_display = ('category', 'currency', 'amount', 'employee', 'created_by', 'created_at')
+    list_filter = ('category', 'currency')
+    search_fields = ('comment',)
+
+
 @admin.register(models.DealExtra)
 class DealExtraAdmin(admin.ModelAdmin):
     list_display = ('deal', 'name', 'price')
