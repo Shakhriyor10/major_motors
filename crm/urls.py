@@ -17,4 +17,7 @@ urlpatterns = [
     path('cash/', views.cash_dashboard, name='cash-dashboard'),
     path('cash/employees/save/', views.cash_employee_save, name='cash-employee-save'),
     path('cash/employees/delete/', views.cash_employee_delete, name='cash-employee-delete'),
+    path('cash/expenses/create/', views.cash_expense_create, name='cash-expense-create'),
+    path('cash/rate/save/', views.cash_rate_save, name='cash-rate-save'),
+    path('cash/conversions/create/', views.cash_conversion_create, name='cash-conversion-create'),
 ]

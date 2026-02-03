@@ -10,8 +10,6 @@
 </head>
 <body class="bg-light" data-cash-uzs="{{ cash_account.uzs_balance|default:0|unlocalize }}"
       data-cash-usd="{{ cash_account.usd_balance|default:0|unlocalize }}"
-      data-bank-uzs="{{ bank_account.uzs_balance|default:0|unlocalize }}"
-      data-bank-usd="{{ bank_account.usd_balance|default:0|unlocalize }}"
       data-cash-rate="{{ cash_rate|default:0|unlocalize }}"
       data-cash-updated="{{ cash_account.updated_at|date:'c' }}">
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-print-none">
@@ -41,7 +39,7 @@
             type="button"
             id="open-balance-modal"
           >
-            <div class="small text-white-50">Касса и счет</div>
+            <div class="small text-white-50">Касса</div>
             <div class="fw-semibold" id="navbar-uzs">-- UZS</div>
             <div class="small" id="navbar-usd">-- USD</div>
           </button>
@@ -111,7 +109,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Касса и банковский счет</h5>
+          <h5 class="modal-title">Касса</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
         <div class="modal-body">
@@ -126,17 +124,6 @@
               <strong id="modal-cash-usd">--</strong>
             </div>
           </div>
-          <div>
-            <h6 class="text-uppercase text-muted small">Банковский счет</h6>
-            <div class="d-flex justify-content-between">
-              <span>Сум (UZS)</span>
-              <strong id="modal-bank-uzs">--</strong>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span>Доллар (USD)</span>
-              <strong id="modal-bank-usd">--</strong>
-            </div>
-          </div>
         </div>
         <div class="modal-footer">
           <a class="btn btn-primary" href="/cash/">Открыть кассу</a>
@@ -149,13 +136,10 @@
     const initialUzs = Number(document.body.dataset.cashUzs || 0);
     const initialUsd = Number(document.body.dataset.cashUsd || 0);
     const initialRate = Number(document.body.dataset.cashRate || 0);
-    const initialBankUzs = Number(document.body.dataset.bankUzs || 0);
-    const initialBankUsd = Number(document.body.dataset.bankUsd || 0);
     const serverUpdatedAt = document.body.dataset.cashUpdated || '';
     const SERVER_UPDATED_KEY = 'crm_cash_server_updated_v1';
     const cashStore = (() => {
       const STORAGE_KEY = 'crm_cash_state_v1';
-      const CONVERSIONS_KEY = 'crm_cash_conversions_v1';
       const defaultState = { uzs: initialUzs, usd: initialUsd, rate: initialRate || 12550 };
       const load = () => {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -180,14 +164,8 @@
           return state;
         },
         addConversion(conversion) {
-          const list = JSON.parse(localStorage.getItem(CONVERSIONS_KEY) || '[]');
-          list.unshift(conversion);
-          localStorage.setItem(CONVERSIONS_KEY, JSON.stringify(list.slice(0, 20)));
           document.dispatchEvent(new CustomEvent('cash:conversion', { detail: conversion }));
         },
-        getConversions() {
-          return JSON.parse(localStorage.getItem(CONVERSIONS_KEY) || '[]');
-        }
       };
     })();
 
@@ -203,19 +181,11 @@
       const state = cashStore.getState();
       const uzsEl = document.getElementById('navbar-uzs');
       const usdEl = document.getElementById('navbar-usd');
-      const bankUzsEl = document.getElementById('navbar-bank-uzs');
-      const bankUsdEl = document.getElementById('navbar-bank-usd');
       if (uzsEl) {
         uzsEl.textContent = formatCurrency(state.uzs, 'uzs');
       }
       if (usdEl) {
         usdEl.textContent = formatCurrency(state.usd, 'usd');
-      }
-      if (bankUzsEl) {
-        bankUzsEl.textContent = formatCurrency(initialBankUzs, 'uzs');
-      }
-      if (bankUsdEl) {
-        bankUsdEl.textContent = formatCurrency(initialBankUsd, 'usd');
       }
     };
 
@@ -243,19 +213,11 @@
       const state = cashStore.getState();
       const modalCashUzs = document.getElementById('modal-cash-uzs');
       const modalCashUsd = document.getElementById('modal-cash-usd');
-      const modalBankUzs = document.getElementById('modal-bank-uzs');
-      const modalBankUsd = document.getElementById('modal-bank-usd');
       if (modalCashUzs) {
         modalCashUzs.textContent = formatCurrency(state.uzs, 'uzs');
       }
       if (modalCashUsd) {
         modalCashUsd.textContent = formatCurrency(state.usd, 'usd');
-      }
-      if (modalBankUzs) {
-        modalBankUzs.textContent = formatCurrency(initialBankUzs, 'uzs');
-      }
-      if (modalBankUsd) {
-        modalBankUsd.textContent = formatCurrency(initialBankUsd, 'usd');
       }
       balanceModal?.show();
     };
@@ -269,8 +231,13 @@
     if (cancelButton) {
       cancelButton.addEventListener('click', closeModal);
     }
+    const getCsrfToken = () => {
+      const match = document.cookie.match(/csrftoken=([^;]+)/);
+      return match ? match[1] : '';
+    };
+
     if (form) {
-      form.addEventListener('submit', (event) => {
+      form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const formData = new FormData(form);
         const fromCurrency = formData.get('from_currency');
@@ -283,25 +250,40 @@
         if (!amount || !rate) {
           return;
         }
-        const state = cashStore.getState();
-        const amountTo = fromCurrency === 'usd' ? amount * rate : amount / rate;
-        const updated = {
-          uzs: state.uzs + (toCurrency === 'uzs' ? amountTo : -amount),
-          usd: state.usd + (toCurrency === 'usd' ? amountTo : -amount),
-          rate,
-        };
-        cashStore.setState(updated);
-        cashStore.addConversion({
-          id: crypto.randomUUID(),
+        const payload = {
           fromCurrency,
           toCurrency,
-          amountFrom: amount,
-          amountTo,
+          amount,
           rate,
           note: formData.get('note') || '',
-          createdAt: new Date().toISOString(),
-        });
-        closeModal();
+        };
+        try {
+          const response = await fetch('/cash/conversions/create/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            return;
+          }
+          const data = await response.json();
+          if (data.cash) {
+            cashStore.setState({
+              uzs: data.cash.uzs,
+              usd: data.cash.usd,
+              rate,
+            });
+          }
+          if (data.conversion) {
+            cashStore.addConversion(data.conversion);
+          }
+          closeModal();
+        } catch (error) {
+          return;
+        }
       });
     }
 

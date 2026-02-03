@@ -62,107 +62,8 @@
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h3 class="h5 mb-0">Банковский счет</h3>
-            <span class="badge rounded-pill text-bg-light text-dark border">Кредитные поступления</span>
-          </div>
-          {% if request.user.is_superuser %}
-            <form method="post" class="mt-3">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="update_bank_account">
-              <div class="row g-3">
-                <div class="col-12">
-                  <label for="bank-uzs-balance" class="form-label">Сум (UZS)</label>
-                  <input
-                    type="number"
-                    id="bank-uzs-balance"
-                    name="bank_uzs_balance"
-                    min="0"
-                    step="0.01"
-                    value="{{ bank_account.uzs_balance|unlocalize }}"
-                    class="form-control"
-                  >
-                </div>
-                <div class="col-12">
-                  <label for="bank-usd-balance" class="form-label">Доллар (USD)</label>
-                  <input
-                    type="number"
-                    id="bank-usd-balance"
-                    name="bank_usd_balance"
-                    min="0"
-                    step="0.01"
-                    value="{{ bank_account.usd_balance|unlocalize }}"
-                    class="form-control"
-                  >
-                </div>
-              </div>
-              <div class="d-flex justify-content-end mt-3">
-                <button class="btn btn-outline-primary" type="submit">Обновить счет</button>
-              </div>
-            </form>
-          {% else %}
-            <p class="text-muted mt-3">Изменение баланса доступно только суперпользователю.</p>
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label">Сум (UZS)</label>
-                <input type="text" value="{{ bank_account.uzs_balance|unlocalize }}" class="form-control" readonly>
-              </div>
-              <div class="col-12">
-                <label class="form-label">Доллар (USD)</label>
-                <input type="text" value="{{ bank_account.usd_balance|unlocalize }}" class="form-control" readonly>
-              </div>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-lg-4">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h3 class="h5 mb-0">Перевод между счетами</h3>
-            <span class="badge rounded-pill text-bg-light text-dark border">Банк ↔ Касса</span>
-          </div>
-          {% if request.user.is_superuser %}
-            <form method="post" class="mt-3">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="transfer_bank_cash">
-              <div class="row g-3">
-                <div class="col-12">
-                  <label for="transfer-direction" class="form-label">Направление</label>
-                  <select id="transfer-direction" name="transfer_direction" class="form-select" required>
-                    <option value="bank_to_cash">Банк → Касса</option>
-                    <option value="cash_to_bank">Касса → Банк</option>
-                  </select>
-                </div>
-                <div class="col-12">
-                  <label for="transfer-currency" class="form-label">Валюта</label>
-                  <select id="transfer-currency" name="transfer_currency" class="form-select" required>
-                    <option value="uzs">Сум (UZS)</option>
-                    <option value="usd">Доллар (USD)</option>
-                  </select>
-                </div>
-                <div class="col-12">
-                  <label for="transfer-amount" class="form-label">Сумма</label>
-                  <input type="number" id="transfer-amount" name="transfer_amount" min="0.01" step="0.01" class="form-control" required>
-                </div>
-              </div>
-              <div class="d-flex justify-content-end mt-3">
-                <button class="btn btn-outline-primary" type="submit">Перевести</button>
-              </div>
-            </form>
-          {% else %}
-            <p class="text-muted mt-3">Переводы доступны только суперпользователю.</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h3 class="h5 mb-0">Курс конвертации</h3>
-            <span class="badge rounded-pill text-bg-light text-dark border" id="rate-updated">обновлено сегодня</span>
+            <span class="badge rounded-pill text-bg-light text-dark border" id="rate-updated" data-updated="{{ exchange_rate.created_at|date:'c' }}">обновлено сегодня</span>
           </div>
           <p class="text-muted small mt-2">Используется для расчетов в модальном окне конвертации.</p>
           <div class="row g-3">
@@ -535,10 +436,17 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{{ employees|json_script:"cash-employees-data" }}
+{{ expenses|json_script:"cash-expenses-data" }}
+{{ conversions_data|json_script:"cash-conversions-data" }}
 <script>
   const currentUser = 'Администратор';
-  const EMPLOYEES_KEY = 'crm_employees_v1';
-  const EXPENSES_KEY = 'crm_expenses_v1';
+  const initialEmployees = JSON.parse(document.getElementById('cash-employees-data')?.textContent || '[]');
+  const initialExpenses = JSON.parse(document.getElementById('cash-expenses-data')?.textContent || '[]');
+  const initialConversions = JSON.parse(document.getElementById('cash-conversions-data')?.textContent || '[]');
+  let employeesState = [...initialEmployees];
+  let expensesState = [...initialExpenses];
+  let conversionsState = [...initialConversions];
 
   const employeeForm = document.getElementById('employee-form');
   const employeeList = document.getElementById('employee-list');
@@ -585,8 +493,6 @@
   let expenseVisibleCount = PAGE_SIZE;
   let employeeVisibleCount = PAGE_SIZE;
 
-  const loadItems = (key) => JSON.parse(localStorage.getItem(key) || '[]');
-  const saveItems = (key, items) => localStorage.setItem(key, JSON.stringify(items));
   const generateId = () => {
     if (window.crypto?.randomUUID) {
       return window.crypto.randomUUID();
@@ -597,17 +503,28 @@
     const match = document.cookie.match(/csrftoken=([^;]+)/);
     return match ? match[1] : '';
   };
-  const postEmployee = (url, payload) =>
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken()
-      },
-      body: JSON.stringify(payload),
-    }).catch(() => {});
-  const persistEmployee = (employee) => postEmployee('/cash/employees/save/', employee);
-  const deleteEmployee = (employeeId) => postEmployee('/cash/employees/delete/', { id: employeeId });
+  const postJson = async (url, payload) => {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        return null;
+      }
+      return await response.json();
+    } catch (error) {
+      return null;
+    }
+  };
+  const persistEmployee = (employee) => postJson('/cash/employees/save/', employee);
+  const deleteEmployee = (employeeId) => postJson('/cash/employees/delete/', { id: employeeId });
+  const createExpense = (expense) => postJson('/cash/expenses/create/', expense);
+  const saveRateToServer = (payload) => postJson('/cash/rate/save/', payload);
 
   const updateCashBalances = () => {
     const state = cashStore.getState();
@@ -622,6 +539,13 @@
       timeStyle: 'short'
     }).format(date);
   };
+
+  if (rateUpdated?.dataset.updated) {
+    const updatedAt = new Date(rateUpdated.dataset.updated);
+    if (!Number.isNaN(updatedAt.getTime())) {
+      rateUpdated.textContent = `обновлено ${formatDateTime(updatedAt)}`;
+    }
+  }
 
   const getExpenseCategoryLabel = (expense) => {
     if (expense.category !== 'salary') {
@@ -697,7 +621,7 @@
   };
 
   const refreshConversionList = () => {
-    const conversions = cashStore.getConversions();
+    const conversions = conversionsState;
     conversionList.innerHTML = '';
     if (!conversions.length) {
       conversionEmpty.classList.remove('d-none');
@@ -722,7 +646,7 @@
   };
 
   const refreshEmployees = () => {
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = employeesState;
     employeeList.innerHTML = '';
     salaryEmployeeSelect.innerHTML = '<option value="">Выберите сотрудника</option>';
     if (!employees.length) {
@@ -763,7 +687,7 @@
   };
 
   const refreshExpenses = () => {
-    const expenses = loadItems(EXPENSES_KEY);
+    const expenses = expensesState;
     expenseList.innerHTML = '';
     if (!expenses.length) {
       expenseEmpty.classList.remove('d-none');
@@ -807,8 +731,8 @@
   };
 
   const refreshSalaryList = () => {
-    const employees = loadItems(EMPLOYEES_KEY);
-    const expenses = loadItems(EXPENSES_KEY);
+    const employees = employeesState;
+    const expenses = expensesState;
     const paidMap = new Map();
     const advanceMap = new Map();
     const currentMonthKey = (() => {
@@ -884,8 +808,8 @@
     const start = document.getElementById('report-start').value;
     const end = document.getElementById('report-end').value;
     const categoryFilter = reportCategory.value;
-    const expenses = loadItems(EXPENSES_KEY);
-    const employees = loadItems(EMPLOYEES_KEY);
+    const expenses = expensesState;
+    const employees = employeesState;
     const employeeLookup = new Map(
       employees.map((employee) => [
         employee.id,
@@ -985,7 +909,7 @@
     document.getElementById('expense-currency').value = salarySource.value;
   });
 
-  expenseForm.addEventListener('submit', (event) => {
+  expenseForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const formData = new FormData(expenseForm);
     const now = new Date();
@@ -1000,27 +924,37 @@
       category === 'salary'
         ? (salaryType === 'advance' ? 'Зарплата сотрудникам (Аванс)' : 'Зарплата сотрудникам')
         : expenseCategory.selectedOptions[0].textContent;
-    const expense = {
+    const expensePayload = {
+      category,
+      currency,
+      amount,
+      comment: formData.get('comment') || formData.get('salary_comment') || '',
+      employeeId: formData.get('employee') || null,
+      salaryType,
+    };
+    const response = await createExpense(expensePayload);
+    if (!response || response.status !== 'ok') {
+      return;
+    }
+    const expense = response.expense || {
       id: generateId(),
       category,
       categoryLabel,
       currency,
       amount,
-      comment: formData.get('comment') || formData.get('salary_comment') || '',
+      comment: expensePayload.comment,
       createdBy: currentUser,
       createdAt: now.toISOString(),
-      employeeId: formData.get('employee') || null,
+      employeeId: expensePayload.employeeId,
       salaryType,
     };
-    const expenses = loadItems(EXPENSES_KEY);
-    expenses.unshift(expense);
-    saveItems(EXPENSES_KEY, expenses.slice(0, 50));
-    const state = cashStore.getState();
-    const updated = {
-      uzs: state.uzs - (currency === 'uzs' ? amount : 0),
-      usd: state.usd - (currency === 'usd' ? amount : 0),
-    };
-    cashStore.setState(updated);
+    expensesState = [expense, ...expensesState].slice(0, 50);
+    if (response.cash) {
+      cashStore.setState({
+        uzs: response.cash.uzs,
+        usd: response.cash.usd,
+      });
+    }
     expenseForm.reset();
     salaryFields.classList.add('d-none');
     document.getElementById('expense-currency').disabled = false;
@@ -1057,14 +991,14 @@
     commentModalClose.addEventListener('click', closeCommentModal);
   }
 
-  employeeList.addEventListener('click', (event) => {
+  employeeList.addEventListener('click', async (event) => {
     const button = event.target.closest('button[data-action]');
     if (!button) {
       return;
     }
     const action = button.dataset.action;
     const employeeId = button.dataset.id;
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = employeesState;
     const employeeIndex = employees.findIndex((employee) => employee.id === employeeId);
     if (employeeIndex === -1) {
       return;
@@ -1078,14 +1012,13 @@
       if (!window.confirm('Удалить сотрудника?')) {
         return;
       }
-      employees.splice(employeeIndex, 1);
-      saveItems(EMPLOYEES_KEY, employees);
-      deleteEmployee(employeeId);
+      employeesState = employees.filter((employee) => employee.id !== employeeId);
+      await deleteEmployee(employeeId);
       refreshEmployees();
     }
   });
 
-  employeeEditForm.addEventListener('submit', (event) => {
+  employeeEditForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const formData = new FormData(employeeEditForm);
     const salaryDayField = document.getElementById('employee-edit-salary-day');
@@ -1096,14 +1029,14 @@
       return;
     }
     salaryDayField.setCustomValidity('');
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = employeesState;
     const existingId = formData.get('employee_id');
     const index = employees.findIndex((employee) => employee.id === existingId);
     if (index === -1) {
       closeEmployeeModal();
       return;
     }
-    employees[index] = {
+    const updatedEmployee = {
       ...employees[index],
       firstName: formData.get('first_name'),
       lastName: formData.get('last_name'),
@@ -1116,13 +1049,18 @@
       status: formData.get('status'),
       updatedAt: new Date().toISOString(),
     };
-    persistEmployee(employees[index]);
-    saveItems(EMPLOYEES_KEY, employees);
+    employeesState = employees.map((employee, idx) => (idx === index ? updatedEmployee : employee));
+    const response = await persistEmployee(updatedEmployee);
+    if (response?.employee) {
+      employeesState = employeesState.map((employee) =>
+        employee.id === response.employee.id ? response.employee : employee
+      );
+    }
     closeEmployeeModal();
     refreshEmployees();
   });
 
-  employeeForm.addEventListener('submit', (event) => {
+  employeeForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const formData = new FormData(employeeForm);
     const salaryDayField = document.getElementById('employee-salary-day');
@@ -1133,7 +1071,7 @@
       return;
     }
     salaryDayField.setCustomValidity('');
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = employeesState;
     const employeePayload = {
       firstName: formData.get('first_name'),
       lastName: formData.get('last_name'),
@@ -1151,9 +1089,9 @@
       createdBy: currentUser,
       createdAt: new Date().toISOString(),
     };
-    employees.unshift(employee);
-    saveItems(EMPLOYEES_KEY, employees);
-    persistEmployee(employee);
+    const response = await persistEmployee(employee);
+    const savedEmployee = response?.employee || employee;
+    employeesState = [savedEmployee, ...employeesState];
     employeeForm.reset();
     refreshEmployees();
   });
@@ -1199,17 +1137,30 @@
     window.print();
   });
 
-  saveRate.addEventListener('click', () => {
+  saveRate.addEventListener('click', async () => {
     const rateValue = Number(cashRate.value);
     if (!rateValue) {
       return;
     }
-    cashStore.setState({ rate: rateValue });
-    rateUpdated.textContent = `обновлено ${formatDateTime(new Date())}`;
+    const response = await saveRateToServer({
+      rate: rateValue,
+      note: document.getElementById('cash-rate-note').value || '',
+    });
+    if (!response || response.status !== 'ok') {
+      return;
+    }
+    cashStore.setState({ rate: response.rate || rateValue });
+    const updatedAt = response.updatedAt ? new Date(response.updatedAt) : new Date();
+    rateUpdated.textContent = `обновлено ${formatDateTime(updatedAt)}`;
   });
 
   document.addEventListener('cash:updated', updateCashBalances);
-  document.addEventListener('cash:conversion', refreshConversionList);
+  document.addEventListener('cash:conversion', (event) => {
+    if (event.detail) {
+      conversionsState = [event.detail, ...conversionsState].slice(0, 20);
+    }
+    refreshConversionList();
+  });
 
   updateCashBalances();
   refreshConversionList();
