@@ -2,6 +2,47 @@
 
 {% block title %}Major Motors CRM · Дашборд{% endblock %}
 
+{% block extra_styles %}
+  <style>
+    .sales-analytics {
+      background: linear-gradient(135deg, rgba(13, 110, 253, 0.08), rgba(102, 16, 242, 0.08));
+      border: 1px solid rgba(13, 110, 253, 0.15);
+    }
+    .analytics-metric {
+      background: #fff;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(13, 110, 253, 0.12);
+      padding: 1rem;
+      box-shadow: 0 10px 30px rgba(13, 110, 253, 0.08);
+    }
+    .analytics-metric + .analytics-metric {
+      margin-top: 1rem;
+    }
+    .analytics-label {
+      letter-spacing: 0.04em;
+    }
+    .analytics-bar {
+      position: relative;
+      height: 0.5rem;
+      background: rgba(13, 110, 253, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .analytics-bar > span {
+      position: absolute;
+      inset: 0;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #0d6efd, #6f42c1);
+      transition: width 0.6s ease;
+    }
+    .analytics-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+  </style>
+{% endblock %}
+
 {% block content %}
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -49,76 +90,75 @@
     </div>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-lg-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h3 class="h5">Лиды по этапам</h3>
-          <div class="table-responsive">
-            <table class="table align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Этап</th>
-                  <th>Кол-во</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for item in leads_by_stage %}
-                  <tr>
-                    <td>{{ item.stage__name|default:"Без этапа" }}</td>
-                    <td>{{ item.total }}</td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="2" class="text-muted">Данных пока нет.</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
+  <div class="card shadow-sm sales-analytics">
+    <div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+          <h3 class="h5 mb-1">Аналитика продаж</h3>
+          <p class="text-muted mb-0">Сводка по посещениям, звонкам и проданным авто за период.</p>
+        </div>
+        <div class="text-end">
+          <div class="text-uppercase text-muted small">Итого за период</div>
+          <div class="display-6 mb-0">{{ stats.sales_total|default:0 }}</div>
+          <div class="text-muted small">Суммарные сделки</div>
         </div>
       </div>
-    </div>
-    <div class="col-12 col-lg-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h3 class="h5">Склад по статусам</h3>
-          <div class="table-responsive">
-            <table class="table align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Статус</th>
-                  <th>Кол-во</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for item in vehicles_by_status %}
-                  <tr>
-                    <td>{{ item.status }}</td>
-                    <td>{{ item.total }}</td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="2" class="text-muted">Данных пока нет.</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <div class="analytics-metric" data-analytics-value="{{ stats.visits|default:0 }}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <div class="analytics-label text-uppercase text-muted small">Посещения</div>
+                <div class="analytics-value">{{ stats.visits|default:0 }}</div>
+              </div>
+              <span class="badge rounded-pill text-bg-primary">+12%</span>
+            </div>
+            <div class="analytics-bar"><span></span></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="analytics-metric" data-analytics-value="{{ stats.calls|default:0 }}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <div class="analytics-label text-uppercase text-muted small">Звонки</div>
+                <div class="analytics-value">{{ stats.calls|default:0 }}</div>
+              </div>
+              <span class="badge rounded-pill text-bg-info">+8%</span>
+            </div>
+            <div class="analytics-bar"><span></span></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="analytics-metric" data-analytics-value="{{ stats.sold|default:0 }}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <div class="analytics-label text-uppercase text-muted small">Продано</div>
+                <div class="analytics-value">{{ stats.sold|default:0 }}</div>
+              </div>
+              <span class="badge rounded-pill text-bg-success">+5%</span>
+            </div>
+            <div class="analytics-bar"><span></span></div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <h3 class="h5">Курс валют</h3>
-      {% if exchange_rate %}
-        <p class="mb-1">1 {{ exchange_rate.base_currency|upper }} = {{ exchange_rate.rate }} {{ exchange_rate.quote_currency|upper }}</p>
-        <p class="text-muted mb-0">Дата актуальности: {{ exchange_rate.effective_date }}</p>
-      {% else %}
-        <p class="text-muted mb-0">Курс не задан. Добавьте запись в разделе курса валют.</p>
-      {% endif %}
-    </div>
-  </div>
+  <script>
+    (() => {
+      const metricCards = document.querySelectorAll('[data-analytics-value]');
+      if (!metricCards.length) return;
+      const values = Array.from(metricCards).map((card) => Number(card.dataset.analyticsValue || 0));
+      const maxValue = Math.max(...values, 1);
+      metricCards.forEach((card) => {
+        const value = Number(card.dataset.analyticsValue || 0);
+        const width = Math.round((value / maxValue) * 100);
+        const bar = card.querySelector('.analytics-bar > span');
+        if (bar) {
+          bar.style.width = `${width}%`;
+        }
+      });
+    })();
+  </script>
 {% endblock %}
