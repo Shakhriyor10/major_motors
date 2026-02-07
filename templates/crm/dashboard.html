@@ -251,6 +251,13 @@
               <polyline class="line-series visits" data-series="visits" points=""></polyline>
               <polyline class="line-series calls" data-series="calls" points=""></polyline>
               <polyline class="line-series sold" data-series="sold" points=""></polyline>
+              <g class="line-y-labels text-muted" font-size="12">
+                <text x="50" y="24" text-anchor="end" data-y-label="max"></text>
+                <text x="50" y="74" text-anchor="end" data-y-label="mid-high"></text>
+                <text x="50" y="124" text-anchor="end" data-y-label="mid"></text>
+                <text x="50" y="174" text-anchor="end" data-y-label="mid-low"></text>
+                <text x="50" y="224" text-anchor="end" data-y-label="min"></text>
+              </g>
               <g class="line-labels text-muted" font-size="12">
                 <text x="60" y="240" data-label="start"></text>
                 <text x="360" y="240" text-anchor="middle" data-label="middle"></text>
@@ -376,6 +383,20 @@
         if (summary) {
           summary.textContent = `Итого действий: ${formatNumber(totals.visits + totals.calls + totals.sold)}`;
         }
+
+        const yLabels = [
+          { key: 'max', value: maxValue },
+          { key: 'mid-high', value: Math.round(maxValue * 0.75) },
+          { key: 'mid', value: Math.round(maxValue * 0.5) },
+          { key: 'mid-low', value: Math.round(maxValue * 0.25) },
+          { key: 'min', value: 0 },
+        ];
+        yLabels.forEach(({ key, value }) => {
+          const label = document.querySelector(`[data-y-label="${key}"]`);
+          if (label) {
+            label.textContent = formatNumber(value);
+          }
+        });
 
         const labels = {
           start: analyticsData[0]?.date,
