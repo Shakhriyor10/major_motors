@@ -4,9 +4,11 @@ from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.db.models import Count, Prefetch, Q
+from django.db.models.functions import Coalesce, Greatest
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -24,6 +26,7 @@ from .models import (
     CustomerDocument,
     Deal,
     Lead,
+    LeadEntry,
     LeadSource,
     PowerOfAttorney,
     Reservation,
@@ -291,8 +294,52 @@ def customers(request):
 
 @login_required
 def leads(request):
-    leads_qs = Lead.objects.select_related('customer', 'stage', 'assigned_to').order_by('-created_at')[:50]
-    return render(request, 'crm/leads.html', {'leads': leads_qs})
+    User = get_user_model()
+    employees_qs = User.objects.order_by('first_name', 'last_name', 'username')
+    if request.method == 'POST':
+        action = request.POST.get('action', 'add')
+        if action == 'update_status':
+            lead_id = request.POST.get('lead_id')
+            status_value = request.POST.get('status')
+            if lead_id and status_value in LeadEntry.Status.values:
+                LeadEntry.objects.filter(pk=lead_id).update(status=status_value)
+            return redirect('leads')
+        name = request.POST.get('name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        contact_type = request.POST.get('contact_type', 'visit')
+        employee_id = request.POST.get('employee') or None
+        if name and phone:
+            lead, created = LeadEntry.objects.get_or_create(
+                phone=phone,
+                defaults={'name': name},
+            )
+            if name and lead.name != name:
+                lead.name = name
+            if contact_type == 'call':
+                lead.call_count = (lead.call_count or 0) + 1
+                lead.last_call_at = date.today()
+                lead.employee_id = employee_id
+            else:
+                lead.visit_count = (lead.visit_count or 0) + 1
+                lead.visit_date = date.today()
+                lead.employee_id = employee_id
+            lead.save()
+        return redirect('leads')
+    leads_qs = LeadEntry.objects.select_related('employee')
+    leads_qs = leads_qs.annotate(
+        last_interaction_at=Greatest(
+            Coalesce('visit_date', date(1900, 1, 1)),
+            Coalesce('last_call_at', date(1900, 1, 1)),
+        ),
+    ).order_by('-last_interaction_at', '-created_at')
+    return render(
+        request,
+        'crm/leads.html',
+        {
+            'leads': leads_qs,
+            'employees': employees_qs,
+        },
+    )
 
 
 def _create_vehicle_from_form(request, options_qs):

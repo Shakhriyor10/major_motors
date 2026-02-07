@@ -5,36 +5,92 @@
 {% block content %}
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <h1 class="h3">Лиды и воронка</h1>
-      <p class="text-muted mb-0">Следите за этапами, SLA и ответственными менеджерами.</p>
+      <h1 class="h3">Лиды</h1>
+      <p class="text-muted mb-4">Фиксируйте посещения и звонки клиентов.</p>
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-4">
+          <label class="form-label">Имя</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Номер телефона</label>
+          <input type="text" name="phone" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Тип обращения</label>
+          <select name="contact_type" class="form-select">
+            <option value="visit" selected>Посещено</option>
+            <option value="call">Звонил</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Кто обслужил</label>
+          <select name="employee" class="form-select">
+            <option value="">—</option>
+            {% for employee in employees %}
+              <option value="{{ employee.id }}">{{ employee.get_full_name|default:employee.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">Добавить лид</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <div class="card shadow-sm">
     <div class="card-body">
+      <div class="row g-2 align-items-end mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Поиск по имени или номеру</label>
+          <input type="text" id="leadSearch" class="form-control" placeholder="Имя или телефон">
+        </div>
+      </div>
       <div class="table-responsive">
         <table class="table align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th>Лид</th>
-              <th>Клиент</th>
-              <th>Этап</th>
-              <th>Менеджер</th>
-              <th>SLA (мин)</th>
+              <th>Имя</th>
+              <th>Номер телефона</th>
+              <th>Дата посещения</th>
+              <th>Посещений</th>
+              <th>Кто обслужил</th>
+              <th>Последний звонок</th>
+              <th>Звонков</th>
+              <th>Статус</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="leadsTableBody">
             {% for lead in leads %}
               <tr>
-                <td>#{{ lead.id }}</td>
-                <td>{{ lead.customer.full_name }}</td>
-                <td><span class="badge rounded-pill text-bg-info-subtle text-info">{{ lead.stage.name }}</span></td>
-                <td>{{ lead.assigned_to|default:"—" }}</td>
-                <td>{{ lead.sla_minutes }}</td>
+                <td>{{ lead.name }}</td>
+                <td>{{ lead.phone }}</td>
+                <td>{{ lead.visit_date|default:"—" }}</td>
+                <td>{{ lead.visit_count }}</td>
+                <td>{{ lead.employee|default:"—" }}</td>
+                <td>{{ lead.last_call_at|default:"—" }}</td>
+                <td>{{ lead.call_count }}</td>
+                <td>
+                  <form method="post" class="d-flex align-items-center gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_status">
+                    <input type="hidden" name="lead_id" value="{{ lead.id }}">
+                    <select
+                      name="status"
+                      class="form-select form-select-sm lead-status-select {% if lead.status == 'open' %}lead-status-open{% else %}lead-status-closed{% endif %}"
+                      onchange="this.form.submit()"
+                    >
+                      <option value="open" {% if lead.status == 'open' %}selected{% endif %}>Открытый</option>
+                      <option value="closed" {% if lead.status == 'closed' %}selected{% endif %}>Закрытый</option>
+                    </select>
+                  </form>
+                </td>
               </tr>
             {% empty %}
               <tr>
-                <td colspan="5" class="text-muted">Лиды пока не зарегистрированы.</td>
+                <td colspan="8" class="text-muted">Лиды пока не зарегистрированы.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -42,4 +98,52 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block extra_styles %}
+  <style>
+    .lead-status-select {
+      font-weight: 600;
+      border-width: 2px;
+    }
+    .lead-status-open {
+      background-color: rgba(25, 135, 84, 0.1);
+      border-color: rgba(25, 135, 84, 0.6);
+      color: #198754;
+    }
+    .lead-status-closed {
+      background-color: rgba(220, 53, 69, 0.1);
+      border-color: rgba(220, 53, 69, 0.6);
+      color: #dc3545;
+    }
+  </style>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script>
+    const leadSearchInput = document.getElementById('leadSearch');
+    const leadsTableBody = document.getElementById('leadsTableBody');
+    const leadRows = leadsTableBody ? Array.from(leadsTableBody.querySelectorAll('tr')) : [];
+
+    const filterLeads = () => {
+      const query = (leadSearchInput?.value || '').trim().toLowerCase();
+      if (!leadRows.length) {
+        return;
+      }
+      leadRows.forEach((row) => {
+        const cells = row.querySelectorAll('td');
+        if (!cells.length) {
+          return;
+        }
+        const name = (cells[0]?.textContent || '').toLowerCase();
+        const phone = (cells[1]?.textContent || '').toLowerCase();
+        const matches = !query || name.includes(query) || phone.includes(query);
+        row.style.display = matches ? '' : 'none';
+      });
+    };
+
+    if (leadSearchInput) {
+      leadSearchInput.addEventListener('input', filterLeads);
+    }
+  </script>
 {% endblock %}
