@@ -294,8 +294,7 @@ def customers(request):
 
 @login_required
 def leads(request):
-    User = get_user_model()
-    employees_qs = User.objects.order_by('first_name', 'last_name', 'username')
+    employees_qs = CashEmployee.objects.order_by('last_name', 'first_name')
     if request.method == 'POST':
         action = request.POST.get('action', 'add')
         if action == 'update_status':
@@ -1493,6 +1492,30 @@ def cash_dashboard(request):
                 'income_type': income_type,
             },
         )
+    cash_employees = list(CashEmployee.objects.select_related('created_by').all())
+    cash_employees_payload = json.dumps(
+        [
+            {
+                'id': employee.external_id,
+                'firstName': employee.first_name,
+                'lastName': employee.last_name,
+                'position': employee.position,
+                'startDate': employee.start_date.isoformat() if employee.start_date else '',
+                'phonePrimary': employee.phone_primary,
+                'phoneSecondary': employee.phone_secondary,
+                'salaryDay': employee.salary_day,
+                'salaryAmount': str(employee.salary_amount) if employee.salary_amount is not None else '',
+                'status': employee.status,
+                'createdBy': (
+                    employee.created_by.get_full_name() or employee.created_by.username
+                    if employee.created_by
+                    else '—'
+                ),
+            }
+            for employee in cash_employees
+        ],
+        ensure_ascii=False,
+    )
     return render(
         request,
         'crm/cash.html',
@@ -1502,6 +1525,7 @@ def cash_dashboard(request):
             'exchange_rate': exchange_rate,
             'conversions': conversions,
             'incomes': incomes,
+            'cash_employees_json': cash_employees_payload,
         },
     )
 

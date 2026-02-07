@@ -315,7 +315,7 @@ class LeadEntry(TimeStampedModel):
     call_count = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
     employee = models.ForeignKey(
-        User,
+        'CashEmployee',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

@@ -29,7 +29,7 @@
           <select name="employee" class="form-select">
             <option value="">—</option>
             {% for employee in employees %}
-              <option value="{{ employee.id }}">{{ employee.get_full_name|default:employee.username }}</option>
+              <option value="{{ employee.id }}">{{ employee }}</option>
             {% endfor %}
           </select>
         </div>
