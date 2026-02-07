@@ -34,6 +34,10 @@
           </select>
         </div>
         <div class="col-12">
+          <label class="form-label">Комментарий</label>
+          <textarea name="comment" class="form-control" rows="2" placeholder="Дополнительная информация"></textarea>
+        </div>
+        <div class="col-12">
           <button class="btn btn-primary" type="submit">Добавить лид</button>
         </div>
       </form>
@@ -59,6 +63,7 @@
               <th>Кто обслужил</th>
               <th>Последний звонок</th>
               <th>Звонков</th>
+              <th>Комментарий</th>
               <th>Статус</th>
             </tr>
           </thead>
@@ -72,6 +77,27 @@
                 <td>{{ lead.employee|default:"—" }}</td>
                 <td>{{ lead.last_call_at|default:"—" }}</td>
                 <td>{{ lead.call_count }}</td>
+                <td>
+                  {% if lead.comment %}
+                    {% if lead.comment|length > 15 %}
+                      <span class="text-truncate d-inline-block" style="max-width: 180px;">
+                        {{ lead.comment|slice:":15" }}…
+                      </span>
+                      <button
+                        type="button"
+                        class="btn btn-link p-0 ms-1 align-baseline lead-comment-button"
+                        data-comment="{{ lead.comment|escapejs }}"
+                        aria-label="Посмотреть комментарий"
+                      >
+                        👁
+                      </button>
+                    {% else %}
+                      {{ lead.comment }}
+                    {% endif %}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
                 <td>
                   <form method="post" class="d-flex align-items-center gap-2">
                     {% csrf_token %}
@@ -90,11 +116,25 @@
               </tr>
             {% empty %}
               <tr>
-                <td colspan="8" class="text-muted">Лиды пока не зарегистрированы.</td>
+                <td colspan="9" class="text-muted">Лиды пока не зарегистрированы.</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="lead-comment-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Комментарий лида</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <p id="lead-comment-text" class="mb-0 text-break"></p>
+        </div>
       </div>
     </div>
   </div>
@@ -145,5 +185,20 @@
     if (leadSearchInput) {
       leadSearchInput.addEventListener('input', filterLeads);
     }
+
+    const commentButtons = document.querySelectorAll('.lead-comment-button');
+    const commentModalElement = document.getElementById('lead-comment-modal');
+    const commentTextElement = document.getElementById('lead-comment-text');
+    const commentModal = commentModalElement ? new bootstrap.Modal(commentModalElement) : null;
+
+    commentButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const comment = button.getAttribute('data-comment') || '';
+        if (commentTextElement) {
+          commentTextElement.textContent = comment;
+        }
+        commentModal?.show();
+      });
+    });
   </script>
 {% endblock %}
