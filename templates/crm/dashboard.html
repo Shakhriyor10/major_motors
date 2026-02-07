@@ -40,6 +40,79 @@
       font-size: 1.5rem;
       font-weight: 600;
     }
+    .line-chart-card {
+      background: #fff;
+      border-radius: 1rem;
+      border: 1px solid rgba(13, 110, 253, 0.12);
+      padding: 1.5rem;
+      box-shadow: 0 12px 32px rgba(13, 110, 253, 0.08);
+    }
+    .line-chart {
+<!--      width: 100%;-->
+      height: 260px;
+    }
+    .line-grid {
+      stroke: rgba(13, 110, 253, 0.08);
+      stroke-width: 1;
+    }
+    .line-axis {
+      stroke: rgba(13, 110, 253, 0.2);
+      stroke-width: 1.5;
+    }
+    .line-series {
+      fill: none;
+      stroke-width: 3;
+      filter: drop-shadow(0 4px 6px rgba(13, 110, 253, 0.2));
+    }
+    .line-series.visits {
+      stroke: #0d6efd;
+    }
+    .line-series.calls {
+      stroke: #0dcaf0;
+    }
+    .line-series.sold {
+      stroke: #198754;
+    }
+    .line-legend .badge {
+      min-width: 5rem;
+    }
+    .chart-tooltip {
+      position: absolute;
+      background: #111827;
+      color: #fff;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -110%);
+      transition: opacity 0.15s ease;
+      white-space: nowrap;
+      z-index: 2;
+    }
+    .chart-wrapper {
+      position: relative;
+    }
+    .chart-marker {
+      fill: #fff;
+      stroke-width: 2;
+    }
+    .chart-marker.visits {
+      stroke: #0d6efd;
+    }
+    .chart-marker.calls {
+      stroke: #0dcaf0;
+    }
+    .chart-marker.sold {
+      stroke: #198754;
+    }
+    .chart-hover-line {
+      stroke: rgba(13, 110, 253, 0.3);
+      stroke-width: 1;
+      stroke-dasharray: 4 4;
+      opacity: 0;
+    }
   </style>
 {% endblock %}
 
@@ -99,7 +172,13 @@
         </div>
         <div class="text-end">
           <div class="text-uppercase text-muted small">Итого за период</div>
-          <div class="display-6 mb-0">{{ stats.sales_total|default:0 }}</div>
+          <div
+            class="display-6 mb-0"
+            data-analytics-total
+            data-default-value="{{ stats.sales_total|default:0 }}"
+          >
+            {{ stats.sales_total|default:0 }}
+          </div>
           <div class="text-muted small">Суммарные сделки</div>
         </div>
       </div>
@@ -110,7 +189,13 @@
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
                 <div class="analytics-label text-uppercase text-muted small">Посещения</div>
-                <div class="analytics-value">{{ stats.visits|default:0 }}</div>
+                <div
+                  class="analytics-value"
+                  data-analytics-field="visits"
+                  data-default-value="{{ stats.visits|default:0 }}"
+                >
+                  {{ stats.visits|default:0 }}
+                </div>
               </div>
               <span class="badge rounded-pill text-bg-primary">+12%</span>
             </div>
@@ -122,7 +207,13 @@
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
                 <div class="analytics-label text-uppercase text-muted small">Звонки</div>
-                <div class="analytics-value">{{ stats.calls|default:0 }}</div>
+                <div
+                  class="analytics-value"
+                  data-analytics-field="calls"
+                  data-default-value="{{ stats.calls|default:0 }}"
+                >
+                  {{ stats.calls|default:0 }}
+                </div>
               </div>
               <span class="badge rounded-pill text-bg-info">+8%</span>
             </div>
@@ -134,7 +225,13 @@
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
                 <div class="analytics-label text-uppercase text-muted small">Продано</div>
-                <div class="analytics-value">{{ stats.sold|default:0 }}</div>
+                <div
+                  class="analytics-value"
+                  data-analytics-field="sold"
+                  data-default-value="{{ stats.sold|default:0 }}"
+                >
+                  {{ stats.sold|default:0 }}
+                </div>
               </div>
               <span class="badge rounded-pill text-bg-success">+5%</span>
             </div>
@@ -142,23 +239,302 @@
           </div>
         </div>
       </div>
+
+      <hr class="my-4">
+
+      <div class="line-chart-card">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+          <div>
+            <h4 class="h6 text-uppercase text-muted mb-1">График по датам</h4>
+<!--            <p class="mb-0">Ось X — календарные даты, ось Y — количество действий.</p>-->
+          </div>
+          <div class="d-flex flex-wrap align-items-end gap-2">
+            <div>
+              <label class="form-label small text-muted mb-1" for="analytics-date-start">С</label>
+              <input
+                class="form-control form-control-sm"
+                type="date"
+                id="analytics-date-start"
+                value="{{ chart_start|date:'Y-m-d' }}"
+              >
+            </div>
+            <div>
+              <label class="form-label small text-muted mb-1" for="analytics-date-end">По</label>
+              <input
+                class="form-control form-control-sm"
+                type="date"
+                id="analytics-date-end"
+                value="{{ chart_end|date:'Y-m-d' }}"
+              >
+            </div>
+            <button class="btn btn-primary btn-sm" type="button" id="analytics-apply">Показать</button>
+          </div>
+        </div>
+
+        <div class="row align-items-center g-4">
+          <div class="col-12 col-lg-8">
+            <div class="chart-wrapper">
+              <div class="chart-tooltip" id="chart-tooltip"></div>
+              <svg class="line-chart" viewBox="0 0 700 260" role="img" aria-label="График динамики продаж">
+              <g class="line-grid">
+                <line x1="60" y1="20" x2="60" y2="220"></line>
+                <line x1="60" y1="220" x2="660" y2="220"></line>
+                <line x1="60" y1="170" x2="660" y2="170"></line>
+                <line x1="60" y1="120" x2="660" y2="120"></line>
+                <line x1="60" y1="70" x2="660" y2="70"></line>
+              </g>
+              <g class="line-axis">
+                <line x1="60" y1="20" x2="60" y2="220"></line>
+                <line x1="60" y1="220" x2="660" y2="220"></line>
+              </g>
+              <line class="chart-hover-line" x1="60" y1="20" x2="60" y2="220"></line>
+              <polyline class="line-series visits" data-series="visits" points=""></polyline>
+              <polyline class="line-series calls" data-series="calls" points=""></polyline>
+              <polyline class="line-series sold" data-series="sold" points=""></polyline>
+              <g class="chart-markers" data-markers></g>
+              <g class="line-y-labels text-muted" font-size="12">
+                <text x="50" y="24" text-anchor="end" data-y-label="max"></text>
+                <text x="50" y="74" text-anchor="end" data-y-label="mid-high"></text>
+                <text x="50" y="124" text-anchor="end" data-y-label="mid"></text>
+                <text x="50" y="174" text-anchor="end" data-y-label="mid-low"></text>
+                <text x="50" y="224" text-anchor="end" data-y-label="min"></text>
+              </g>
+              <g class="line-labels text-muted" font-size="12">
+                <text x="60" y="240" data-label="start"></text>
+                <text x="360" y="240" text-anchor="middle" data-label="middle"></text>
+                <text x="660" y="240" text-anchor="end" data-label="end"></text>
+              </g>
+              </svg>
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="line-legend vstack gap-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="fw-semibold text-primary">Посещения</div>
+                <span class="badge rounded-pill text-bg-primary" data-series-value="visits">0</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="fw-semibold text-info">Звонки</div>
+                <span class="badge rounded-pill text-bg-info text-white" data-series-value="calls">0</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="fw-semibold text-success">Продано</div>
+                <span class="badge rounded-pill text-bg-success" data-series-value="sold">0</span>
+              </div>
+              <div class="border-top pt-3 text-muted small" data-series-summary>Данные за выбранный период.</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  {{ chart_series|json_script:"analytics-series" }}
 
   <script>
     (() => {
       const metricCards = document.querySelectorAll('[data-analytics-value]');
+      const totalValue = document.querySelector('[data-analytics-total]');
+      const fieldValues = document.querySelectorAll('[data-analytics-field]');
+      const seriesLines = document.querySelectorAll('[data-series]');
+      const seriesBadges = document.querySelectorAll('[data-series-value]');
+      const summary = document.querySelector('[data-series-summary]');
+      const dateStartInput = document.getElementById('analytics-date-start');
+      const dateEndInput = document.getElementById('analytics-date-end');
+      const applyButton = document.getElementById('analytics-apply');
+      const tooltip = document.getElementById('chart-tooltip');
+      const markerGroup = document.querySelector('[data-markers]');
+      const hoverLine = document.querySelector('.chart-hover-line');
       if (!metricCards.length) return;
-      const values = Array.from(metricCards).map((card) => Number(card.dataset.analyticsValue || 0));
-      const maxValue = Math.max(...values, 1);
-      metricCards.forEach((card) => {
-        const value = Number(card.dataset.analyticsValue || 0);
-        const width = Math.round((value / maxValue) * 100);
-        const bar = card.querySelector('.analytics-bar > span');
-        if (bar) {
-          bar.style.width = `${width}%`;
+
+      const rawSeries = document.getElementById('analytics-series');
+      const analyticsData = rawSeries ? JSON.parse(rawSeries.textContent) : [];
+      const formatNumber = (value) => new Intl.NumberFormat('ru-RU').format(value);
+
+      const updateBars = (values) => {
+        const maxValue = Math.max(...values, 1);
+        metricCards.forEach((card) => {
+          const value = Number(card.dataset.analyticsValue || 0);
+          const width = Math.round((value / maxValue) * 100);
+          const bar = card.querySelector('.analytics-bar > span');
+          if (bar) {
+            bar.style.width = `${width}%`;
+          }
+        });
+      };
+
+      const updateDashboard = (totals) => {
+        const values = [totals.visits, totals.calls, totals.sold];
+        metricCards.forEach((card) => {
+          const field = card.querySelector('[data-analytics-field]')?.dataset.analyticsField;
+          if (!field) return;
+          const value = totals[field] || 0;
+          card.dataset.analyticsValue = value;
+        });
+        fieldValues.forEach((field) => {
+          const key = field.dataset.analyticsField;
+          field.textContent = formatNumber(totals[key] || 0);
+        });
+        if (totalValue) {
+          totalValue.textContent = formatNumber(totals.sold || 0);
         }
-      });
+        updateBars(values);
+      };
+
+      const renderLineChart = () => {
+        if (!analyticsData.length) return;
+        const maxValue = Math.max(
+          ...analyticsData.map((item) => Math.max(item.visits, item.calls, item.sold)),
+          1
+        );
+        const paddingLeft = 60;
+        const paddingRight = 40;
+        const paddingTop = 20;
+        const paddingBottom = 40;
+        const width = 700;
+        const height = 260;
+        const chartWidth = width - paddingLeft - paddingRight;
+        const chartHeight = height - paddingTop - paddingBottom;
+        const step = analyticsData.length > 1 ? chartWidth / (analyticsData.length - 1) : 0;
+        const svg = document.querySelector('.line-chart');
+
+        const seriesToPoints = (key) =>
+          analyticsData
+            .map((item, index) => {
+              const x = paddingLeft + step * index;
+              const y = paddingTop + chartHeight - (item[key] / maxValue) * chartHeight;
+              return `${x.toFixed(1)},${y.toFixed(1)}`;
+            })
+            .join(' ');
+
+        seriesLines.forEach((line) => {
+          const key = line.dataset.series;
+          line.setAttribute('points', seriesToPoints(key));
+        });
+
+        if (markerGroup) {
+          markerGroup.innerHTML = '';
+          analyticsData.forEach((item, index) => {
+            const x = paddingLeft + step * index;
+            const getY = (key) => paddingTop + chartHeight - (item[key] / maxValue) * chartHeight;
+            ['visits', 'calls', 'sold'].forEach((key) => {
+              const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              circle.setAttribute('cx', x.toFixed(1));
+              circle.setAttribute('cy', getY(key).toFixed(1));
+              circle.setAttribute('r', '4');
+              circle.setAttribute('class', `chart-marker ${key}`);
+              circle.dataset.index = index;
+              circle.dataset.key = key;
+              markerGroup.appendChild(circle);
+            });
+          });
+        }
+
+        if (svg && tooltip && hoverLine) {
+          const bounds = svg.viewBox.baseVal;
+          const showTooltip = (index, event) => {
+            const item = analyticsData[index];
+            if (!item) return;
+            const x = paddingLeft + step * index;
+            hoverLine.setAttribute('x1', x.toFixed(1));
+            hoverLine.setAttribute('x2', x.toFixed(1));
+            hoverLine.style.opacity = '1';
+            tooltip.innerHTML = `
+              <div class="fw-semibold mb-1">${item.date}</div>
+              <div>Посещения: <strong>${formatNumber(item.visits)}</strong></div>
+              <div>Звонки: <strong>${formatNumber(item.calls)}</strong></div>
+              <div>Продано: <strong>${formatNumber(item.sold)}</strong></div>
+            `;
+            if (event) {
+              const wrapper = tooltip.closest('.chart-wrapper');
+              const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : svg.getBoundingClientRect();
+              tooltip.style.left = `${event.clientX - wrapperRect.left}px`;
+              tooltip.style.top = `${event.clientY - wrapperRect.top}px`;
+            }
+            tooltip.style.opacity = '1';
+          };
+
+          const hideTooltip = () => {
+            tooltip.style.opacity = '0';
+            hoverLine.style.opacity = '0';
+          };
+
+          svg.addEventListener('mousemove', (event) => {
+            if (analyticsData.length === 0) return;
+            const rect = svg.getBoundingClientRect();
+            const ratioX = bounds.width / rect.width;
+            const mouseX = (event.clientX - rect.left) * ratioX;
+            const safeStep = step || 1;
+            const rawIndex = Math.round((mouseX - paddingLeft) / safeStep);
+            const index = Math.max(0, Math.min(analyticsData.length - 1, rawIndex));
+            showTooltip(index, event);
+          });
+          svg.addEventListener('mouseleave', hideTooltip);
+        }
+
+        const totals = analyticsData.reduce(
+          (acc, item) => {
+            acc.visits += item.visits;
+            acc.calls += item.calls;
+            acc.sold += item.sold;
+            return acc;
+          },
+          { visits: 0, calls: 0, sold: 0 }
+        );
+        updateDashboard(totals);
+        seriesBadges.forEach((badge) => {
+          const key = badge.dataset.seriesValue;
+          badge.textContent = formatNumber(totals[key] || 0);
+        });
+        if (summary) {
+          summary.textContent = `Итого действий: ${formatNumber(totals.visits + totals.calls + totals.sold)}`;
+        }
+
+        const yLabels = [
+          { key: 'max', value: maxValue },
+          { key: 'mid-high', value: Math.round(maxValue * 0.75) },
+          { key: 'mid', value: Math.round(maxValue * 0.5) },
+          { key: 'mid-low', value: Math.round(maxValue * 0.25) },
+          { key: 'min', value: 0 },
+        ];
+        yLabels.forEach(({ key, value }) => {
+          const label = document.querySelector(`[data-y-label="${key}"]`);
+          if (label) {
+            label.textContent = formatNumber(value);
+          }
+        });
+
+        const labels = {
+          start: analyticsData[0]?.date,
+          middle: analyticsData[Math.floor(analyticsData.length / 2)]?.date,
+          end: analyticsData[analyticsData.length - 1]?.date,
+        };
+        Object.entries(labels).forEach(([key, value]) => {
+          const label = document.querySelector(`[data-label="${key}"]`);
+          if (label && value) {
+            label.textContent = value;
+          }
+        });
+      };
+
+      const applyRange = () => {
+        if (!dateStartInput || !dateEndInput) return;
+        const startValue = dateStartInput.value;
+        const endValue = dateEndInput.value;
+        const params = new URLSearchParams(window.location.search);
+        if (startValue) {
+          params.set('start', startValue);
+        }
+        if (endValue) {
+          params.set('end', endValue);
+        }
+        window.location.search = params.toString();
+      };
+
+      renderLineChart();
+      if (applyButton) {
+        applyButton.addEventListener('click', applyRange);
+      }
     })();
   </script>
 {% endblock %}

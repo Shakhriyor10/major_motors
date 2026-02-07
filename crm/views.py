@@ -7,7 +7,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce, Greatest
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -21,7 +21,6 @@ from .models import (
     CashAccount,
     CashConversion,
     CashEmployee,
-    CurrencyRate,
     Customer,
     CustomerDocument,
     Deal,
@@ -68,30 +67,74 @@ def home(request):
 
 @login_required
 def dashboard(request):
-    exchange_rate = CurrencyRate.objects.order_by('-effective_date', '-created_at').first()
+    requested_start = parse_date(request.GET.get('start')) if request.GET.get('start') else None
+    requested_end = parse_date(request.GET.get('end')) if request.GET.get('end') else None
+    today = timezone.localdate()
+    start_date = requested_start or (today - timedelta(days=30))
+    end_date = requested_end or today
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    visit_data = {
+        item['visit_date']: item['total']
+        for item in LeadEntry.objects.filter(visit_date__range=(start_date, end_date))
+        .values('visit_date')
+        .annotate(total=Sum('visit_count'))
+    }
+    call_data = {
+        item['last_call_at']: item['total']
+        for item in LeadEntry.objects.filter(last_call_at__range=(start_date, end_date))
+        .values('last_call_at')
+        .annotate(total=Sum('call_count'))
+    }
+    sold_data = {
+        item['signed_at__date']: item['total']
+        for item in Deal.objects.filter(
+            status=Deal.DealStatus.COMPLETED,
+            signed_at__date__range=(start_date, end_date),
+        )
+        .values('signed_at__date')
+        .annotate(total=Count('id'))
+    }
+
+    chart_series = []
+    current_date = start_date
+    total_visits = total_calls = total_sold = 0
+    while current_date <= end_date:
+        visits = visit_data.get(current_date, 0) or 0
+        calls = call_data.get(current_date, 0) or 0
+        sold = sold_data.get(current_date, 0) or 0
+        chart_series.append(
+            {
+                'date': current_date.strftime('%Y-%m-%d'),
+                'visits': visits,
+                'calls': calls,
+                'sold': sold,
+            }
+        )
+        total_visits += visits
+        total_calls += calls
+        total_sold += sold
+        current_date += timedelta(days=1)
+
     stats = {
         'customers': Customer.objects.count(),
         'leads': Lead.objects.count(),
         'vehicles': Vehicle.objects.count(),
         'deals': Deal.objects.count(),
+        'visits': total_visits,
+        'calls': total_calls,
+        'sold': total_sold,
+        'sales_total': total_sold,
     }
-    leads_by_stage = Lead.objects.select_related('stage').values('stage__name').annotate(total=Count('id'))
-    status_labels = dict(Vehicle.VehicleStatus.choices)
-    vehicles_by_status = [
-        {
-            'status': status_labels.get(item['status'], item['status']),
-            'total': item['total'],
-        }
-        for item in Vehicle.objects.values('status').annotate(total=Count('id'))
-    ]
     return render(
         request,
         'crm/dashboard.html',
         {
-            'exchange_rate': exchange_rate,
             'stats': stats,
-            'leads_by_stage': leads_by_stage,
-            'vehicles_by_status': vehicles_by_status,
+            'chart_series': chart_series,
+            'chart_start': start_date,
+            'chart_end': end_date,
         },
     )
 
