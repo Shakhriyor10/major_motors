@@ -297,6 +297,13 @@ def leads(request):
     User = get_user_model()
     employees_qs = User.objects.order_by('first_name', 'last_name', 'username')
     if request.method == 'POST':
+        action = request.POST.get('action', 'add')
+        if action == 'update_status':
+            lead_id = request.POST.get('lead_id')
+            status_value = request.POST.get('status')
+            if lead_id and status_value in LeadEntry.Status.values:
+                LeadEntry.objects.filter(pk=lead_id).update(status=status_value)
+            return redirect('leads')
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
         contact_type = request.POST.get('contact_type', 'visit')
