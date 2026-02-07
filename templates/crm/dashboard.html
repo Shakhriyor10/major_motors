@@ -432,7 +432,7 @@
 
         if (svg && tooltip && hoverLine) {
           const bounds = svg.viewBox.baseVal;
-          const showTooltip = (index) => {
+          const showTooltip = (index, event) => {
             const item = analyticsData[index];
             if (!item) return;
             const x = paddingLeft + step * index;
@@ -445,9 +445,12 @@
               <div>Звонки: <strong>${formatNumber(item.calls)}</strong></div>
               <div>Продано: <strong>${formatNumber(item.sold)}</strong></div>
             `;
-            const tooltipX = (x / bounds.width) * 100;
-            tooltip.style.left = `${tooltipX}%`;
-            tooltip.style.top = '20px';
+            if (event) {
+              const wrapper = tooltip.closest('.chart-wrapper');
+              const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : svg.getBoundingClientRect();
+              tooltip.style.left = `${event.clientX - wrapperRect.left}px`;
+              tooltip.style.top = `${event.clientY - wrapperRect.top}px`;
+            }
             tooltip.style.opacity = '1';
           };
 
@@ -464,7 +467,7 @@
             const safeStep = step || 1;
             const rawIndex = Math.round((mouseX - paddingLeft) / safeStep);
             const index = Math.max(0, Math.min(analyticsData.length - 1, rawIndex));
-            showTooltip(index);
+            showTooltip(index, event);
           });
           svg.addEventListener('mouseleave', hideTooltip);
         }
