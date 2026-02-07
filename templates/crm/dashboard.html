@@ -432,12 +432,12 @@
 
         if (svg && tooltip && hoverLine) {
           const bounds = svg.viewBox.baseVal;
-          const showTooltip = (index, event) => {
+          const showTooltip = (index, event, mouseX) => {
             const item = analyticsData[index];
             if (!item) return;
-            const x = paddingLeft + step * index;
-            hoverLine.setAttribute('x1', x.toFixed(1));
-            hoverLine.setAttribute('x2', x.toFixed(1));
+            const lineX = mouseX ?? paddingLeft + step * index;
+            hoverLine.setAttribute('x1', lineX.toFixed(1));
+            hoverLine.setAttribute('x2', lineX.toFixed(1));
             hoverLine.style.opacity = '1';
             tooltip.innerHTML = `
               <div class="fw-semibold mb-1">${item.date}</div>
@@ -467,7 +467,7 @@
             const safeStep = step || 1;
             const rawIndex = Math.round((mouseX - paddingLeft) / safeStep);
             const index = Math.max(0, Math.min(analyticsData.length - 1, rawIndex));
-            showTooltip(index, event);
+            showTooltip(index, event, mouseX);
           });
           svg.addEventListener('mouseleave', hideTooltip);
         }
