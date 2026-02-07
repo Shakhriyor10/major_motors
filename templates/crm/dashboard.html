@@ -76,6 +76,43 @@
     .line-legend .badge {
       min-width: 5rem;
     }
+    .chart-tooltip {
+      position: absolute;
+      background: #111827;
+      color: #fff;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -110%);
+      transition: opacity 0.15s ease;
+      white-space: nowrap;
+      z-index: 2;
+    }
+    .chart-wrapper {
+      position: relative;
+    }
+    .chart-marker {
+      fill: #fff;
+      stroke-width: 2;
+    }
+    .chart-marker.visits {
+      stroke: #0d6efd;
+    }
+    .chart-marker.calls {
+      stroke: #0dcaf0;
+    }
+    .chart-marker.sold {
+      stroke: #198754;
+    }
+    .chart-hover-line {
+      stroke: rgba(13, 110, 253, 0.3);
+      stroke-width: 1;
+      stroke-dasharray: 4 4;
+      opacity: 0;
+    }
   </style>
 {% endblock %}
 
@@ -236,7 +273,9 @@
 
         <div class="row align-items-center g-4">
           <div class="col-12 col-lg-8">
-            <svg class="line-chart" viewBox="0 0 700 260" role="img" aria-label="График динамики продаж">
+            <div class="chart-wrapper">
+              <div class="chart-tooltip" id="chart-tooltip"></div>
+              <svg class="line-chart" viewBox="0 0 700 260" role="img" aria-label="График динамики продаж">
               <g class="line-grid">
                 <line x1="60" y1="20" x2="60" y2="220"></line>
                 <line x1="60" y1="220" x2="660" y2="220"></line>
@@ -248,9 +287,11 @@
                 <line x1="60" y1="20" x2="60" y2="220"></line>
                 <line x1="60" y1="220" x2="660" y2="220"></line>
               </g>
+              <line class="chart-hover-line" x1="60" y1="20" x2="60" y2="220"></line>
               <polyline class="line-series visits" data-series="visits" points=""></polyline>
               <polyline class="line-series calls" data-series="calls" points=""></polyline>
               <polyline class="line-series sold" data-series="sold" points=""></polyline>
+              <g class="chart-markers" data-markers></g>
               <g class="line-y-labels text-muted" font-size="12">
                 <text x="50" y="24" text-anchor="end" data-y-label="max"></text>
                 <text x="50" y="74" text-anchor="end" data-y-label="mid-high"></text>
@@ -263,7 +304,8 @@
                 <text x="360" y="240" text-anchor="middle" data-label="middle"></text>
                 <text x="660" y="240" text-anchor="end" data-label="end"></text>
               </g>
-            </svg>
+              </svg>
+            </div>
           </div>
           <div class="col-12 col-lg-4">
             <div class="line-legend vstack gap-3">
@@ -300,6 +342,9 @@
       const dateStartInput = document.getElementById('analytics-date-start');
       const dateEndInput = document.getElementById('analytics-date-end');
       const applyButton = document.getElementById('analytics-apply');
+      const tooltip = document.getElementById('chart-tooltip');
+      const markerGroup = document.querySelector('[data-markers]');
+      const hoverLine = document.querySelector('.chart-hover-line');
       if (!metricCards.length) return;
 
       const rawSeries = document.getElementById('analytics-series');
@@ -351,6 +396,7 @@
         const chartWidth = width - paddingLeft - paddingRight;
         const chartHeight = height - paddingTop - paddingBottom;
         const step = analyticsData.length > 1 ? chartWidth / (analyticsData.length - 1) : 0;
+        const svg = document.querySelector('.line-chart');
 
         const seriesToPoints = (key) =>
           analyticsData
@@ -365,6 +411,63 @@
           const key = line.dataset.series;
           line.setAttribute('points', seriesToPoints(key));
         });
+
+        if (markerGroup) {
+          markerGroup.innerHTML = '';
+          analyticsData.forEach((item, index) => {
+            const x = paddingLeft + step * index;
+            const getY = (key) => paddingTop + chartHeight - (item[key] / maxValue) * chartHeight;
+            ['visits', 'calls', 'sold'].forEach((key) => {
+              const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              circle.setAttribute('cx', x.toFixed(1));
+              circle.setAttribute('cy', getY(key).toFixed(1));
+              circle.setAttribute('r', '4');
+              circle.setAttribute('class', `chart-marker ${key}`);
+              circle.dataset.index = index;
+              circle.dataset.key = key;
+              markerGroup.appendChild(circle);
+            });
+          });
+        }
+
+        if (svg && tooltip && hoverLine) {
+          const bounds = svg.viewBox.baseVal;
+          const showTooltip = (index) => {
+            const item = analyticsData[index];
+            if (!item) return;
+            const x = paddingLeft + step * index;
+            hoverLine.setAttribute('x1', x.toFixed(1));
+            hoverLine.setAttribute('x2', x.toFixed(1));
+            hoverLine.style.opacity = '1';
+            tooltip.innerHTML = `
+              <div class="fw-semibold mb-1">${item.date}</div>
+              <div>Посещения: <strong>${formatNumber(item.visits)}</strong></div>
+              <div>Звонки: <strong>${formatNumber(item.calls)}</strong></div>
+              <div>Продано: <strong>${formatNumber(item.sold)}</strong></div>
+            `;
+            const tooltipX = (x / bounds.width) * 100;
+            tooltip.style.left = `${tooltipX}%`;
+            tooltip.style.top = '20px';
+            tooltip.style.opacity = '1';
+          };
+
+          const hideTooltip = () => {
+            tooltip.style.opacity = '0';
+            hoverLine.style.opacity = '0';
+          };
+
+          svg.addEventListener('mousemove', (event) => {
+            if (analyticsData.length === 0) return;
+            const rect = svg.getBoundingClientRect();
+            const ratioX = bounds.width / rect.width;
+            const mouseX = (event.clientX - rect.left) * ratioX;
+            const safeStep = step || 1;
+            const rawIndex = Math.round((mouseX - paddingLeft) / safeStep);
+            const index = Math.max(0, Math.min(analyticsData.length - 1, rawIndex));
+            showTooltip(index);
+          });
+          svg.addEventListener('mouseleave', hideTooltip);
+        }
 
         const totals = analyticsData.reduce(
           (acc, item) => {
