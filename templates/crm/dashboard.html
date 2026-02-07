@@ -40,38 +40,40 @@
       font-size: 1.5rem;
       font-weight: 600;
     }
-    .ray-chart-card {
+    .line-chart-card {
       background: #fff;
       border-radius: 1rem;
       border: 1px solid rgba(13, 110, 253, 0.12);
       padding: 1.5rem;
       box-shadow: 0 12px 32px rgba(13, 110, 253, 0.08);
     }
-    .ray-chart {
+    .line-chart {
       width: 100%;
-      max-width: 360px;
-      margin: 0 auto;
+      height: 260px;
     }
-    .ray-circle {
-      fill: none;
+    .line-grid {
       stroke: rgba(13, 110, 253, 0.08);
       stroke-width: 1;
     }
-    .ray-line {
-      stroke-width: 10;
-      stroke-linecap: round;
-      filter: drop-shadow(0 6px 8px rgba(13, 110, 253, 0.2));
+    .line-axis {
+      stroke: rgba(13, 110, 253, 0.2);
+      stroke-width: 1.5;
     }
-    .ray-line.visits {
+    .line-series {
+      fill: none;
+      stroke-width: 3;
+      filter: drop-shadow(0 4px 6px rgba(13, 110, 253, 0.2));
+    }
+    .line-series.visits {
       stroke: #0d6efd;
     }
-    .ray-line.calls {
+    .line-series.calls {
       stroke: #0dcaf0;
     }
-    .ray-line.sold {
+    .line-series.sold {
       stroke: #198754;
     }
-    .ray-legend .badge {
+    .line-legend .badge {
       min-width: 5rem;
     }
   </style>
@@ -203,53 +205,74 @@
 
       <hr class="my-4">
 
-      <div class="ray-chart-card">
+      <div class="line-chart-card">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
           <div>
-            <h4 class="h6 text-uppercase text-muted mb-1">Лучевой график</h4>
-            <p class="mb-0">Динамика посещений, звонков и продаж за выбранный период.</p>
+            <h4 class="h6 text-uppercase text-muted mb-1">График по датам</h4>
+            <p class="mb-0">Ось X — календарные даты, ось Y — количество действий.</p>
           </div>
           <div class="d-flex flex-wrap align-items-end gap-2">
             <div>
               <label class="form-label small text-muted mb-1" for="analytics-date-start">С</label>
-              <input class="form-control form-control-sm" type="date" id="analytics-date-start">
+              <input
+                class="form-control form-control-sm"
+                type="date"
+                id="analytics-date-start"
+                value="{{ chart_start|date:'Y-m-d' }}"
+              >
             </div>
             <div>
               <label class="form-label small text-muted mb-1" for="analytics-date-end">По</label>
-              <input class="form-control form-control-sm" type="date" id="analytics-date-end">
+              <input
+                class="form-control form-control-sm"
+                type="date"
+                id="analytics-date-end"
+                value="{{ chart_end|date:'Y-m-d' }}"
+              >
             </div>
             <button class="btn btn-primary btn-sm" type="button" id="analytics-apply">Показать</button>
           </div>
         </div>
 
         <div class="row align-items-center g-4">
-          <div class="col-12 col-lg-6">
-            <div class="ray-chart">
-              <svg viewBox="0 0 300 300" role="img" aria-label="Лучевой график продаж">
-                <circle class="ray-circle" cx="150" cy="150" r="110"></circle>
-                <circle class="ray-circle" cx="150" cy="150" r="70"></circle>
-                <line class="ray-line visits" data-field="visits" data-angle="0" x1="150" y1="150" x2="150" y2="40"></line>
-                <line class="ray-line calls" data-field="calls" data-angle="120" x1="150" y1="150" x2="150" y2="40"></line>
-                <line class="ray-line sold" data-field="sold" data-angle="240" x1="150" y1="150" x2="150" y2="40"></line>
-                <circle cx="150" cy="150" r="10" fill="#0d6efd"></circle>
-              </svg>
-            </div>
+          <div class="col-12 col-lg-8">
+            <svg class="line-chart" viewBox="0 0 700 260" role="img" aria-label="График динамики продаж">
+              <g class="line-grid">
+                <line x1="60" y1="20" x2="60" y2="220"></line>
+                <line x1="60" y1="220" x2="660" y2="220"></line>
+                <line x1="60" y1="170" x2="660" y2="170"></line>
+                <line x1="60" y1="120" x2="660" y2="120"></line>
+                <line x1="60" y1="70" x2="660" y2="70"></line>
+              </g>
+              <g class="line-axis">
+                <line x1="60" y1="20" x2="60" y2="220"></line>
+                <line x1="60" y1="220" x2="660" y2="220"></line>
+              </g>
+              <polyline class="line-series visits" data-series="visits" points=""></polyline>
+              <polyline class="line-series calls" data-series="calls" points=""></polyline>
+              <polyline class="line-series sold" data-series="sold" points=""></polyline>
+              <g class="line-labels text-muted" font-size="12">
+                <text x="60" y="240" data-label="start"></text>
+                <text x="360" y="240" text-anchor="middle" data-label="middle"></text>
+                <text x="660" y="240" text-anchor="end" data-label="end"></text>
+              </g>
+            </svg>
           </div>
-          <div class="col-12 col-lg-6">
-            <div class="ray-legend vstack gap-3">
+          <div class="col-12 col-lg-4">
+            <div class="line-legend vstack gap-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div class="fw-semibold text-primary">Посещения</div>
-                <span class="badge rounded-pill text-bg-primary" data-ray-value="visits">0</span>
+                <span class="badge rounded-pill text-bg-primary" data-series-value="visits">0</span>
               </div>
               <div class="d-flex justify-content-between align-items-center">
                 <div class="fw-semibold text-info">Звонки</div>
-                <span class="badge rounded-pill text-bg-info" data-ray-value="calls">0</span>
+                <span class="badge rounded-pill text-bg-info" data-series-value="calls">0</span>
               </div>
               <div class="d-flex justify-content-between align-items-center">
                 <div class="fw-semibold text-success">Продано</div>
-                <span class="badge rounded-pill text-bg-success" data-ray-value="sold">0</span>
+                <span class="badge rounded-pill text-bg-success" data-series-value="sold">0</span>
               </div>
-              <div class="border-top pt-3 text-muted small" data-ray-summary>Выберите период для пересчета.</div>
+              <div class="border-top pt-3 text-muted small" data-series-summary>Данные за выбранный период.</div>
             </div>
           </div>
         </div>
@@ -257,35 +280,23 @@
     </div>
   </div>
 
+  {{ chart_series|json_script:"analytics-series" }}
+
   <script>
     (() => {
       const metricCards = document.querySelectorAll('[data-analytics-value]');
       const totalValue = document.querySelector('[data-analytics-total]');
       const fieldValues = document.querySelectorAll('[data-analytics-field]');
-      const rayLines = document.querySelectorAll('.ray-line');
-      const rayBadges = document.querySelectorAll('[data-ray-value]');
-      const summary = document.querySelector('[data-ray-summary]');
+      const seriesLines = document.querySelectorAll('[data-series]');
+      const seriesBadges = document.querySelectorAll('[data-series-value]');
+      const summary = document.querySelector('[data-series-summary]');
       const dateStartInput = document.getElementById('analytics-date-start');
       const dateEndInput = document.getElementById('analytics-date-end');
       const applyButton = document.getElementById('analytics-apply');
       if (!metricCards.length) return;
 
-      const analyticsData = [
-        { date: '2024-09-01', visits: 160, calls: 52, sold: 18 },
-        { date: '2024-09-08', visits: 190, calls: 60, sold: 22 },
-        { date: '2024-09-15', visits: 210, calls: 72, sold: 28 },
-        { date: '2024-09-22', visits: 175, calls: 55, sold: 20 },
-        { date: '2024-09-29', visits: 230, calls: 80, sold: 31 },
-        { date: '2024-10-06', visits: 250, calls: 90, sold: 36 },
-        { date: '2024-10-13', visits: 225, calls: 74, sold: 29 },
-        { date: '2024-10-20', visits: 260, calls: 96, sold: 40 },
-        { date: '2024-10-27', visits: 240, calls: 88, sold: 35 },
-        { date: '2024-11-03', visits: 270, calls: 92, sold: 38 },
-        { date: '2024-11-10', visits: 285, calls: 100, sold: 44 },
-        { date: '2024-11-17', visits: 300, calls: 112, sold: 48 }
-      ];
-
-      const parseDate = (value) => new Date(`${value}T00:00:00`);
+      const rawSeries = document.getElementById('analytics-series');
+      const analyticsData = rawSeries ? JSON.parse(rawSeries.textContent) : [];
       const formatNumber = (value) => new Intl.NumberFormat('ru-RU').format(value);
 
       const updateBars = (values) => {
@@ -298,29 +309,6 @@
             bar.style.width = `${width}%`;
           }
         });
-      };
-
-      const updateRayChart = (totals) => {
-        const maxValue = Math.max(totals.visits, totals.calls, totals.sold, 1);
-        const maxLength = 110;
-        rayLines.forEach((line) => {
-          const field = line.dataset.field;
-          const value = totals[field] || 0;
-          const angle = Number(line.dataset.angle || 0);
-          const length = Math.round((value / maxValue) * maxLength);
-          line.setAttribute('x1', 150);
-          line.setAttribute('y1', 150);
-          line.setAttribute('x2', 150);
-          line.setAttribute('y2', 150 - length);
-          line.setAttribute('transform', `rotate(${angle} 150 150)`);
-        });
-        rayBadges.forEach((badge) => {
-          const field = badge.dataset.rayValue;
-          badge.textContent = formatNumber(totals[field] || 0);
-        });
-        if (summary) {
-          summary.textContent = `Итого действий: ${formatNumber(totals.visits + totals.calls + totals.sold)}`;
-        }
       };
 
       const updateDashboard = (totals) => {
@@ -339,53 +327,84 @@
           totalValue.textContent = formatNumber(totals.sold || 0);
         }
         updateBars(values);
-        updateRayChart(totals);
       };
 
-      const getDefaultTotals = () => {
-        const totals = { visits: 0, calls: 0, sold: 0 };
-        fieldValues.forEach((field) => {
-          const key = field.dataset.analyticsField;
-          totals[key] = Number(field.dataset.defaultValue || 0);
+      const renderLineChart = () => {
+        if (!analyticsData.length) return;
+        const maxValue = Math.max(
+          ...analyticsData.map((item) => Math.max(item.visits, item.calls, item.sold)),
+          1
+        );
+        const paddingLeft = 60;
+        const paddingRight = 40;
+        const paddingTop = 20;
+        const paddingBottom = 40;
+        const width = 700;
+        const height = 260;
+        const chartWidth = width - paddingLeft - paddingRight;
+        const chartHeight = height - paddingTop - paddingBottom;
+        const step = analyticsData.length > 1 ? chartWidth / (analyticsData.length - 1) : 0;
+
+        const seriesToPoints = (key) =>
+          analyticsData
+            .map((item, index) => {
+              const x = paddingLeft + step * index;
+              const y = paddingTop + chartHeight - (item[key] / maxValue) * chartHeight;
+              return `${x.toFixed(1)},${y.toFixed(1)}`;
+            })
+            .join(' ');
+
+        seriesLines.forEach((line) => {
+          const key = line.dataset.series;
+          line.setAttribute('points', seriesToPoints(key));
         });
-        return totals;
-      };
 
-      const applyRange = () => {
-        if (!dateStartInput || !dateEndInput) return;
-        const start = parseDate(dateStartInput.value);
-        const end = parseDate(dateEndInput.value);
-        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-          updateDashboard(getDefaultTotals());
-          return;
-        }
         const totals = analyticsData.reduce(
           (acc, item) => {
-            const itemDate = parseDate(item.date);
-            if (itemDate >= start && itemDate <= end) {
-              acc.visits += item.visits;
-              acc.calls += item.calls;
-              acc.sold += item.sold;
-            }
+            acc.visits += item.visits;
+            acc.calls += item.calls;
+            acc.sold += item.sold;
             return acc;
           },
           { visits: 0, calls: 0, sold: 0 }
         );
         updateDashboard(totals);
+        seriesBadges.forEach((badge) => {
+          const key = badge.dataset.seriesValue;
+          badge.textContent = formatNumber(totals[key] || 0);
+        });
+        if (summary) {
+          summary.textContent = `Итого действий: ${formatNumber(totals.visits + totals.calls + totals.sold)}`;
+        }
+
+        const labels = {
+          start: analyticsData[0]?.date,
+          middle: analyticsData[Math.floor(analyticsData.length / 2)]?.date,
+          end: analyticsData[analyticsData.length - 1]?.date,
+        };
+        Object.entries(labels).forEach(([key, value]) => {
+          const label = document.querySelector(`[data-label="${key}"]`);
+          if (label && value) {
+            label.textContent = value;
+          }
+        });
       };
 
-      const initDates = () => {
+      const applyRange = () => {
         if (!dateStartInput || !dateEndInput) return;
-        const last = analyticsData[analyticsData.length - 1];
-        const lastDate = parseDate(last.date);
-        const startDate = new Date(lastDate);
-        startDate.setDate(startDate.getDate() - 30);
-        dateStartInput.value = startDate.toISOString().split('T')[0];
-        dateEndInput.value = lastDate.toISOString().split('T')[0];
+        const startValue = dateStartInput.value;
+        const endValue = dateEndInput.value;
+        const params = new URLSearchParams(window.location.search);
+        if (startValue) {
+          params.set('start', startValue);
+        }
+        if (endValue) {
+          params.set('end', endValue);
+        }
+        window.location.search = params.toString();
       };
 
-      initDates();
-      applyRange();
+      renderLineChart();
       if (applyButton) {
         applyButton.addEventListener('click', applyRange);
       }
