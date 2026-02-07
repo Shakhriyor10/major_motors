@@ -436,8 +436,8 @@
             const item = analyticsData[index];
             if (!item) return;
             const lineX = mouseX ?? paddingLeft + step * index;
-            hoverLine.setAttribute('x1', lineX.toFixed(1));
-            hoverLine.setAttribute('x2', lineX.toFixed(1));
+            hoverLine.setAttribute('x1', lineX);
+            hoverLine.setAttribute('x2', lineX);
             hoverLine.style.opacity = '1';
             tooltip.innerHTML = `
               <div class="fw-semibold mb-1">${item.date}</div>
