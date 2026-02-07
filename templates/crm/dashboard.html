@@ -462,8 +462,7 @@
           svg.addEventListener('mousemove', (event) => {
             if (analyticsData.length === 0) return;
             const rect = svg.getBoundingClientRect();
-            const ratioX = bounds.width / rect.width;
-            const mouseX = (event.clientX - rect.left) * ratioX;
+            const mouseX = (event.offsetX / rect.width) * bounds.width;
             const safeStep = step || 1;
             const rawIndex = Math.round((mouseX - paddingLeft) / safeStep);
             const index = Math.max(0, Math.min(analyticsData.length - 1, rawIndex));
