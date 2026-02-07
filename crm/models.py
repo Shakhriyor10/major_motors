@@ -301,6 +301,32 @@ class Lead(TimeStampedModel):
         return f'Лид #{self.pk} - {self.customer.full_name}'
 
 
+class LeadEntry(TimeStampedModel):
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=32)
+    visit_date = models.DateField(null=True, blank=True)
+    visit_count = models.PositiveIntegerField(default=0)
+    visit_employee = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='lead_visits',
+    )
+    last_call_at = models.DateField(null=True, blank=True)
+    call_count = models.PositiveIntegerField(default=0)
+    call_employee = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='lead_calls',
+    )
+
+    def __str__(self):
+        return f'{self.name} ({self.phone})'
+
+
 class VehicleOption(models.Model):
     name = models.CharField(max_length=128, unique=True)
 

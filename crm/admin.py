@@ -82,6 +82,22 @@ class LeadAdmin(admin.ModelAdmin):
     list_filter = ('stage', 'auto_assigned')
 
 
+@admin.register(models.LeadEntry)
+class LeadEntryAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'phone',
+        'visit_date',
+        'visit_count',
+        'visit_employee',
+        'last_call_at',
+        'call_count',
+        'call_employee',
+    )
+    list_filter = ('visit_employee', 'call_employee')
+    search_fields = ('name', 'phone')
+
+
 @admin.register(models.Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
     list_display = ('vin', 'name', 'make', 'model', 'status', 'purchase_price', 'sale_price', 'stock_count')

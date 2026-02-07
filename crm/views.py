@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.db.models import Count, Prefetch, Q
@@ -24,6 +25,7 @@ from .models import (
     CustomerDocument,
     Deal,
     Lead,
+    LeadEntry,
     LeadSource,
     PowerOfAttorney,
     Reservation,
@@ -291,8 +293,42 @@ def customers(request):
 
 @login_required
 def leads(request):
-    leads_qs = Lead.objects.select_related('customer', 'stage', 'assigned_to').order_by('-created_at')[:50]
-    return render(request, 'crm/leads.html', {'leads': leads_qs})
+    User = get_user_model()
+    employees_qs = User.objects.order_by('first_name', 'last_name', 'username')
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        visit_count_raw = request.POST.get('visit_count', '').strip()
+        call_count_raw = request.POST.get('call_count', '').strip()
+        visit_employee_id = request.POST.get('visit_employee') or None
+        call_employee_id = request.POST.get('call_employee') or None
+        visit_count = int(visit_count_raw) if visit_count_raw.isdigit() else 0
+        call_count = int(call_count_raw) if call_count_raw.isdigit() else 0
+        visit_date = date.today() if visit_count > 0 else None
+        last_call_at = parse_date(request.POST.get('last_call_at') or '') if call_count > 0 else None
+        if call_count > 0 and last_call_at is None:
+            last_call_at = date.today()
+        if name and phone:
+            LeadEntry.objects.create(
+                name=name,
+                phone=phone,
+                visit_date=visit_date,
+                visit_count=visit_count,
+                visit_employee_id=visit_employee_id,
+                last_call_at=last_call_at,
+                call_count=call_count,
+                call_employee_id=call_employee_id,
+            )
+        return redirect('leads')
+    leads_qs = LeadEntry.objects.select_related('visit_employee', 'call_employee').order_by('-created_at')
+    return render(
+        request,
+        'crm/leads.html',
+        {
+            'leads': leads_qs,
+            'employees': employees_qs,
+        },
+    )
 
 
 def _create_vehicle_from_form(request, options_qs):
