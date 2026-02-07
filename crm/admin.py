@@ -89,12 +89,11 @@ class LeadEntryAdmin(admin.ModelAdmin):
         'phone',
         'visit_date',
         'visit_count',
-        'visit_employee',
         'last_call_at',
         'call_count',
-        'call_employee',
+        'employee',
     )
-    list_filter = ('visit_employee', 'call_employee')
+    list_filter = ('employee',)
     search_fields = ('name', 'phone')
 
 

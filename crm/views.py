@@ -300,8 +300,7 @@ def leads(request):
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
         contact_type = request.POST.get('contact_type', 'visit')
-        visit_employee_id = request.POST.get('visit_employee') or None
-        call_employee_id = request.POST.get('call_employee') or None
+        employee_id = request.POST.get('employee') or None
         if name and phone:
             lead, created = LeadEntry.objects.get_or_create(
                 phone=phone,
@@ -312,17 +311,14 @@ def leads(request):
             if contact_type == 'call':
                 lead.call_count = (lead.call_count or 0) + 1
                 lead.last_call_at = date.today()
-                lead.call_employee_id = call_employee_id
+                lead.employee_id = employee_id
             else:
                 lead.visit_count = (lead.visit_count or 0) + 1
                 lead.visit_date = date.today()
-                lead.visit_employee_id = visit_employee_id
+                lead.employee_id = employee_id
             lead.save()
         return redirect('leads')
-    search_query = request.GET.get('q', '').strip()
-    leads_qs = LeadEntry.objects.select_related('visit_employee', 'call_employee')
-    if search_query:
-        leads_qs = leads_qs.filter(phone__icontains=search_query)
+    leads_qs = LeadEntry.objects.select_related('employee')
     leads_qs = leads_qs.annotate(
         last_interaction_at=Greatest(
             Coalesce('visit_date', date(1900, 1, 1)),
@@ -335,7 +331,6 @@ def leads(request):
         {
             'leads': leads_qs,
             'employees': employees_qs,
-            'search_query': search_query,
         },
     )
 

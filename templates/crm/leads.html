@@ -26,16 +26,7 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Кто обслужил</label>
-          <select name="visit_employee" class="form-select">
-            <option value="">—</option>
-            {% for employee in employees %}
-              <option value="{{ employee.id }}">{{ employee.get_full_name|default:employee.username }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Кто говорил по телефону</label>
-          <select name="call_employee" class="form-select">
+          <select name="employee" class="form-select">
             <option value="">—</option>
             {% for employee in employees %}
               <option value="{{ employee.id }}">{{ employee.get_full_name|default:employee.username }}</option>
@@ -51,15 +42,12 @@
 
   <div class="card shadow-sm">
     <div class="card-body">
-      <form method="get" class="row g-2 align-items-end mb-3">
+      <div class="row g-2 align-items-end mb-3">
         <div class="col-md-4">
-          <label class="form-label">Поиск по номеру</label>
-          <input type="text" name="q" class="form-control" value="{{ search_query }}">
+          <label class="form-label">Поиск по имени или номеру</label>
+          <input type="text" id="leadSearch" class="form-control" placeholder="Имя или телефон">
         </div>
-        <div class="col-md-2">
-          <button class="btn btn-outline-primary w-100" type="submit">Найти</button>
-        </div>
-      </form>
+      </div>
       <div class="table-responsive">
         <table class="table align-middle mb-0">
           <thead class="table-light">
@@ -71,24 +59,22 @@
               <th>Кто обслужил</th>
               <th>Последний звонок</th>
               <th>Звонков</th>
-              <th>Кто говорил</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="leadsTableBody">
             {% for lead in leads %}
               <tr>
                 <td>{{ lead.name }}</td>
                 <td>{{ lead.phone }}</td>
                 <td>{{ lead.visit_date|default:"—" }}</td>
                 <td>{{ lead.visit_count }}</td>
-                <td>{{ lead.visit_employee|default:"—" }}</td>
+                <td>{{ lead.employee|default:"—" }}</td>
                 <td>{{ lead.last_call_at|default:"—" }}</td>
                 <td>{{ lead.call_count }}</td>
-                <td>{{ lead.call_employee|default:"—" }}</td>
               </tr>
             {% empty %}
               <tr>
-                <td colspan="8" class="text-muted">Лиды пока не зарегистрированы.</td>
+                <td colspan="7" class="text-muted">Лиды пока не зарегистрированы.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -96,4 +82,33 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script>
+    const leadSearchInput = document.getElementById('leadSearch');
+    const leadsTableBody = document.getElementById('leadsTableBody');
+    const leadRows = leadsTableBody ? Array.from(leadsTableBody.querySelectorAll('tr')) : [];
+
+    const filterLeads = () => {
+      const query = (leadSearchInput?.value || '').trim().toLowerCase();
+      if (!leadRows.length) {
+        return;
+      }
+      leadRows.forEach((row) => {
+        const cells = row.querySelectorAll('td');
+        if (!cells.length) {
+          return;
+        }
+        const name = (cells[0]?.textContent || '').toLowerCase();
+        const phone = (cells[1]?.textContent || '').toLowerCase();
+        const matches = !query || name.includes(query) || phone.includes(query);
+        row.style.display = matches ? '' : 'none';
+      });
+    };
+
+    if (leadSearchInput) {
+      leadSearchInput.addEventListener('input', filterLeads);
+    }
+  </script>
 {% endblock %}
