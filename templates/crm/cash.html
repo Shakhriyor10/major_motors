@@ -378,7 +378,22 @@
               <button class="btn btn-primary" type="submit">Добавить сотрудника</button>
             </div>
           </form>
-          <ul class="list-group list-group-flush mt-3" id="employee-list"></ul>
+          <div class="table-responsive mt-3">
+            <table class="table table-sm align-middle mb-0" id="employee-table">
+              <thead class="table-light">
+                <tr>
+                  <th>Сотрудник</th>
+                  <th>Должность</th>
+                  <th>Контакты</th>
+                  <th>Зарплата</th>
+                  <th>Дата начала</th>
+                  <th>Добавил</th>
+                  <th class="text-end">Действия</th>
+                </tr>
+              </thead>
+              <tbody id="employee-list"></tbody>
+            </table>
+          </div>
           <p class="text-muted mt-2" id="employee-empty">Сотрудников пока нет.</p>
           <button class="btn btn-outline-secondary btn-sm mt-2" type="button" id="employee-load-more">Показать еще</button>
         </div>
@@ -535,9 +550,9 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script type="application/json" id="cash-employees-data">{{ cash_employees_json|safe }}</script>
 <script>
   const currentUser = 'Администратор';
-  const EMPLOYEES_KEY = 'crm_employees_v1';
   const EXPENSES_KEY = 'crm_expenses_v1';
 
   const employeeForm = document.getElementById('employee-form');
@@ -721,8 +736,11 @@
     conversionLoadMore.classList.toggle('d-none', conversions.length <= conversionVisibleCount);
   };
 
+  const employeesData = document.getElementById('cash-employees-data');
+  let employeesState = employeesData ? JSON.parse(employeesData.textContent) : [];
+
   const refreshEmployees = () => {
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = employeesState;
     employeeList.innerHTML = '';
     salaryEmployeeSelect.innerHTML = '<option value="">Выберите сотрудника</option>';
     if (!employees.length) {
@@ -733,26 +751,30 @@
     employeeEmpty.classList.add('d-none');
     employeeVisibleCount = getVisibleCount(employeeVisibleCount, employees.length);
     employees.slice(0, employeeVisibleCount).forEach((employee) => {
-      const item = document.createElement('li');
-      item.className = 'list-group-item d-flex justify-content-between align-items-start flex-wrap gap-3';
+      const row = document.createElement('tr');
       const salaryAmount = Number(employee.salaryAmount || 0);
-      item.innerHTML = `
-        <div>
+      const statusLabel = employee.status === 'intern' ? 'Стажер' : 'Сотрудник';
+      const phoneLine = employee.phonePrimary || employee.phoneSecondary
+        ? `${employee.phonePrimary || ''}${employee.phoneSecondary ? `, ${employee.phoneSecondary}` : ''}`
+        : '—';
+      row.innerHTML = `
+        <td>
           <strong>${employee.lastName} ${employee.firstName}</strong>
-          <div class="text-muted small">${employee.position} · ${employee.status === 'intern' ? 'Стажер' : 'Сотрудник'}</div>
-          <div class="text-muted small">Тел: ${employee.phonePrimary}${employee.phoneSecondary ? `, ${employee.phoneSecondary}` : ''}</div>
-          <div class="text-muted small">Зарплата: ${salaryAmount ? formatCurrency(salaryAmount, 'uzs') : 'не указана'}</div>
-          <div class="text-muted small">Добавил: ${employee.createdBy}</div>
-        </div>
-        <div class="text-end">
-          <span class="badge rounded-pill text-bg-primary-subtle text-primary">с ${employee.startDate}</span>
-          <div class="d-flex gap-2 mt-2">
+          <div class="text-muted small">${statusLabel}</div>
+        </td>
+        <td>${employee.position || '—'}</td>
+        <td class="text-muted small">${phoneLine}</td>
+        <td>${salaryAmount ? formatCurrency(salaryAmount, 'uzs') : 'не указана'}</td>
+        <td>${employee.startDate || '—'}</td>
+        <td>${employee.createdBy || '—'}</td>
+        <td class="text-end">
+          <div class="d-flex gap-2 justify-content-end">
             <button type="button" class="btn btn-sm btn-outline-secondary" data-action="edit" data-id="${employee.id}">Изменить</button>
             <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${employee.id}">Удалить</button>
           </div>
-        </div>
+        </td>
       `;
-      employeeList.appendChild(item);
+      employeeList.appendChild(row);
       const option = document.createElement('option');
       option.value = employee.id;
       option.textContent = `${employee.lastName} ${employee.firstName}`;
@@ -807,7 +829,7 @@
   };
 
   const refreshSalaryList = () => {
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = employeesState;
     const expenses = loadItems(EXPENSES_KEY);
     const paidMap = new Map();
     const advanceMap = new Map();
@@ -885,7 +907,7 @@
     const end = document.getElementById('report-end').value;
     const categoryFilter = reportCategory.value;
     const expenses = loadItems(EXPENSES_KEY);
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = employeesState;
     const employeeLookup = new Map(
       employees.map((employee) => [
         employee.id,
@@ -1064,7 +1086,7 @@
     }
     const action = button.dataset.action;
     const employeeId = button.dataset.id;
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = [...employeesState];
     const employeeIndex = employees.findIndex((employee) => employee.id === employeeId);
     if (employeeIndex === -1) {
       return;
@@ -1079,7 +1101,7 @@
         return;
       }
       employees.splice(employeeIndex, 1);
-      saveItems(EMPLOYEES_KEY, employees);
+      employeesState = employees;
       deleteEmployee(employeeId);
       refreshEmployees();
     }
@@ -1096,7 +1118,7 @@
       return;
     }
     salaryDayField.setCustomValidity('');
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = [...employeesState];
     const existingId = formData.get('employee_id');
     const index = employees.findIndex((employee) => employee.id === existingId);
     if (index === -1) {
@@ -1117,7 +1139,7 @@
       updatedAt: new Date().toISOString(),
     };
     persistEmployee(employees[index]);
-    saveItems(EMPLOYEES_KEY, employees);
+    employeesState = employees;
     closeEmployeeModal();
     refreshEmployees();
   });
@@ -1133,7 +1155,7 @@
       return;
     }
     salaryDayField.setCustomValidity('');
-    const employees = loadItems(EMPLOYEES_KEY);
+    const employees = [...employeesState];
     const employeePayload = {
       firstName: formData.get('first_name'),
       lastName: formData.get('last_name'),
@@ -1152,7 +1174,7 @@
       createdAt: new Date().toISOString(),
     };
     employees.unshift(employee);
-    saveItems(EMPLOYEES_KEY, employees);
+    employeesState = employees;
     persistEmployee(employee);
     employeeForm.reset();
     refreshEmployees();
