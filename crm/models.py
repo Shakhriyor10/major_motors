@@ -308,6 +308,7 @@ class LeadEntry(TimeStampedModel):
 
     name = models.CharField(max_length=255)
     phone = models.CharField(max_length=32)
+    comment = models.TextField(blank=True)
     visit_date = models.DateField(null=True, blank=True)
     visit_count = models.PositiveIntegerField(default=0)
     last_call_at = models.DateField(null=True, blank=True)

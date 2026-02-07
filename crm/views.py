@@ -306,6 +306,7 @@ def leads(request):
             return redirect('leads')
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
+        comment = request.POST.get('comment', '').strip()
         contact_type = request.POST.get('contact_type', 'visit')
         employee_id = request.POST.get('employee') or None
         if name and phone:
@@ -315,6 +316,8 @@ def leads(request):
             )
             if name and lead.name != name:
                 lead.name = name
+            if comment:
+                lead.comment = comment
             if contact_type == 'call':
                 lead.call_count = (lead.call_count or 0) + 1
                 lead.last_call_at = date.today()
