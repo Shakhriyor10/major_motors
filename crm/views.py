@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.db.models import Count, Prefetch, Q
+from django.db.models.functions import Coalesce, Greatest
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -298,35 +299,43 @@ def leads(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
-        visit_count_raw = request.POST.get('visit_count', '').strip()
-        call_count_raw = request.POST.get('call_count', '').strip()
+        contact_type = request.POST.get('contact_type', 'visit')
         visit_employee_id = request.POST.get('visit_employee') or None
         call_employee_id = request.POST.get('call_employee') or None
-        visit_count = int(visit_count_raw) if visit_count_raw.isdigit() else 0
-        call_count = int(call_count_raw) if call_count_raw.isdigit() else 0
-        visit_date = date.today() if visit_count > 0 else None
-        last_call_at = parse_date(request.POST.get('last_call_at') or '') if call_count > 0 else None
-        if call_count > 0 and last_call_at is None:
-            last_call_at = date.today()
         if name and phone:
-            LeadEntry.objects.create(
-                name=name,
+            lead, created = LeadEntry.objects.get_or_create(
                 phone=phone,
-                visit_date=visit_date,
-                visit_count=visit_count,
-                visit_employee_id=visit_employee_id,
-                last_call_at=last_call_at,
-                call_count=call_count,
-                call_employee_id=call_employee_id,
+                defaults={'name': name},
             )
+            if name and lead.name != name:
+                lead.name = name
+            if contact_type == 'call':
+                lead.call_count = (lead.call_count or 0) + 1
+                lead.last_call_at = date.today()
+                lead.call_employee_id = call_employee_id
+            else:
+                lead.visit_count = (lead.visit_count or 0) + 1
+                lead.visit_date = date.today()
+                lead.visit_employee_id = visit_employee_id
+            lead.save()
         return redirect('leads')
-    leads_qs = LeadEntry.objects.select_related('visit_employee', 'call_employee').order_by('-created_at')
+    search_query = request.GET.get('q', '').strip()
+    leads_qs = LeadEntry.objects.select_related('visit_employee', 'call_employee')
+    if search_query:
+        leads_qs = leads_qs.filter(phone__icontains=search_query)
+    leads_qs = leads_qs.annotate(
+        last_interaction_at=Greatest(
+            Coalesce('visit_date', date(1900, 1, 1)),
+            Coalesce('last_call_at', date(1900, 1, 1)),
+        ),
+    ).order_by('-last_interaction_at', '-created_at')
     return render(
         request,
         'crm/leads.html',
         {
             'leads': leads_qs,
             'employees': employees_qs,
+            'search_query': search_query,
         },
     )
 

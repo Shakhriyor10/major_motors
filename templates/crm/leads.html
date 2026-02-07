@@ -17,13 +17,12 @@
           <label class="form-label">Номер телефона</label>
           <input type="text" name="phone" class="form-control" required>
         </div>
-        <div class="col-md-2">
-          <label class="form-label">Посещений</label>
-          <input type="number" name="visit_count" class="form-control" min="0" value="0">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Звонков</label>
-          <input type="number" name="call_count" class="form-control" min="0" value="0">
+        <div class="col-md-4">
+          <label class="form-label">Тип обращения</label>
+          <select name="contact_type" class="form-select">
+            <option value="visit" selected>Посещено</option>
+            <option value="call">Звонил</option>
+          </select>
         </div>
         <div class="col-md-4">
           <label class="form-label">Кто обслужил</label>
@@ -43,10 +42,6 @@
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Последний звонок</label>
-          <input type="date" name="last_call_at" class="form-control">
-        </div>
         <div class="col-12">
           <button class="btn btn-primary" type="submit">Добавить лид</button>
         </div>
@@ -56,6 +51,15 @@
 
   <div class="card shadow-sm">
     <div class="card-body">
+      <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Поиск по номеру</label>
+          <input type="text" name="q" class="form-control" value="{{ search_query }}">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-primary w-100" type="submit">Найти</button>
+        </div>
+      </form>
       <div class="table-responsive">
         <table class="table align-middle mb-0">
           <thead class="table-light">
