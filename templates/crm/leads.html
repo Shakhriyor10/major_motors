@@ -79,6 +79,7 @@
               <th>Звонков</th>
               <th>Комментарий</th>
               <th>Статус</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="leadsTableBody">
@@ -93,21 +94,27 @@
                 <td>{{ lead.call_count }}</td>
                 <td>
                   {% if lead.comment %}
-                    {% if lead.comment|length > 15 %}
-                      <span class="text-truncate d-inline-block" style="max-width: 180px;">
-                        {{ lead.comment|slice:":15" }}…
-                      </span>
-                      <button
-                        type="button"
-                        class="btn btn-link p-0 ms-1 align-baseline lead-comment-button"
-                        data-comment="{{ lead.comment|escapejs }}"
-                        aria-label="Посмотреть комментарий"
-                      >
-                        👁
-                      </button>
-                    {% else %}
-                      {{ lead.comment }}
-                    {% endif %}
+                    <div class="d-flex align-items-start justify-content-between gap-2">
+                      <div class="flex-grow-1">
+                        {% if lead.comment|length > 15 %}
+                          <span class="text-truncate d-inline-block" style="max-width: 180px;">
+                            {{ lead.comment|slice:":15" }}…
+                          </span>
+                        {% else %}
+                          {{ lead.comment }}
+                        {% endif %}
+                      </div>
+                      {% if lead.comment|length > 15 %}
+                        <button
+                          type="button"
+                          class="btn btn-link p-0 align-baseline lead-comment-button"
+                          data-comment="{{ lead.comment|escapejs }}"
+                          aria-label="Посмотреть комментарий"
+                        >
+                          👁
+                        </button>
+                      {% endif %}
+                    </div>
                   {% else %}
                     —
                   {% endif %}
@@ -127,10 +134,20 @@
                     </select>
                   </form>
                 </td>
+                <td class="text-end">
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="lead_id" value="{{ lead.id }}">
+                    <button type="submit" class="btn btn-link text-danger p-0 lead-delete-button">
+                      🗑️ Удалить
+                    </button>
+                  </form>
+                </td>
               </tr>
             {% empty %}
               <tr>
-                <td colspan="9" class="text-muted">Лиды пока не зарегистрированы.</td>
+                <td colspan="10" class="text-muted">Лиды пока не зарегистрированы.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -260,6 +277,7 @@
     });
 
     const commentButtons = document.querySelectorAll('.lead-comment-button');
+    const deleteButtons = document.querySelectorAll('.lead-delete-button');
     const commentModalElement = document.getElementById('lead-comment-modal');
     const commentTextElement = document.getElementById('lead-comment-text');
     const commentModal = commentModalElement ? new bootstrap.Modal(commentModalElement) : null;
@@ -271,6 +289,15 @@
           commentTextElement.textContent = comment;
         }
         commentModal?.show();
+      });
+    });
+
+    deleteButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const confirmed = window.confirm('Вы точно хотите удалить этот лид?');
+        if (!confirmed) {
+          event.preventDefault();
+        }
       });
     });
   </script>
