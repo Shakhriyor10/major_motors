@@ -21,6 +21,7 @@ from .models import (
     CashAccount,
     CashConversion,
     CashEmployee,
+    CurrencyRate,
     Customer,
     CustomerDocument,
     Deal,
