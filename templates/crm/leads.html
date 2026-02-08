@@ -7,7 +7,7 @@
     <div class="card-body">
       <h1 class="h3">Лиды</h1>
       <p class="text-muted mb-4">Фиксируйте посещения и звонки клиентов.</p>
-      <form method="post" class="row g-3">
+      <form method="post" class="row g-3" id="leadForm">
         {% csrf_token %}
         <div class="col-md-4">
           <label class="form-label">Имя</label>
@@ -15,7 +15,21 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Номер телефона</label>
-          <input type="text" name="phone" class="form-control" required>
+          <div class="input-group">
+            <span class="input-group-text">+998</span>
+            <input
+              type="text"
+              name="phone_display"
+              id="leadPhoneDisplay"
+              class="form-control"
+              inputmode="numeric"
+              autocomplete="tel-national"
+              placeholder="90-123-45-67"
+              pattern="\\d{2}-\\d{3}-\\d{2}-\\d{2}"
+              required
+            >
+          </div>
+          <input type="hidden" name="phone" id="leadPhone">
         </div>
         <div class="col-md-4">
           <label class="form-label">Тип обращения</label>
@@ -65,6 +79,7 @@
               <th>Звонков</th>
               <th>Комментарий</th>
               <th>Статус</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="leadsTableBody">
@@ -79,21 +94,27 @@
                 <td>{{ lead.call_count }}</td>
                 <td>
                   {% if lead.comment %}
-                    {% if lead.comment|length > 15 %}
-                      <span class="text-truncate d-inline-block" style="max-width: 180px;">
-                        {{ lead.comment|slice:":15" }}…
-                      </span>
-                      <button
-                        type="button"
-                        class="btn btn-link p-0 ms-1 align-baseline lead-comment-button"
-                        data-comment="{{ lead.comment|escapejs }}"
-                        aria-label="Посмотреть комментарий"
-                      >
-                        👁
-                      </button>
-                    {% else %}
-                      {{ lead.comment }}
-                    {% endif %}
+                    <div class="d-flex align-items-start justify-content-between gap-2">
+                      <div class="flex-grow-1">
+                        {% if lead.comment|length > 15 %}
+                          <span class="text-truncate d-inline-block" style="max-width: 180px;">
+                            {{ lead.comment|slice:":15" }}…
+                          </span>
+                        {% else %}
+                          {{ lead.comment }}
+                        {% endif %}
+                      </div>
+                      {% if lead.comment|length > 15 %}
+                        <button
+                          type="button"
+                          class="btn btn-link p-0 align-baseline lead-comment-button"
+                          data-comment="{{ lead.comment|escapejs }}"
+                          aria-label="Посмотреть комментарий"
+                        >
+                          👁
+                        </button>
+                      {% endif %}
+                    </div>
                   {% else %}
                     —
                   {% endif %}
@@ -113,10 +134,20 @@
                     </select>
                   </form>
                 </td>
+                <td class="text-end">
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="lead_id" value="{{ lead.id }}">
+                    <button type="submit" class="btn btn-link text-danger p-0 lead-delete-button">
+                      🗑️ Удалить
+                    </button>
+                  </form>
+                </td>
               </tr>
             {% empty %}
               <tr>
-                <td colspan="9" class="text-muted">Лиды пока не зарегистрированы.</td>
+                <td colspan="10" class="text-muted">Лиды пока не зарегистрированы.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -164,6 +195,34 @@
     const leadSearchInput = document.getElementById('leadSearch');
     const leadsTableBody = document.getElementById('leadsTableBody');
     const leadRows = leadsTableBody ? Array.from(leadsTableBody.querySelectorAll('tr')) : [];
+    const leadPhoneDisplay = document.getElementById('leadPhoneDisplay');
+    const leadPhoneHidden = document.getElementById('leadPhone');
+    const leadForm = document.getElementById('leadForm');
+
+    const formatPhoneDigits = (value) => {
+      const digits = (value || '').replace(/\D/g, '').slice(0, 9);
+      const parts = [];
+      if (digits.length > 0) parts.push(digits.slice(0, 2));
+      if (digits.length > 2) parts.push(digits.slice(2, 5));
+      if (digits.length > 5) parts.push(digits.slice(5, 7));
+      if (digits.length > 7) parts.push(digits.slice(7, 9));
+      return parts.join('-');
+    };
+
+    const normalizeLeadPhone = (rawValue) => {
+      const digits = (rawValue || '').replace(/\D/g, '');
+      if (!digits) return '';
+      if (digits.startsWith('998')) {
+        const localDigits = digits.slice(3);
+        if (localDigits.length === 9) {
+          return `+998 ${formatPhoneDigits(localDigits)}`;
+        }
+      }
+      if (digits.length === 9) {
+        return `+998 ${formatPhoneDigits(digits)}`;
+      }
+      return rawValue;
+    };
 
     const filterLeads = () => {
       const query = (leadSearchInput?.value || '').trim().toLowerCase();
@@ -186,7 +245,39 @@
       leadSearchInput.addEventListener('input', filterLeads);
     }
 
+    if (leadPhoneDisplay) {
+      leadPhoneDisplay.addEventListener('input', (event) => {
+        const formatted = formatPhoneDigits(event.target.value);
+        event.target.value = formatted;
+        if (leadPhoneHidden) {
+          leadPhoneHidden.value = formatted ? `+998 ${formatted}` : '';
+        }
+      });
+    }
+
+    if (leadForm) {
+      leadForm.addEventListener('submit', () => {
+        if (leadPhoneDisplay && leadPhoneHidden) {
+          const formatted = formatPhoneDigits(leadPhoneDisplay.value);
+          leadPhoneDisplay.value = formatted;
+          leadPhoneHidden.value = formatted ? `+998 ${formatted}` : '';
+        }
+      });
+    }
+
+    leadRows.forEach((row) => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length > 1) {
+        const phoneCell = cells[1];
+        const normalized = normalizeLeadPhone(phoneCell.textContent || '');
+        if (normalized) {
+          phoneCell.textContent = normalized;
+        }
+      }
+    });
+
     const commentButtons = document.querySelectorAll('.lead-comment-button');
+    const deleteButtons = document.querySelectorAll('.lead-delete-button');
     const commentModalElement = document.getElementById('lead-comment-modal');
     const commentTextElement = document.getElementById('lead-comment-text');
     const commentModal = commentModalElement ? new bootstrap.Modal(commentModalElement) : null;
@@ -198,6 +289,15 @@
           commentTextElement.textContent = comment;
         }
         commentModal?.show();
+      });
+    });
+
+    deleteButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const confirmed = window.confirm('Вы точно хотите удалить этот лид?');
+        if (!confirmed) {
+          event.preventDefault();
+        }
       });
     });
   </script>
