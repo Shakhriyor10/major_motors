@@ -197,7 +197,13 @@
                   {{ stats.visits|default:0 }}
                 </div>
               </div>
-              <span class="badge rounded-pill text-bg-primary">+12%</span>
+              <span
+                class="badge rounded-pill text-bg-primary"
+                data-analytics-badge="visits"
+                data-default-percentage="0"
+              >
+                0%
+              </span>
             </div>
             <div class="analytics-bar"><span></span></div>
           </div>
@@ -215,7 +221,13 @@
                   {{ stats.calls|default:0 }}
                 </div>
               </div>
-              <span class="badge rounded-pill text-bg-info">+8%</span>
+              <span
+                class="badge rounded-pill text-bg-info"
+                data-analytics-badge="calls"
+                data-default-percentage="0"
+              >
+                0%
+              </span>
             </div>
             <div class="analytics-bar"><span></span></div>
           </div>
@@ -233,7 +245,13 @@
                   {{ stats.sold|default:0 }}
                 </div>
               </div>
-              <span class="badge rounded-pill text-bg-success">+5%</span>
+              <span
+                class="badge rounded-pill text-bg-success"
+                data-analytics-badge="sold"
+                data-default-percentage="0"
+              >
+                0%
+              </span>
             </div>
             <div class="analytics-bar"><span></span></div>
           </div>
@@ -336,6 +354,7 @@
       const metricCards = document.querySelectorAll('[data-analytics-value]');
       const totalValue = document.querySelector('[data-analytics-total]');
       const fieldValues = document.querySelectorAll('[data-analytics-field]');
+      const analyticsBadges = document.querySelectorAll('[data-analytics-badge]');
       const seriesLines = document.querySelectorAll('[data-series]');
       const seriesBadges = document.querySelectorAll('[data-series-value]');
       const summary = document.querySelector('[data-series-summary]');
@@ -365,6 +384,7 @@
 
       const updateDashboard = (totals) => {
         const values = [totals.visits, totals.calls, totals.sold];
+        const totalActions = values.reduce((sum, value) => sum + value, 0);
         metricCards.forEach((card) => {
           const field = card.querySelector('[data-analytics-field]')?.dataset.analyticsField;
           if (!field) return;
@@ -374,6 +394,12 @@
         fieldValues.forEach((field) => {
           const key = field.dataset.analyticsField;
           field.textContent = formatNumber(totals[key] || 0);
+        });
+        analyticsBadges.forEach((badge) => {
+          const key = badge.dataset.analyticsBadge;
+          const value = totals[key] || 0;
+          const percent = totalActions > 0 ? Math.round((value / totalActions) * 100) : 0;
+          badge.textContent = `${percent}%`;
         });
         if (totalValue) {
           totalValue.textContent = formatNumber(totals.sold || 0);
