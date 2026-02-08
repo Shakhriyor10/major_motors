@@ -117,7 +117,7 @@ def dashboard(request):
         total_sold += sold
         current_date += timedelta(days=1)
 
-    leads_count = LeadEntry.objects.filter(status=LeadEntry.Status.OPEN).count()
+    leads_count = Lead.objects.count()
     vehicles_in_stock = (
         Vehicle.objects.filter(status=Vehicle.VehicleStatus.FOR_SALE).aggregate(
             total_stock=Sum('stock_count'),
