@@ -119,11 +119,12 @@ def dashboard(request):
 
     leads_count = LeadEntry.objects.count()
     vehicles_in_stock = (
-        Vehicle.objects.filter(status=Vehicle.VehicleStatus.FOR_SALE).aggregate(
-            total_stock=Sum('stock_count'),
+        VehicleUnit.objects.filter(
+            status=VehicleUnit.UnitStatus.AVAILABLE,
+            vin__isnull=False,
         )
-        .get('total_stock')
-        or 0
+        .exclude(vin='')
+        .count()
     )
     stats = {
         'customers': Customer.objects.count(),
