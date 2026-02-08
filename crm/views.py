@@ -354,6 +354,11 @@ def leads(request):
             if lead_id and status_value in LeadEntry.Status.values:
                 LeadEntry.objects.filter(pk=lead_id).update(status=status_value)
             return redirect('leads')
+        if action == 'delete':
+            lead_id = request.POST.get('lead_id')
+            if lead_id:
+                LeadEntry.objects.filter(pk=lead_id).delete()
+            return redirect('leads')
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
         comment = request.POST.get('comment', '').strip()
