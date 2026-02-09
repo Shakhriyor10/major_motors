@@ -126,10 +126,11 @@
                     <input type="hidden" name="lead_id" value="{{ lead.id }}">
                     <select
                       name="status"
-                      class="form-select form-select-sm lead-status-select {% if lead.status == 'open' %}lead-status-open{% else %}lead-status-closed{% endif %}"
+                      class="form-select form-select-sm lead-status-select {% if lead.status == 'open' %}lead-status-open{% elif lead.status == 'waiting' %}lead-status-waiting{% else %}lead-status-closed{% endif %}"
                       onchange="this.form.submit()"
                     >
                       <option value="open" {% if lead.status == 'open' %}selected{% endif %}>Открытый</option>
+                      <option value="waiting" {% if lead.status == 'waiting' %}selected{% endif %}>В ожидании</option>
                       <option value="closed" {% if lead.status == 'closed' %}selected{% endif %}>Закрытый</option>
                     </select>
                   </form>
@@ -186,6 +187,11 @@
       background-color: rgba(220, 53, 69, 0.1);
       border-color: rgba(220, 53, 69, 0.6);
       color: #dc3545;
+    }
+    .lead-status-waiting {
+      background-color: rgba(255, 193, 7, 0.1);
+      border-color: rgba(255, 193, 7, 0.6);
+      color: #d39e00;
     }
   </style>
 {% endblock %}

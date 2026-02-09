@@ -304,6 +304,7 @@ class Lead(TimeStampedModel):
 class LeadEntry(TimeStampedModel):
     class Status(models.TextChoices):
         OPEN = 'open', 'Открытый'
+        WAITING = 'waiting', 'В ожидании'
         CLOSED = 'closed', 'Закрытый'
 
     name = models.CharField(max_length=255)
