@@ -118,6 +118,15 @@
       font-size: 0.75rem;
       color: var(--chart-text);
     }
+    .chart-pill-count {
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: var(--chart-card-strong);
+      border: 1px solid var(--chart-stroke);
+      color: var(--chart-text);
+      font-weight: 600;
+      font-size: 0.7rem;
+    }
     .chart-pill:hover {
       transform: translateY(-1px);
       background: rgba(255, 255, 255, 0.9);
@@ -346,16 +355,19 @@
               <span class="chart-dot" style="background:#2563eb"></span>
               <input type="checkbox" checked>
               <span>Посещения</span>
+              <span class="chart-pill-count" data-series-count="visits">0</span>
             </label>
             <label class="chart-pill" data-key="calls" style="color:#059669">
               <span class="chart-dot" style="background:#059669"></span>
               <input type="checkbox" checked>
               <span>Звонки</span>
+              <span class="chart-pill-count" data-series-count="calls">0</span>
             </label>
             <label class="chart-pill" data-key="sold" style="color:#db2777">
               <span class="chart-dot" style="background:#db2777"></span>
               <input type="checkbox" checked>
               <span>Продано</span>
+              <span class="chart-pill-count" data-series-count="sold">0</span>
             </label>
           </div>
         </div>
@@ -417,6 +429,7 @@
       const chartCanvas = document.getElementById('crmChart');
       const rangeText = document.getElementById('rangeText');
       const rangeTotals = document.getElementById('rangeTotals');
+      const pillCounts = document.querySelectorAll('[data-series-count]');
       if (!metricCards.length) return;
 
       const rawSeries = document.getElementById('analytics-series');
@@ -476,6 +489,10 @@
         if (rangeTotals) {
           rangeTotals.textContent = `Всего за период: посещения ${formatNumber(totals.visits)} • звонки ${formatNumber(totals.calls)} • продано ${formatNumber(totals.sold)}`;
         }
+        pillCounts.forEach((pill) => {
+          const key = pill.dataset.seriesCount;
+          pill.textContent = formatNumber(totals[key] || 0);
+        });
 
         if (!analyticsData.length) return;
 
