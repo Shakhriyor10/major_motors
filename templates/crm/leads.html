@@ -299,9 +299,24 @@
       }
     };
 
+    const getCookie = (name) => {
+      if (!document.cookie) {
+        return null;
+      }
+      const cookies = document.cookie.split(';');
+      for (const cookie of cookies) {
+        const trimmed = cookie.trim();
+        if (trimmed.startsWith(`${name}=`)) {
+          return decodeURIComponent(trimmed.substring(name.length + 1));
+        }
+      }
+      return null;
+    };
+
     statusForms.forEach((form) => {
       const select = form.querySelector('.lead-status-select');
       const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+      const csrfToken = getCookie('csrftoken') || csrfInput?.value || '';
       if (!select) {
         return;
       }
@@ -315,7 +330,7 @@
             credentials: 'same-origin',
             headers: {
               'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRFToken': csrfInput?.value || '',
+              'X-CSRFToken': csrfToken,
               'Accept': 'application/json',
             },
             body: formData,
