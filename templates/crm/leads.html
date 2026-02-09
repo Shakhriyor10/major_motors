@@ -301,16 +301,21 @@
 
     statusForms.forEach((form) => {
       const select = form.querySelector('.lead-status-select');
+      const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
       if (!select) {
         return;
       }
       select.addEventListener('change', async () => {
+        const previousValue = select.getAttribute('data-current-value') || select.value;
         const formData = new FormData(form);
+        select.disabled = true;
         try {
           const response = await fetch(form.action || window.location.href, {
             method: 'POST',
             headers: {
               'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': csrfInput?.value || '',
+              'Accept': 'application/json',
             },
             body: formData,
           });
@@ -318,11 +323,18 @@
             throw new Error('Failed to update status');
           }
           const data = await response.json();
-          updateStatusSelectClasses(select, data.status || select.value);
+          const updatedStatus = data.status || select.value;
+          updateStatusSelectClasses(select, updatedStatus);
+          select.setAttribute('data-current-value', updatedStatus);
         } catch (error) {
-          form.submit();
+          select.value = previousValue;
+          updateStatusSelectClasses(select, previousValue);
+          window.alert('Не удалось обновить статус. Попробуйте ещё раз.');
+        } finally {
+          select.disabled = false;
         }
       });
+      select.setAttribute('data-current-value', select.value);
     });
 
     commentButtons.forEach((button) => {
