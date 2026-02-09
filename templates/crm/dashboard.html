@@ -391,7 +391,12 @@
             <span class="chart-kbd">Колёсико</span> масштаб (по желанию),
             <span class="chart-kbd">Hover</span> подсказка
           </div>
-          <div id="rangeText">Последние 7 дней</div>
+          <div class="d-flex flex-column align-items-end gap-1">
+            <div id="rangeText">Последние 7 дней</div>
+            <div class="small text-muted" id="rangeTotals">
+              Всего за период: посещения 0 • звонки 0 • продано 0
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -411,6 +416,7 @@
       const applyButton = document.getElementById('analytics-apply');
       const chartCanvas = document.getElementById('crmChart');
       const rangeText = document.getElementById('rangeText');
+      const rangeTotals = document.getElementById('rangeTotals');
       if (!metricCards.length) return;
 
       const rawSeries = document.getElementById('analytics-series');
@@ -467,6 +473,9 @@
           { visits: 0, calls: 0, sold: 0 }
         );
         updateDashboard(totals);
+        if (rangeTotals) {
+          rangeTotals.textContent = `Всего за период: посещения ${formatNumber(totals.visits)} • звонки ${formatNumber(totals.calls)} • продано ${formatNumber(totals.sold)}`;
+        }
 
         if (!analyticsData.length) return;
 
@@ -607,12 +616,15 @@
               y: {
                 beginAtZero: true,
                 grid: { color: gridColor },
-                ticks: { color: tickColor },
                 title: {
                   display: true,
                   text: 'Количество (Y)',
                   color: 'rgba(15, 23, 42, 0.75)',
                   font: { weight: '600' },
+                },
+                ticks: {
+                  color: tickColor,
+                  callback: (value) => Number.isInteger(value) ? value : '',
                 },
               },
             },
