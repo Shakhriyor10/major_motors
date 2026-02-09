@@ -120,16 +120,16 @@
                   {% endif %}
                 </td>
                 <td>
-                  <form method="post" class="d-flex align-items-center gap-2">
+                  <form method="post" class="d-flex align-items-center gap-2 lead-status-form">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="update_status">
                     <input type="hidden" name="lead_id" value="{{ lead.id }}">
                     <select
                       name="status"
-                      class="form-select form-select-sm lead-status-select {% if lead.status == 'open' %}lead-status-open{% else %}lead-status-closed{% endif %}"
-                      onchange="this.form.submit()"
+                      class="form-select form-select-sm lead-status-select {% if lead.status == 'open' %}lead-status-open{% elif lead.status == 'waiting' %}lead-status-waiting{% else %}lead-status-closed{% endif %}"
                     >
                       <option value="open" {% if lead.status == 'open' %}selected{% endif %}>Открытый</option>
+                      <option value="waiting" {% if lead.status == 'waiting' %}selected{% endif %}>В ожидании</option>
                       <option value="closed" {% if lead.status == 'closed' %}selected{% endif %}>Закрытый</option>
                     </select>
                   </form>
@@ -186,6 +186,11 @@
       background-color: rgba(220, 53, 69, 0.1);
       border-color: rgba(220, 53, 69, 0.6);
       color: #dc3545;
+    }
+    .lead-status-waiting {
+      background-color: rgba(255, 193, 7, 0.1);
+      border-color: rgba(255, 193, 7, 0.6);
+      color: #d39e00;
     }
   </style>
 {% endblock %}
@@ -278,9 +283,47 @@
 
     const commentButtons = document.querySelectorAll('.lead-comment-button');
     const deleteButtons = document.querySelectorAll('.lead-delete-button');
+    const statusForms = document.querySelectorAll('.lead-status-form');
     const commentModalElement = document.getElementById('lead-comment-modal');
     const commentTextElement = document.getElementById('lead-comment-text');
     const commentModal = commentModalElement ? new bootstrap.Modal(commentModalElement) : null;
+
+    const updateStatusSelectClasses = (select, status) => {
+      select.classList.remove('lead-status-open', 'lead-status-waiting', 'lead-status-closed');
+      if (status === 'open') {
+        select.classList.add('lead-status-open');
+      } else if (status === 'waiting') {
+        select.classList.add('lead-status-waiting');
+      } else {
+        select.classList.add('lead-status-closed');
+      }
+    };
+
+    statusForms.forEach((form) => {
+      const select = form.querySelector('.lead-status-select');
+      if (!select) {
+        return;
+      }
+      select.addEventListener('change', async () => {
+        const formData = new FormData(form);
+        try {
+          const response = await fetch(form.action || window.location.href, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData,
+          });
+          if (!response.ok) {
+            throw new Error('Failed to update status');
+          }
+          const data = await response.json();
+          updateStatusSelectClasses(select, data.status || select.value);
+        } catch (error) {
+          form.submit();
+        }
+      });
+    });
 
     commentButtons.forEach((button) => {
       button.addEventListener('click', () => {

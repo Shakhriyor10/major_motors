@@ -355,6 +355,8 @@ def leads(request):
             status_value = request.POST.get('status')
             if lead_id and status_value in LeadEntry.Status.values:
                 LeadEntry.objects.filter(pk=lead_id).update(status=status_value)
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': status_value})
             return redirect('leads')
         if action == 'delete':
             lead_id = request.POST.get('lead_id')
