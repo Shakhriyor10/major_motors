@@ -41,77 +41,152 @@
       font-weight: 600;
     }
     .line-chart-card {
-      background: #fff;
-      border-radius: 1rem;
-      border: 1px solid rgba(13, 110, 253, 0.12);
-      padding: 1.5rem;
-      box-shadow: 0 12px 32px rgba(13, 110, 253, 0.08);
-    }
-    .line-chart {
-<!--      width: 100%;-->
-      height: 260px;
-    }
-    .line-grid {
-      stroke: rgba(13, 110, 253, 0.08);
-      stroke-width: 1;
-    }
-    .line-axis {
-      stroke: rgba(13, 110, 253, 0.2);
-      stroke-width: 1.5;
-    }
-    .line-series {
-      fill: none;
-      stroke-width: 3;
-      filter: drop-shadow(0 4px 6px rgba(13, 110, 253, 0.2));
-    }
-    .line-series.visits {
-      stroke: #0d6efd;
-    }
-    .line-series.calls {
-      stroke: #0dcaf0;
-    }
-    .line-series.sold {
-      stroke: #198754;
-    }
-    .line-legend .badge {
-      min-width: 5rem;
-    }
-    .chart-tooltip {
-      position: absolute;
-      background: #111827;
-      color: #fff;
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.5rem;
-      font-size: 0.8rem;
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-      pointer-events: none;
-      opacity: 0;
-      transform: translate(-50%, -110%);
-      transition: opacity 0.15s ease;
-      white-space: nowrap;
-      z-index: 2;
-    }
-    .chart-wrapper {
+      --chart-bg1: #0b1220;
+      --chart-bg2: #0a0f1c;
+      --chart-card: rgba(255, 255, 255, 0.06);
+      --chart-card-strong: rgba(255, 255, 255, 0.1);
+      --chart-stroke: rgba(255, 255, 255, 0.12);
+      --chart-text: rgba(255, 255, 255, 0.92);
+      --chart-muted: rgba(255, 255, 255, 0.65);
+      --chart-grid: rgba(255, 255, 255, 0.08);
+      --chart-shadow: 0 18px 55px rgba(0, 0, 0, 0.55);
+      border: 1px solid var(--chart-stroke);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+      border-radius: 1.125rem;
+      box-shadow: var(--chart-shadow);
+      padding: 1.25rem 1.25rem 1rem;
+      color: var(--chart-text);
       position: relative;
+      overflow: hidden;
     }
-    .chart-marker {
-      fill: #fff;
-      stroke-width: 2;
+    .line-chart-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(900px 600px at 20% 15%, rgba(88, 101, 242, 0.22), transparent 60%),
+        radial-gradient(800px 600px at 80% 25%, rgba(16, 185, 129, 0.18), transparent 55%),
+        radial-gradient(900px 700px at 50% 95%, rgba(244, 63, 94, 0.15), transparent 60%),
+        linear-gradient(180deg, var(--chart-bg1), var(--chart-bg2));
+      opacity: 0.9;
+      z-index: 0;
     }
-    .chart-marker.visits {
-      stroke: #0d6efd;
+    .line-chart-card > * {
+      position: relative;
+      z-index: 1;
     }
-    .chart-marker.calls {
-      stroke: #0dcaf0;
+    .chart-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
     }
-    .chart-marker.sold {
-      stroke: #198754;
+    .chart-title {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
     }
-    .chart-hover-line {
-      stroke: rgba(13, 110, 253, 0.3);
-      stroke-width: 1;
-      stroke-dasharray: 4 4;
-      opacity: 0;
+    .chart-title h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .chart-title small {
+      color: var(--chart-muted);
+      font-size: 0.75rem;
+    }
+    .chart-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .chart-pill {
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.45rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--chart-stroke);
+      background: rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(10px);
+      user-select: none;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.12s ease;
+      font-size: 0.75rem;
+      color: var(--chart-text);
+    }
+    .chart-pill:hover {
+      transform: translateY(-1px);
+      background: rgba(0, 0, 0, 0.26);
+    }
+    .chart-pill input {
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid var(--chart-stroke);
+      display: grid;
+      place-items: center;
+      margin: 0;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .chart-pill input:checked {
+      background: rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.2);
+    }
+    .chart-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 18px currentColor;
+      opacity: 0.95;
+    }
+    .chart-filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .chart-filters label {
+      color: var(--chart-muted);
+    }
+    .chart-area {
+      padding: 0.5rem 0.25rem 0.75rem;
+    }
+    .chart-canvas {
+      width: 100% !important;
+      height: 440px !important;
+      border-radius: 1rem;
+      background:
+        radial-gradient(700px 260px at 20% 20%, rgba(255, 255, 255, 0.06), transparent 60%),
+        radial-gradient(800px 300px at 80% 10%, rgba(255, 255, 255, 0.04), transparent 60%),
+        rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .chart-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      color: var(--chart-muted);
+      font-size: 0.75rem;
+    }
+    .chart-hint {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .chart-kbd {
+      border: 1px solid var(--chart-stroke);
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      color: var(--chart-text);
     }
   </style>
 {% endblock %}
@@ -261,87 +336,62 @@
       <hr class="my-4">
 
       <div class="line-chart-card">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-          <div>
-            <h4 class="h6 text-uppercase text-muted mb-1">График по датам</h4>
-<!--            <p class="mb-0">Ось X — календарные даты, ось Y — количество действий.</p>-->
+        <div class="chart-header">
+          <div class="chart-title">
+            <h4>График активности CRM (X: даты, Y: количество)</h4>
+            <small>Посещения • Звонки • Продано — наведи мышкой на точки</small>
           </div>
-          <div class="d-flex flex-wrap align-items-end gap-2">
-            <div>
-              <label class="form-label small text-muted mb-1" for="analytics-date-start">С</label>
-              <input
-                class="form-control form-control-sm"
-                type="date"
-                id="analytics-date-start"
-                value="{{ chart_start|date:'Y-m-d' }}"
-              >
-            </div>
-            <div>
-              <label class="form-label small text-muted mb-1" for="analytics-date-end">По</label>
-              <input
-                class="form-control form-control-sm"
-                type="date"
-                id="analytics-date-end"
-                value="{{ chart_end|date:'Y-m-d' }}"
-              >
-            </div>
-            <button class="btn btn-primary btn-sm" type="button" id="analytics-apply">Показать</button>
+          <div class="chart-controls">
+            <label class="chart-pill" data-key="visits" style="color:#60a5fa">
+              <span class="chart-dot" style="background:#60a5fa"></span>
+              <input type="checkbox" checked>
+              <span>Посещения</span>
+            </label>
+            <label class="chart-pill" data-key="calls" style="color:#34d399">
+              <span class="chart-dot" style="background:#34d399"></span>
+              <input type="checkbox" checked>
+              <span>Звонки</span>
+            </label>
+            <label class="chart-pill" data-key="sold" style="color:#f472b6">
+              <span class="chart-dot" style="background:#f472b6"></span>
+              <input type="checkbox" checked>
+              <span>Продано</span>
+            </label>
           </div>
         </div>
 
-        <div class="row align-items-center g-4">
-          <div class="col-12 col-lg-8">
-            <div class="chart-wrapper">
-              <div class="chart-tooltip" id="chart-tooltip"></div>
-              <svg class="line-chart" viewBox="0 0 700 260" role="img" aria-label="График динамики продаж">
-              <g class="line-grid">
-                <line x1="60" y1="20" x2="60" y2="220"></line>
-                <line x1="60" y1="220" x2="660" y2="220"></line>
-                <line x1="60" y1="170" x2="660" y2="170"></line>
-                <line x1="60" y1="120" x2="660" y2="120"></line>
-                <line x1="60" y1="70" x2="660" y2="70"></line>
-              </g>
-              <g class="line-axis">
-                <line x1="60" y1="20" x2="60" y2="220"></line>
-                <line x1="60" y1="220" x2="660" y2="220"></line>
-              </g>
-              <line class="chart-hover-line" x1="60" y1="20" x2="60" y2="220"></line>
-              <polyline class="line-series visits" data-series="visits" points=""></polyline>
-              <polyline class="line-series calls" data-series="calls" points=""></polyline>
-              <polyline class="line-series sold" data-series="sold" points=""></polyline>
-              <g class="chart-markers" data-markers></g>
-              <g class="line-y-labels text-muted" font-size="12">
-                <text x="50" y="24" text-anchor="end" data-y-label="max"></text>
-                <text x="50" y="74" text-anchor="end" data-y-label="mid-high"></text>
-                <text x="50" y="124" text-anchor="end" data-y-label="mid"></text>
-                <text x="50" y="174" text-anchor="end" data-y-label="mid-low"></text>
-                <text x="50" y="224" text-anchor="end" data-y-label="min"></text>
-              </g>
-              <g class="line-labels text-muted" font-size="12">
-                <text x="60" y="240" data-label="start"></text>
-                <text x="360" y="240" text-anchor="middle" data-label="middle"></text>
-                <text x="660" y="240" text-anchor="end" data-label="end"></text>
-              </g>
-              </svg>
-            </div>
+        <div class="chart-filters">
+          <div>
+            <label class="form-label small mb-1" for="analytics-date-start">С</label>
+            <input
+              class="form-control form-control-sm"
+              type="date"
+              id="analytics-date-start"
+              value="{{ chart_start|date:'Y-m-d' }}"
+            >
           </div>
-          <div class="col-12 col-lg-4">
-            <div class="line-legend vstack gap-3">
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="fw-semibold text-primary">Посещения</div>
-                <span class="badge rounded-pill text-bg-primary" data-series-value="visits">0</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="fw-semibold text-info">Звонки</div>
-                <span class="badge rounded-pill text-bg-info text-white" data-series-value="calls">0</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="fw-semibold text-success">Продано</div>
-                <span class="badge rounded-pill text-bg-success" data-series-value="sold">0</span>
-              </div>
-              <div class="border-top pt-3 text-muted small" data-series-summary>Данные за выбранный период.</div>
-            </div>
+          <div>
+            <label class="form-label small mb-1" for="analytics-date-end">По</label>
+            <input
+              class="form-control form-control-sm"
+              type="date"
+              id="analytics-date-end"
+              value="{{ chart_end|date:'Y-m-d' }}"
+            >
           </div>
+          <button class="btn btn-primary btn-sm" type="button" id="analytics-apply">Показать</button>
+        </div>
+
+        <div class="chart-area">
+          <canvas class="chart-canvas" id="crmChart"></canvas>
+        </div>
+
+        <div class="chart-footer">
+          <div class="chart-hint">
+            <span class="chart-kbd">Колёсико</span> масштаб (по желанию),
+            <span class="chart-kbd">Hover</span> подсказка
+          </div>
+          <div id="rangeText">Последние 7 дней</div>
         </div>
       </div>
     </div>
@@ -349,21 +399,18 @@
 
   {{ chart_series|json_script:"analytics-series" }}
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
   <script>
     (() => {
       const metricCards = document.querySelectorAll('[data-analytics-value]');
       const totalValue = document.querySelector('[data-analytics-total]');
       const fieldValues = document.querySelectorAll('[data-analytics-field]');
       const analyticsBadges = document.querySelectorAll('[data-analytics-badge]');
-      const seriesLines = document.querySelectorAll('[data-series]');
-      const seriesBadges = document.querySelectorAll('[data-series-value]');
-      const summary = document.querySelector('[data-series-summary]');
       const dateStartInput = document.getElementById('analytics-date-start');
       const dateEndInput = document.getElementById('analytics-date-end');
       const applyButton = document.getElementById('analytics-apply');
-      const tooltip = document.getElementById('chart-tooltip');
-      const markerGroup = document.querySelector('[data-markers]');
-      const hoverLine = document.querySelector('.chart-hover-line');
+      const chartCanvas = document.getElementById('crmChart');
+      const rangeText = document.getElementById('rangeText');
       if (!metricCards.length) return;
 
       const rawSeries = document.getElementById('analytics-series');
@@ -408,95 +455,7 @@
       };
 
       const renderLineChart = () => {
-        if (!analyticsData.length) return;
-        const maxValue = Math.max(
-          ...analyticsData.map((item) => Math.max(item.visits, item.calls, item.sold)),
-          1
-        );
-        const paddingLeft = 60;
-        const paddingRight = 40;
-        const paddingTop = 20;
-        const paddingBottom = 40;
-        const width = 700;
-        const height = 260;
-        const chartWidth = width - paddingLeft - paddingRight;
-        const chartHeight = height - paddingTop - paddingBottom;
-        const step = analyticsData.length > 1 ? chartWidth / (analyticsData.length - 1) : 0;
-        const svg = document.querySelector('.line-chart');
-
-        const seriesToPoints = (key) =>
-          analyticsData
-            .map((item, index) => {
-              const x = paddingLeft + step * index;
-              const y = paddingTop + chartHeight - (item[key] / maxValue) * chartHeight;
-              return `${x.toFixed(1)},${y.toFixed(1)}`;
-            })
-            .join(' ');
-
-        seriesLines.forEach((line) => {
-          const key = line.dataset.series;
-          line.setAttribute('points', seriesToPoints(key));
-        });
-
-        if (markerGroup) {
-          markerGroup.innerHTML = '';
-          analyticsData.forEach((item, index) => {
-            const x = paddingLeft + step * index;
-            const getY = (key) => paddingTop + chartHeight - (item[key] / maxValue) * chartHeight;
-            ['visits', 'calls', 'sold'].forEach((key) => {
-              const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-              circle.setAttribute('cx', x.toFixed(1));
-              circle.setAttribute('cy', getY(key).toFixed(1));
-              circle.setAttribute('r', '4');
-              circle.setAttribute('class', `chart-marker ${key}`);
-              circle.dataset.index = index;
-              circle.dataset.key = key;
-              markerGroup.appendChild(circle);
-            });
-          });
-        }
-
-        if (svg && tooltip && hoverLine) {
-          const bounds = svg.viewBox.baseVal;
-          const showTooltip = (index, event) => {
-            const item = analyticsData[index];
-            if (!item) return;
-            const x = paddingLeft + step * index;
-            hoverLine.setAttribute('x1', x.toFixed(1));
-            hoverLine.setAttribute('x2', x.toFixed(1));
-            hoverLine.style.opacity = '1';
-            tooltip.innerHTML = `
-              <div class="fw-semibold mb-1">${item.date}</div>
-              <div>Посещения: <strong>${formatNumber(item.visits)}</strong></div>
-              <div>Звонки: <strong>${formatNumber(item.calls)}</strong></div>
-              <div>Продано: <strong>${formatNumber(item.sold)}</strong></div>
-            `;
-            if (event) {
-              const wrapper = tooltip.closest('.chart-wrapper');
-              const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : svg.getBoundingClientRect();
-              tooltip.style.left = `${event.clientX - wrapperRect.left}px`;
-              tooltip.style.top = `${event.clientY - wrapperRect.top}px`;
-            }
-            tooltip.style.opacity = '1';
-          };
-
-          const hideTooltip = () => {
-            tooltip.style.opacity = '0';
-            hoverLine.style.opacity = '0';
-          };
-
-          svg.addEventListener('mousemove', (event) => {
-            if (analyticsData.length === 0) return;
-            const rect = svg.getBoundingClientRect();
-            const ratioX = bounds.width / rect.width;
-            const mouseX = (event.clientX - rect.left) * ratioX;
-            const safeStep = step || 1;
-            const rawIndex = Math.round((mouseX - paddingLeft) / safeStep);
-            const index = Math.max(0, Math.min(analyticsData.length - 1, rawIndex));
-            showTooltip(index, event);
-          });
-          svg.addEventListener('mouseleave', hideTooltip);
-        }
+        if (!chartCanvas) return;
 
         const totals = analyticsData.reduce(
           (acc, item) => {
@@ -508,38 +467,171 @@
           { visits: 0, calls: 0, sold: 0 }
         );
         updateDashboard(totals);
-        seriesBadges.forEach((badge) => {
-          const key = badge.dataset.seriesValue;
-          badge.textContent = formatNumber(totals[key] || 0);
-        });
-        if (summary) {
-          summary.textContent = `Итого действий: ${formatNumber(totals.visits + totals.calls + totals.sold)}`;
-        }
 
-        const yLabels = [
-          { key: 'max', value: maxValue },
-          { key: 'mid-high', value: Math.round(maxValue * 0.75) },
-          { key: 'mid', value: Math.round(maxValue * 0.5) },
-          { key: 'mid-low', value: Math.round(maxValue * 0.25) },
-          { key: 'min', value: 0 },
-        ];
-        yLabels.forEach(({ key, value }) => {
-          const label = document.querySelector(`[data-y-label="${key}"]`);
-          if (label) {
-            label.textContent = formatNumber(value);
-          }
-        });
+        if (!analyticsData.length) return;
 
-        const labels = {
-          start: analyticsData[0]?.date,
-          middle: analyticsData[Math.floor(analyticsData.length / 2)]?.date,
-          end: analyticsData[analyticsData.length - 1]?.date,
+        const labels = analyticsData.map((item) => item.date);
+        const dataSeries = {
+          visits: analyticsData.map((item) => item.visits),
+          calls: analyticsData.map((item) => item.calls),
+          sold: analyticsData.map((item) => item.sold),
         };
-        Object.entries(labels).forEach(([key, value]) => {
-          const label = document.querySelector(`[data-label="${key}"]`);
-          if (label && value) {
-            label.textContent = value;
-          }
+
+        const ctx = chartCanvas.getContext('2d');
+        const canvasHeight = chartCanvas.height || chartCanvas.getBoundingClientRect().height || 440;
+        const makeGradient = (color1, color2) => {
+          const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+          gradient.addColorStop(0, color1);
+          gradient.addColorStop(1, color2);
+          return gradient;
+        };
+
+        const styles = {
+          visits: {
+            line: 'rgba(96,165,250,0.95)',
+            fill: makeGradient('rgba(96,165,250,0.35)', 'rgba(96,165,250,0.00)'),
+          },
+          calls: {
+            line: 'rgba(52,211,153,0.95)',
+            fill: makeGradient('rgba(52,211,153,0.32)', 'rgba(52,211,153,0.00)'),
+          },
+          sold: {
+            line: 'rgba(244,114,182,0.95)',
+            fill: makeGradient('rgba(244,114,182,0.28)', 'rgba(244,114,182,0.00)'),
+          },
+        };
+
+        const gridColor = 'rgba(255,255,255,0.08)';
+        const tickColor = 'rgba(255,255,255,0.70)';
+
+        const crosshairPlugin = {
+          id: 'crosshair',
+          afterDatasetsDraw(chart) {
+            const {
+              ctx: chartCtx,
+              chartArea: { top, bottom, left, right },
+              tooltip,
+            } = chart;
+            if (!tooltip || !tooltip.getActiveElements().length) return;
+
+            const { x, y } = tooltip.getActiveElements()[0].element;
+
+            chartCtx.save();
+            chartCtx.lineWidth = 1;
+            chartCtx.setLineDash([6, 6]);
+            chartCtx.strokeStyle = 'rgba(255,255,255,0.18)';
+
+            chartCtx.beginPath();
+            chartCtx.moveTo(x, top);
+            chartCtx.lineTo(x, bottom);
+            chartCtx.stroke();
+
+            chartCtx.beginPath();
+            chartCtx.moveTo(left, y);
+            chartCtx.lineTo(right, y);
+            chartCtx.stroke();
+
+            chartCtx.restore();
+          },
+        };
+
+        const chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Посещения',
+                data: dataSeries.visits,
+                borderColor: styles.visits.line,
+                backgroundColor: styles.visits.fill,
+                fill: true,
+                tension: 0.35,
+                borderWidth: 3,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                pointBorderWidth: 0,
+              },
+              {
+                label: 'Звонки',
+                data: dataSeries.calls,
+                borderColor: styles.calls.line,
+                backgroundColor: styles.calls.fill,
+                fill: true,
+                tension: 0.35,
+                borderWidth: 3,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                pointBorderWidth: 0,
+              },
+              {
+                label: 'Продано',
+                data: dataSeries.sold,
+                borderColor: styles.sold.line,
+                backgroundColor: styles.sold.fill,
+                fill: true,
+                tension: 0.35,
+                borderWidth: 3,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                pointBorderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(10,15,28,0.92)',
+                borderColor: 'rgba(255,255,255,0.12)',
+                borderWidth: 1,
+                titleColor: 'rgba(255,255,255,0.92)',
+                bodyColor: 'rgba(255,255,255,0.85)',
+                padding: 12,
+                cornerRadius: 12,
+                displayColors: true,
+                callbacks: {
+                  title: (items) => `Дата: ${items[0].label}`,
+                  label: (item) => ` ${item.dataset.label}: ${item.formattedValue}`,
+                },
+              },
+            },
+            scales: {
+              x: {
+                grid: { color: gridColor },
+                ticks: { color: tickColor },
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: gridColor },
+                ticks: { color: tickColor },
+                title: {
+                  display: true,
+                  text: 'Количество (Y)',
+                  color: 'rgba(255,255,255,0.75)',
+                  font: { weight: '600' },
+                },
+              },
+            },
+          },
+          plugins: [crosshairPlugin],
+        });
+
+        const mapKeyToDatasetIndex = { visits: 0, calls: 1, sold: 2 };
+        document.querySelectorAll('.chart-pill').forEach((pill) => {
+          pill.addEventListener('click', (event) => {
+            if (event.target.tagName !== 'INPUT') {
+              const input = pill.querySelector('input');
+              input.checked = !input.checked;
+            }
+            const key = pill.dataset.key;
+            const idx = mapKeyToDatasetIndex[key];
+            chart.setDatasetVisibility(idx, pill.querySelector('input').checked);
+            chart.update();
+          });
         });
       };
 
@@ -558,6 +650,11 @@
       };
 
       renderLineChart();
+      if (rangeText && dateStartInput && dateEndInput) {
+        const startLabel = dateStartInput.value;
+        const endLabel = dateEndInput.value;
+        rangeText.textContent = startLabel && endLabel ? `${startLabel} — ${endLabel}` : 'Последние 7 дней';
+      }
       if (applyButton) {
         applyButton.addEventListener('click', applyRange);
       }
