@@ -90,60 +90,30 @@
           </thead>
           <tbody id="leadsTableBody">
             {% for lead in leads %}
-              <tr>
-                <td>
-                  <input
-                    type="text"
-                    name="name"
-                    class="form-control form-control-sm"
-                    value="{{ lead.name }}"
-                    form="lead-edit-{{ lead.id }}"
-                  >
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    name="phone"
-                    class="form-control form-control-sm"
-                    value="{{ lead.phone }}"
-                    form="lead-edit-{{ lead.id }}"
-                  >
-                </td>
+              <tr
+                data-lead-id="{{ lead.id }}"
+                data-lead-name="{{ lead.name|escapejs }}"
+                data-lead-phone="{{ lead.phone|escapejs }}"
+                data-lead-comment="{{ lead.comment|default:''|escapejs }}"
+                data-lead-employee="{{ lead.employee_id|default:'' }}"
+                data-lead-next-contact="{{ lead.next_contact_at|date:'Y-m-d' }}"
+              >
+                <td>{{ lead.name }}</td>
+                <td>{{ lead.phone }}</td>
                 <td>{{ lead.visit_date|default:"—" }}</td>
                 <td>{{ lead.visit_count }}</td>
-                <td>
-                  <select
-                    name="employee"
-                    class="form-select form-select-sm"
-                    form="lead-edit-{{ lead.id }}"
-                  >
-                    <option value="">—</option>
-                    {% for employee in employees %}
-                      <option value="{{ employee.id }}" {% if lead.employee_id == employee.id %}selected{% endif %}>
-                        {{ employee }}
-                      </option>
-                    {% endfor %}
-                  </select>
-                </td>
+                <td>{{ lead.employee|default:"—" }}</td>
                 <td>{{ lead.last_call_at|default:"—" }}</td>
                 <td>{{ lead.call_count }}</td>
+                <td>{{ lead.next_contact_at|default:"—" }}</td>
                 <td>
-                  <input
-                    type="date"
-                    name="next_contact_at"
-                    class="form-control form-control-sm"
-                    value="{{ lead.next_contact_at|date:'Y-m-d' }}"
-                    form="lead-edit-{{ lead.id }}"
-                  >
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    name="comment"
-                    class="form-control form-control-sm"
-                    value="{{ lead.comment }}"
-                    form="lead-edit-{{ lead.id }}"
-                  >
+                  {% if lead.comment %}
+                    <span class="text-truncate d-inline-block" style="max-width: 180px;">
+                      {{ lead.comment }}
+                    </span>
+                  {% else %}
+                    —
+                  {% endif %}
                 </td>
                 <td>
                   <form method="post" class="d-flex align-items-center gap-2">
@@ -162,12 +132,15 @@
                   </form>
                 </td>
                 <td class="text-end">
-                  <form method="post" id="lead-edit-{{ lead.id }}" class="d-inline">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="update_lead">
-                    <input type="hidden" name="lead_id" value="{{ lead.id }}">
-                    <button type="submit" class="btn btn-link p-0 me-3">Сохранить</button>
-                  </form>
+                  <button
+                    type="button"
+                    class="btn btn-link p-0 me-3 lead-edit-button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#lead-edit-modal"
+                    aria-label="Редактировать"
+                  >
+                    ✏️
+                  </button>
                   <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="delete">
@@ -185,6 +158,53 @@
             {% endfor %}
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="lead-edit-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" id="lead-edit-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_lead">
+          <input type="hidden" name="lead_id" id="leadEditId">
+          <div class="modal-header">
+            <h5 class="modal-title">Редактировать лид</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Имя</label>
+              <input type="text" name="name" id="leadEditName" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Номер телефона</label>
+              <input type="text" name="phone" id="leadEditPhone" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Кто обслужил</label>
+              <select name="employee" id="leadEditEmployee" class="form-select">
+                <option value="">—</option>
+                {% for employee in employees %}
+                  <option value="{{ employee.id }}">{{ employee }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Следующий контакт</label>
+              <input type="date" name="next_contact_at" id="leadEditNextContact" class="form-control">
+            </div>
+            <div class="mb-0">
+              <label class="form-label">Комментарий</label>
+              <textarea name="comment" id="leadEditComment" class="form-control" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -259,10 +279,8 @@
         if (!cells.length) {
           return;
         }
-        const nameInput = cells[0]?.querySelector('input');
-        const phoneInput = cells[1]?.querySelector('input');
-        const name = ((nameInput?.value || cells[0]?.textContent) || '').toLowerCase();
-        const phone = ((phoneInput?.value || cells[1]?.textContent) || '').toLowerCase();
+        const name = (cells[0]?.textContent || '').toLowerCase();
+        const phone = (cells[1]?.textContent || '').toLowerCase();
         const matches = !query || name.includes(query) || phone.includes(query);
         row.style.display = matches ? '' : 'none';
       });
@@ -296,17 +314,38 @@
       const cells = row.querySelectorAll('td');
       if (cells.length > 1) {
         const phoneCell = cells[1];
-        const phoneInput = phoneCell.querySelector('input');
-        const rawValue = phoneInput ? phoneInput.value : phoneCell.textContent;
-        const normalized = normalizeLeadPhone(rawValue || '');
+        const normalized = normalizeLeadPhone(phoneCell.textContent || '');
         if (normalized) {
-          if (phoneInput) {
-            phoneInput.value = normalized;
-          } else {
-            phoneCell.textContent = normalized;
-          }
+          phoneCell.textContent = normalized;
         }
       }
+    });
+
+    const leadEditModalElement = document.getElementById('lead-edit-modal');
+    const leadEditIdInput = document.getElementById('leadEditId');
+    const leadEditNameInput = document.getElementById('leadEditName');
+    const leadEditPhoneInput = document.getElementById('leadEditPhone');
+    const leadEditEmployeeSelect = document.getElementById('leadEditEmployee');
+    const leadEditNextContactInput = document.getElementById('leadEditNextContact');
+    const leadEditCommentInput = document.getElementById('leadEditComment');
+    const leadEditButtons = document.querySelectorAll('.lead-edit-button');
+
+    const populateLeadEditModal = (row) => {
+      if (!row) return;
+      const leadId = row.dataset.leadId || '';
+      if (leadEditIdInput) leadEditIdInput.value = leadId;
+      if (leadEditNameInput) leadEditNameInput.value = row.dataset.leadName || '';
+      if (leadEditPhoneInput) leadEditPhoneInput.value = row.dataset.leadPhone || '';
+      if (leadEditEmployeeSelect) leadEditEmployeeSelect.value = row.dataset.leadEmployee || '';
+      if (leadEditNextContactInput) leadEditNextContactInput.value = row.dataset.leadNextContact || '';
+      if (leadEditCommentInput) leadEditCommentInput.value = row.dataset.leadComment || '';
+    };
+
+    leadEditButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const row = button.closest('tr');
+        populateLeadEditModal(row);
+      });
     });
 
     const deleteButtons = document.querySelectorAll('.lead-delete-button');
