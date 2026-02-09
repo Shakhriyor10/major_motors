@@ -312,6 +312,7 @@
         try {
           const response = await fetch(form.action || window.location.href, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
               'X-Requested-With': 'XMLHttpRequest',
               'X-CSRFToken': csrfInput?.value || '',
