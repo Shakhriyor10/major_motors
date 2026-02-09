@@ -305,6 +305,7 @@ class LeadEntry(TimeStampedModel):
     class Status(models.TextChoices):
         OPEN = 'open', 'Открытый'
         CLOSED = 'closed', 'Закрытый'
+        POSTPONED = 'postponed', 'Отложил'
 
     name = models.CharField(max_length=255)
     phone = models.CharField(max_length=32)
@@ -313,6 +314,7 @@ class LeadEntry(TimeStampedModel):
     visit_count = models.PositiveIntegerField(default=0)
     last_call_at = models.DateField(null=True, blank=True)
     call_count = models.PositiveIntegerField(default=0)
+    next_contact_at = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
     employee = models.ForeignKey(
         'CashEmployee',

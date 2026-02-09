@@ -356,6 +356,18 @@ def leads(request):
             if lead_id and status_value in LeadEntry.Status.values:
                 LeadEntry.objects.filter(pk=lead_id).update(status=status_value)
             return redirect('leads')
+        if action == 'update_lead':
+            lead_id = request.POST.get('lead_id')
+            if lead_id:
+                next_contact_at = parse_date(request.POST.get('next_contact_at', '') or '')
+                LeadEntry.objects.filter(pk=lead_id).update(
+                    name=request.POST.get('name', '').strip(),
+                    phone=request.POST.get('phone', '').strip(),
+                    comment=request.POST.get('comment', '').strip(),
+                    employee_id=request.POST.get('employee') or None,
+                    next_contact_at=next_contact_at,
+                )
+            return redirect('leads')
         if action == 'delete':
             lead_id = request.POST.get('lead_id')
             if lead_id:
@@ -366,6 +378,7 @@ def leads(request):
         comment = request.POST.get('comment', '').strip()
         contact_type = request.POST.get('contact_type', 'visit')
         employee_id = request.POST.get('employee') or None
+        next_contact_at = parse_date(request.POST.get('next_contact_at', '') or '')
         if name and phone:
             lead, created = LeadEntry.objects.get_or_create(
                 phone=phone,
@@ -375,6 +388,8 @@ def leads(request):
                 lead.name = name
             if comment:
                 lead.comment = comment
+            if not lead.next_contact_at:
+                lead.next_contact_at = next_contact_at or (date.today() + timedelta(days=2))
             if contact_type == 'call':
                 lead.call_count = (lead.call_count or 0) + 1
                 lead.last_call_at = date.today()

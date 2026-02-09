@@ -91,6 +91,7 @@ class LeadEntryAdmin(admin.ModelAdmin):
         'visit_count',
         'last_call_at',
         'call_count',
+        'next_contact_at',
         'status',
         'employee',
     )
