@@ -51,6 +51,11 @@
           <label class="form-label">Комментарий</label>
           <textarea name="comment" class="form-control" rows="2" placeholder="Дополнительная информация"></textarea>
         </div>
+        <div class="col-md-4">
+          <label class="form-label">Следующий контакт</label>
+          <input type="date" name="next_contact_at" class="form-control">
+          <div class="form-text">Если не указать, будет автоматически +2 дня.</div>
+        </div>
         <div class="col-12">
           <button class="btn btn-primary" type="submit">Добавить лид</button>
         </div>
@@ -77,6 +82,7 @@
               <th>Кто обслужил</th>
               <th>Последний звонок</th>
               <th>Звонков</th>
+              <th>Следующий контакт</th>
               <th>Комментарий</th>
               <th>Статус</th>
               <th></th>
@@ -85,39 +91,59 @@
           <tbody id="leadsTableBody">
             {% for lead in leads %}
               <tr>
-                <td>{{ lead.name }}</td>
-                <td>{{ lead.phone }}</td>
+                <td>
+                  <input
+                    type="text"
+                    name="name"
+                    class="form-control form-control-sm"
+                    value="{{ lead.name }}"
+                    form="lead-edit-{{ lead.id }}"
+                  >
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="phone"
+                    class="form-control form-control-sm"
+                    value="{{ lead.phone }}"
+                    form="lead-edit-{{ lead.id }}"
+                  >
+                </td>
                 <td>{{ lead.visit_date|default:"—" }}</td>
                 <td>{{ lead.visit_count }}</td>
-                <td>{{ lead.employee|default:"—" }}</td>
+                <td>
+                  <select
+                    name="employee"
+                    class="form-select form-select-sm"
+                    form="lead-edit-{{ lead.id }}"
+                  >
+                    <option value="">—</option>
+                    {% for employee in employees %}
+                      <option value="{{ employee.id }}" {% if lead.employee_id == employee.id %}selected{% endif %}>
+                        {{ employee }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </td>
                 <td>{{ lead.last_call_at|default:"—" }}</td>
                 <td>{{ lead.call_count }}</td>
                 <td>
-                  {% if lead.comment %}
-                    <div class="d-flex align-items-start justify-content-between gap-2">
-                      <div class="flex-grow-1">
-                        {% if lead.comment|length > 15 %}
-                          <span class="text-truncate d-inline-block" style="max-width: 180px;">
-                            {{ lead.comment|slice:":15" }}…
-                          </span>
-                        {% else %}
-                          {{ lead.comment }}
-                        {% endif %}
-                      </div>
-                      {% if lead.comment|length > 15 %}
-                        <button
-                          type="button"
-                          class="btn btn-link p-0 align-baseline lead-comment-button"
-                          data-comment="{{ lead.comment|escapejs }}"
-                          aria-label="Посмотреть комментарий"
-                        >
-                          👁
-                        </button>
-                      {% endif %}
-                    </div>
-                  {% else %}
-                    —
-                  {% endif %}
+                  <input
+                    type="date"
+                    name="next_contact_at"
+                    class="form-control form-control-sm"
+                    value="{{ lead.next_contact_at|date:'Y-m-d' }}"
+                    form="lead-edit-{{ lead.id }}"
+                  >
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="comment"
+                    class="form-control form-control-sm"
+                    value="{{ lead.comment }}"
+                    form="lead-edit-{{ lead.id }}"
+                  >
                 </td>
                 <td>
                   <form method="post" class="d-flex align-items-center gap-2">
@@ -126,15 +152,22 @@
                     <input type="hidden" name="lead_id" value="{{ lead.id }}">
                     <select
                       name="status"
-                      class="form-select form-select-sm lead-status-select {% if lead.status == 'open' %}lead-status-open{% else %}lead-status-closed{% endif %}"
+                      class="form-select form-select-sm lead-status-select {% if lead.status == 'open' %}lead-status-open{% elif lead.status == 'postponed' %}lead-status-postponed{% else %}lead-status-closed{% endif %}"
                       onchange="this.form.submit()"
                     >
                       <option value="open" {% if lead.status == 'open' %}selected{% endif %}>Открытый</option>
+                      <option value="postponed" {% if lead.status == 'postponed' %}selected{% endif %}>Отложил</option>
                       <option value="closed" {% if lead.status == 'closed' %}selected{% endif %}>Закрытый</option>
                     </select>
                   </form>
                 </td>
                 <td class="text-end">
+                  <form method="post" id="lead-edit-{{ lead.id }}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_lead">
+                    <input type="hidden" name="lead_id" value="{{ lead.id }}">
+                    <button type="submit" class="btn btn-link p-0 me-3">Сохранить</button>
+                  </form>
                   <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="delete">
@@ -147,7 +180,7 @@
               </tr>
             {% empty %}
               <tr>
-                <td colspan="10" class="text-muted">Лиды пока не зарегистрированы.</td>
+                <td colspan="11" class="text-muted">Лиды пока не зарегистрированы.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -156,19 +189,6 @@
     </div>
   </div>
 
-  <div class="modal fade" id="lead-comment-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Комментарий лида</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-        </div>
-        <div class="modal-body">
-          <p id="lead-comment-text" class="mb-0 text-break"></p>
-        </div>
-      </div>
-    </div>
-  </div>
 {% endblock %}
 
 {% block extra_styles %}
@@ -186,6 +206,11 @@
       background-color: rgba(220, 53, 69, 0.1);
       border-color: rgba(220, 53, 69, 0.6);
       color: #dc3545;
+    }
+    .lead-status-postponed {
+      background-color: rgba(255, 193, 7, 0.2);
+      border-color: rgba(255, 193, 7, 0.7);
+      color: #b58100;
     }
   </style>
 {% endblock %}
@@ -234,8 +259,10 @@
         if (!cells.length) {
           return;
         }
-        const name = (cells[0]?.textContent || '').toLowerCase();
-        const phone = (cells[1]?.textContent || '').toLowerCase();
+        const nameInput = cells[0]?.querySelector('input');
+        const phoneInput = cells[1]?.querySelector('input');
+        const name = ((nameInput?.value || cells[0]?.textContent) || '').toLowerCase();
+        const phone = ((phoneInput?.value || cells[1]?.textContent) || '').toLowerCase();
         const matches = !query || name.includes(query) || phone.includes(query);
         row.style.display = matches ? '' : 'none';
       });
@@ -269,28 +296,20 @@
       const cells = row.querySelectorAll('td');
       if (cells.length > 1) {
         const phoneCell = cells[1];
-        const normalized = normalizeLeadPhone(phoneCell.textContent || '');
+        const phoneInput = phoneCell.querySelector('input');
+        const rawValue = phoneInput ? phoneInput.value : phoneCell.textContent;
+        const normalized = normalizeLeadPhone(rawValue || '');
         if (normalized) {
-          phoneCell.textContent = normalized;
+          if (phoneInput) {
+            phoneInput.value = normalized;
+          } else {
+            phoneCell.textContent = normalized;
+          }
         }
       }
     });
 
-    const commentButtons = document.querySelectorAll('.lead-comment-button');
     const deleteButtons = document.querySelectorAll('.lead-delete-button');
-    const commentModalElement = document.getElementById('lead-comment-modal');
-    const commentTextElement = document.getElementById('lead-comment-text');
-    const commentModal = commentModalElement ? new bootstrap.Modal(commentModalElement) : null;
-
-    commentButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const comment = button.getAttribute('data-comment') || '';
-        if (commentTextElement) {
-          commentTextElement.textContent = comment;
-        }
-        commentModal?.show();
-      });
-    });
 
     deleteButtons.forEach((button) => {
       button.addEventListener('click', (event) => {
