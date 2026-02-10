@@ -353,9 +353,13 @@ def leads(request):
         if action == 'update_status':
             lead_id = request.POST.get('lead_id')
             status_value = request.POST.get('status')
-            if lead_id and status_value in LeadEntry.Status.values:
-                LeadEntry.objects.filter(pk=lead_id).update(status=status_value)
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+            if not lead_id or status_value not in LeadEntry.Status.values:
+                if is_ajax:
+                    return JsonResponse({'error': 'invalid_payload'}, status=400)
+                return redirect('leads')
+            LeadEntry.objects.filter(pk=lead_id).update(status=status_value)
+            if is_ajax:
                 return JsonResponse({'status': status_value})
             return redirect('leads')
         if action == 'delete':
