@@ -299,29 +299,44 @@
       }
     };
 
+    const requestStatusUpdate = async (form, select, previousStatus) => {
+      const formData = new FormData(form);
+      try {
+        const response = await fetch(form.action || window.location.href, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: formData,
+        });
+        if (!response.ok) {
+          throw new Error('Failed to update status');
+        }
+        const data = await response.json();
+        const nextStatus = data.status || select.value;
+        select.dataset.currentStatus = nextStatus;
+        updateStatusSelectClasses(select, nextStatus);
+      } catch (error) {
+        select.value = previousStatus;
+        updateStatusSelectClasses(select, previousStatus);
+        window.alert('Не удалось обновить статус. Попробуйте еще раз.');
+      }
+    };
+
     statusForms.forEach((form) => {
       const select = form.querySelector('.lead-status-select');
       if (!select) {
         return;
       }
-      select.addEventListener('change', async () => {
-        const formData = new FormData(form);
-        try {
-          const response = await fetch(form.action || window.location.href, {
-            method: 'POST',
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: formData,
-          });
-          if (!response.ok) {
-            throw new Error('Failed to update status');
-          }
-          const data = await response.json();
-          updateStatusSelectClasses(select, data.status || select.value);
-        } catch (error) {
-          form.submit();
-        }
+      select.dataset.currentStatus = select.value;
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const previousStatus = select.dataset.currentStatus || select.value;
+        requestStatusUpdate(form, select, previousStatus);
+      });
+      select.addEventListener('change', () => {
+        const previousStatus = select.dataset.currentStatus || select.value;
+        requestStatusUpdate(form, select, previousStatus);
       });
     });
 
