@@ -223,8 +223,21 @@
               <input type="text" class="form-control" name="name" id="leadEditName" required>
             </div>
             <div class="mb-3">
-              <label class="form-label" for="leadEditPhone">Телефон</label>
-              <input type="text" class="form-control" name="phone" id="leadEditPhone" required>
+              <label class="form-label" for="leadEditPhoneDisplay">Телефон</label>
+              <div class="input-group">
+                <span class="input-group-text">+998</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="leadEditPhoneDisplay"
+                  inputmode="numeric"
+                  autocomplete="tel-national"
+                  placeholder="90-123-45-67"
+                  pattern="[0-9]{2}-[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                  required
+                >
+              </div>
+              <input type="hidden" name="phone" id="leadEditPhone">
             </div>
             <div class="mb-3">
               <label class="form-label" for="leadEditEmployee">Кто обслужил</label>
@@ -443,15 +456,21 @@
     const editModal = editModalElement ? new bootstrap.Modal(editModalElement) : null;
     const leadEditId = document.getElementById('leadEditId');
     const leadEditName = document.getElementById('leadEditName');
+    const leadEditPhoneDisplay = document.getElementById('leadEditPhoneDisplay');
     const leadEditPhone = document.getElementById('leadEditPhone');
     const leadEditEmployee = document.getElementById('leadEditEmployee');
     const leadEditStatus = document.getElementById('leadEditStatus');
     const leadEditComment = document.getElementById('leadEditComment');
 
 
-    if (leadEditPhone) {
-      leadEditPhone.addEventListener('input', (event) => {
-        event.target.value = normalizeLeadPhone(event.target.value);
+    if (leadEditPhoneDisplay) {
+      leadEditPhoneDisplay.addEventListener('input', (event) => {
+        const localDigits = getLocalPhoneDigits(event.target.value);
+        const formattedLocal = formatPhoneDigits(localDigits);
+        event.target.value = formattedLocal;
+        if (leadEditPhone) {
+          leadEditPhone.value = formattedLocal ? `+998 ${formattedLocal}` : '';
+        }
       });
     }
 
@@ -482,7 +501,15 @@
         }
         if (leadEditId) leadEditId.value = row.dataset.leadId || '';
         if (leadEditName) leadEditName.value = row.dataset.leadName || '';
-        if (leadEditPhone) leadEditPhone.value = normalizeLeadPhone(row.dataset.leadPhone || '');
+        if (leadEditPhoneDisplay) {
+          const localDigits = getLocalPhoneDigits(row.dataset.leadPhone || '');
+          leadEditPhoneDisplay.value = formatPhoneDigits(localDigits);
+        }
+        if (leadEditPhone) {
+          const localDigits = getLocalPhoneDigits(row.dataset.leadPhone || '');
+          const formattedLocal = formatPhoneDigits(localDigits);
+          leadEditPhone.value = formattedLocal ? `+998 ${formattedLocal}` : '';
+        }
         if (leadEditEmployee) leadEditEmployee.value = row.dataset.leadEmployeeId || '';
         if (leadEditStatus) leadEditStatus.value = row.dataset.leadStatus || 'open';
         if (leadEditComment) leadEditComment.value = row.dataset.leadComment || '';
@@ -495,7 +522,12 @@
       leadEditForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const formData = new FormData(leadEditForm);
-        const formattedPhone = normalizeLeadPhone(formData.get('phone') || '');
+        const localDigits = getLocalPhoneDigits(leadEditPhoneDisplay?.value || formData.get('phone') || '');
+        const formattedLocal = formatPhoneDigits(localDigits);
+        const formattedPhone = formattedLocal ? `+998 ${formattedLocal}` : '';
+        if (leadEditPhoneDisplay) {
+          leadEditPhoneDisplay.value = formattedLocal;
+        }
         if (leadEditPhone) {
           leadEditPhone.value = formattedPhone;
         }
