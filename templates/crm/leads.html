@@ -65,6 +65,15 @@
           <label class="form-label">Поиск по имени или номеру</label>
           <input type="text" id="leadSearch" class="form-control" placeholder="Имя или телефон">
         </div>
+        <div class="col-md-3">
+          <label class="form-label">Фильтр по статусу</label>
+          <select id="leadStatusFilter" class="form-select">
+            <option value="all">Все</option>
+            <option value="open">Открытый</option>
+            <option value="waiting">В ожидании</option>
+            <option value="closed">Закрытый</option>
+          </select>
+        </div>
       </div>
       <div class="table-responsive">
         <table class="table align-middle mb-0">
@@ -84,7 +93,14 @@
           </thead>
           <tbody id="leadsTableBody">
             {% for lead in leads %}
-              <tr>
+              <tr
+                data-lead-id="{{ lead.id }}"
+                data-lead-name="{{ lead.name|escapejs }}"
+                data-lead-phone="{{ lead.phone|escapejs }}"
+                data-lead-comment="{{ lead.comment|default:''|escapejs }}"
+                data-lead-status="{{ lead.status }}"
+                data-lead-employee-id="{{ lead.employee_id|default:'' }}"
+              >
                 <td>{{ lead.name }}</td>
                 <td>{{ lead.phone }}</td>
                 <td>{{ lead.visit_date|default:"—" }}</td>
@@ -119,30 +135,31 @@
                     —
                   {% endif %}
                 </td>
-                <td>
-                  <form method="post" class="d-flex align-items-center gap-2 lead-status-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="update_status">
-                    <input type="hidden" name="lead_id" value="{{ lead.id }}">
-                    <select
-                      name="status"
-                      class="form-select form-select-sm lead-status-select {% if lead.status == 'open' %}lead-status-open{% elif lead.status == 'waiting' %}lead-status-waiting{% else %}lead-status-closed{% endif %}"
-                    >
-                      <option value="open" {% if lead.status == 'open' %}selected{% endif %}>Открытый</option>
-                      <option value="waiting" {% if lead.status == 'waiting' %}selected{% endif %}>В ожидании</option>
-                      <option value="closed" {% if lead.status == 'closed' %}selected{% endif %}>Закрытый</option>
-                    </select>
-                  </form>
+                <td class="lead-status-cell">
+                  <span class="badge rounded-pill lead-status-badge {% if lead.status == 'open' %}lead-status-open{% elif lead.status == 'waiting' %}lead-status-waiting{% else %}lead-status-closed{% endif %}">
+                    {{ lead.get_status_display }}
+                  </span>
                 </td>
                 <td class="text-end">
-                  <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="lead_id" value="{{ lead.id }}">
-                    <button type="submit" class="btn btn-link text-danger p-0 lead-delete-button">
-                      Удалить
+                  <div class="d-flex align-items-center justify-content-end gap-3">
+                    <button
+                      type="button"
+                      class="btn btn-link p-0 text-secondary lead-edit-button"
+                      aria-label="Редактировать лид"
+                      title="Редактировать"
+                    >
+                      ✏️
                     </button>
-                  </form>
+                    <form method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="delete">
+                      <input type="hidden" name="lead_id" value="{{ lead.id }}">
+                      <input type="hidden" name="return_url" value="{{ request.get_full_path }}">
+                      <button type="submit" class="btn btn-link text-danger p-0 lead-delete-button">
+                        Удалить
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             {% empty %}
@@ -153,6 +170,23 @@
           </tbody>
         </table>
       </div>
+      {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="mt-3" aria-label="Навигация по лидам">
+          <ul class="pagination mb-0">
+            <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+              <a class="page-link" href="?page={% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% else %}1{% endif %}{% if sort != 'recent' %}&sort={{ sort }}{% endif %}">Назад</a>
+            </li>
+            {% for page_num in page_obj.paginator.page_range %}
+              <li class="page-item {% if page_num == page_obj.number %}active{% endif %}">
+                <a class="page-link" href="?page={{ page_num }}{% if sort != 'recent' %}&sort={{ sort }}{% endif %}">{{ page_num }}</a>
+              </li>
+            {% endfor %}
+            <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+              <a class="page-link" href="?page={% if page_obj.has_next %}{{ page_obj.next_page_number }}{% else %}{{ page_obj.paginator.num_pages }}{% endif %}{% if sort != 'recent' %}&sort={{ sort }}{% endif %}">Вперёд</a>
+            </li>
+          </ul>
+        </nav>
+      {% endif %}
     </div>
   </div>
 
@@ -169,13 +203,67 @@
       </div>
     </div>
   </div>
+
+
+  <div class="modal fade" id="lead-edit-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" id="leadEditForm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="edit">
+          <input type="hidden" name="lead_id" id="leadEditId">
+          <input type="hidden" name="return_url" value="{{ request.get_full_path }}">
+          <div class="modal-header">
+            <h5 class="modal-title">Редактировать лид</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label" for="leadEditName">Имя</label>
+              <input type="text" class="form-control" name="name" id="leadEditName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="leadEditPhone">Телефон</label>
+              <input type="text" class="form-control" name="phone" id="leadEditPhone" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="leadEditEmployee">Кто обслужил</label>
+              <select class="form-select" name="employee" id="leadEditEmployee">
+                <option value="">—</option>
+                {% for employee in employees %}
+                  <option value="{{ employee.id }}">{{ employee }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="leadEditStatus">Статус</label>
+              <select class="form-select" name="status" id="leadEditStatus">
+                <option value="open">Открытый</option>
+                <option value="waiting">В ожидании</option>
+                <option value="closed">Закрытый</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="leadEditComment">Комментарий</label>
+              <textarea class="form-control" name="comment" id="leadEditComment" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block extra_styles %}
   <style>
-    .lead-status-select {
+    .lead-status-badge {
       font-weight: 600;
       border-width: 2px;
+      border-style: solid;
     }
     .lead-status-open {
       background-color: rgba(25, 135, 84, 0.1);
@@ -198,6 +286,7 @@
 {% block extra_scripts %}
   <script>
     const leadSearchInput = document.getElementById('leadSearch');
+    const leadStatusFilter = document.getElementById('leadStatusFilter');
     const leadsTableBody = document.getElementById('leadsTableBody');
     const leadRows = leadsTableBody ? Array.from(leadsTableBody.querySelectorAll('tr')) : [];
     const leadPhoneDisplay = document.getElementById('leadPhoneDisplay');
@@ -229,8 +318,48 @@
       return rawValue;
     };
 
+    const getStatusLabel = (status) => {
+      if (status === 'open') return 'Открытый';
+      if (status === 'waiting') return 'В ожидании';
+      return 'Закрытый';
+    };
+
+    const renderCommentCell = (comment) => {
+      const normalized = (comment || '').trim();
+      if (!normalized) {
+        return '—';
+      }
+      if (normalized.length <= 15) {
+        return normalized;
+      }
+      const escaped = normalized
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+      return `
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <div class="flex-grow-1">
+            <span class="text-truncate d-inline-block" style="max-width: 180px;">
+              ${escaped.slice(0, 15)}…
+            </span>
+          </div>
+          <button
+            type="button"
+            class="btn btn-link p-0 align-baseline lead-comment-button"
+            data-comment="${escaped}"
+            aria-label="Посмотреть комментарий"
+          >
+            👁
+          </button>
+        </div>
+      `;
+    };
+
     const filterLeads = () => {
       const query = (leadSearchInput?.value || '').trim().toLowerCase();
+      const status = leadStatusFilter?.value || 'all';
       if (!leadRows.length) {
         return;
       }
@@ -241,13 +370,20 @@
         }
         const name = (cells[0]?.textContent || '').toLowerCase();
         const phone = (cells[1]?.textContent || '').toLowerCase();
-        const matches = !query || name.includes(query) || phone.includes(query);
+        const rowStatus = row.dataset.leadStatus || '';
+        const matchesQuery = !query || name.includes(query) || phone.includes(query);
+        const matchesStatus = status === 'all' || rowStatus === status;
+        const matches = matchesQuery && matchesStatus;
         row.style.display = matches ? '' : 'none';
       });
     };
 
     if (leadSearchInput) {
       leadSearchInput.addEventListener('input', filterLeads);
+    }
+
+    if (leadStatusFilter) {
+      leadStatusFilter.addEventListener('change', filterLeads);
     }
 
     if (leadPhoneDisplay) {
@@ -281,33 +417,78 @@
       }
     });
 
-    const commentButtons = document.querySelectorAll('.lead-comment-button');
+    const bindCommentButtons = () => {
+      document.querySelectorAll('.lead-comment-button').forEach((button) => {
+        if (button.dataset.boundComment === '1') {
+          return;
+        }
+        button.dataset.boundComment = '1';
+        button.addEventListener('click', () => {
+          const comment = button.getAttribute('data-comment') || '';
+          if (commentTextElement) {
+            commentTextElement.textContent = comment;
+          }
+          commentModal?.show();
+        });
+      });
+    };
+
     const deleteButtons = document.querySelectorAll('.lead-delete-button');
-    const statusForms = document.querySelectorAll('.lead-status-form');
+    const editButtons = document.querySelectorAll('.lead-edit-button');
     const commentModalElement = document.getElementById('lead-comment-modal');
     const commentTextElement = document.getElementById('lead-comment-text');
     const commentModal = commentModalElement ? new bootstrap.Modal(commentModalElement) : null;
+    const editModalElement = document.getElementById('lead-edit-modal');
+    const editModal = editModalElement ? new bootstrap.Modal(editModalElement) : null;
+    const leadEditId = document.getElementById('leadEditId');
+    const leadEditName = document.getElementById('leadEditName');
+    const leadEditPhone = document.getElementById('leadEditPhone');
+    const leadEditEmployee = document.getElementById('leadEditEmployee');
+    const leadEditStatus = document.getElementById('leadEditStatus');
+    const leadEditComment = document.getElementById('leadEditComment');
 
-    const updateStatusSelectClasses = (select, status) => {
-      select.classList.remove('lead-status-open', 'lead-status-waiting', 'lead-status-closed');
-      if (status === 'open') {
-        select.classList.add('lead-status-open');
-      } else if (status === 'waiting') {
-        select.classList.add('lead-status-waiting');
-      } else {
-        select.classList.add('lead-status-closed');
-      }
-    };
-
-    statusForms.forEach((form) => {
-      const select = form.querySelector('.lead-status-select');
-      if (!select) {
+    const updateStatusBadge = (row, status) => {
+      const badge = row.querySelector('.lead-status-badge');
+      if (!badge) {
         return;
       }
-      select.addEventListener('change', async () => {
-        const formData = new FormData(form);
+      badge.classList.remove('lead-status-open', 'lead-status-waiting', 'lead-status-closed');
+      if (status === 'open') {
+        badge.classList.add('lead-status-open');
+      } else if (status === 'waiting') {
+        badge.classList.add('lead-status-waiting');
+      } else {
+        badge.classList.add('lead-status-closed');
+      }
+      badge.textContent = getStatusLabel(status);
+    };
+
+    bindCommentButtons();
+
+
+    editButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const row = button.closest('tr');
+        if (!row) {
+          return;
+        }
+        if (leadEditId) leadEditId.value = row.dataset.leadId || '';
+        if (leadEditName) leadEditName.value = row.dataset.leadName || '';
+        if (leadEditPhone) leadEditPhone.value = row.dataset.leadPhone || '';
+        if (leadEditEmployee) leadEditEmployee.value = row.dataset.leadEmployeeId || '';
+        if (leadEditStatus) leadEditStatus.value = row.dataset.leadStatus || 'open';
+        if (leadEditComment) leadEditComment.value = row.dataset.leadComment || '';
+        editModal?.show();
+      });
+    });
+
+    const leadEditForm = document.getElementById('leadEditForm');
+    if (leadEditForm) {
+      leadEditForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(leadEditForm);
         try {
-          const response = await fetch(form.action || window.location.href, {
+          const response = await fetch(window.location.href, {
             method: 'POST',
             headers: {
               'X-Requested-With': 'XMLHttpRequest',
@@ -315,25 +496,35 @@
             body: formData,
           });
           if (!response.ok) {
-            throw new Error('Failed to update status');
+            throw new Error('Failed to save lead');
           }
           const data = await response.json();
-          updateStatusSelectClasses(select, data.status || select.value);
-        } catch (error) {
-          form.submit();
-        }
-      });
-    });
+          const row = leadsTableBody?.querySelector(`tr[data-lead-id="${data.id}"]`);
+          if (!row) {
+            throw new Error('Lead row not found');
+          }
+          row.dataset.leadName = data.name || '';
+          row.dataset.leadPhone = data.phone || '';
+          row.dataset.leadComment = data.comment || '';
+          row.dataset.leadStatus = data.status || 'open';
+          row.dataset.leadEmployeeId = data.employee_id || '';
 
-    commentButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const comment = button.getAttribute('data-comment') || '';
-        if (commentTextElement) {
-          commentTextElement.textContent = comment;
+          const cells = row.querySelectorAll('td');
+          if (cells[0]) cells[0].textContent = data.name || '';
+          if (cells[1]) cells[1].textContent = normalizeLeadPhone(data.phone || '');
+          if (cells[4]) cells[4].textContent = data.employee_name || '—';
+          if (cells[7]) {
+            cells[7].innerHTML = renderCommentCell(data.comment || '');
+          }
+          updateStatusBadge(row, data.status || 'open');
+          bindCommentButtons();
+          filterLeads();
+          editModal?.hide();
+        } catch (error) {
+          leadEditForm.submit();
         }
-        commentModal?.show();
       });
-    });
+    }
 
     deleteButtons.forEach((button) => {
       button.addEventListener('click', (event) => {
@@ -343,5 +534,7 @@
         }
       });
     });
+
+    filterLeads();
   </script>
 {% endblock %}

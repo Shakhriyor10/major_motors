@@ -6,6 +6,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models import Count, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce, Greatest
@@ -348,6 +349,13 @@ def customers(request):
 @login_required
 def leads(request):
     employees_qs = CashEmployee.objects.order_by('last_name', 'first_name')
+
+    def get_return_url():
+        return_url = request.POST.get('return_url', '').strip()
+        if return_url.startswith('/'):
+            return return_url
+        return 'leads'
+
     if request.method == 'POST':
         action = request.POST.get('action', 'add')
         if action == 'update_status':
@@ -357,12 +365,42 @@ def leads(request):
                 LeadEntry.objects.filter(pk=lead_id).update(status=status_value)
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'status': status_value})
-            return redirect('leads')
+            return redirect(get_return_url())
+        if action == 'edit':
+            lead_id = request.POST.get('lead_id')
+            if lead_id:
+                update_data = {
+                    'name': request.POST.get('name', '').strip(),
+                    'phone': request.POST.get('phone', '').strip(),
+                    'comment': request.POST.get('comment', '').strip(),
+                    'employee_id': request.POST.get('employee') or None,
+                }
+                status_value = request.POST.get('status')
+                if status_value in LeadEntry.Status.values:
+                    update_data['status'] = status_value
+                if update_data['name'] and update_data['phone']:
+                    LeadEntry.objects.filter(pk=lead_id).update(**update_data)
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        lead = LeadEntry.objects.select_related('employee').filter(pk=lead_id).first()
+                        if lead:
+                            return JsonResponse(
+                                {
+                                    'id': lead.id,
+                                    'name': lead.name,
+                                    'phone': lead.phone,
+                                    'comment': lead.comment or '',
+                                    'status': lead.status,
+                                    'status_display': lead.get_status_display(),
+                                    'employee_id': lead.employee_id,
+                                    'employee_name': str(lead.employee) if lead.employee else '—',
+                                }
+                            )
+            return redirect(get_return_url())
         if action == 'delete':
             lead_id = request.POST.get('lead_id')
             if lead_id:
                 LeadEntry.objects.filter(pk=lead_id).delete()
-            return redirect('leads')
+            return redirect(get_return_url())
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
         comment = request.POST.get('comment', '').strip()
@@ -386,20 +424,33 @@ def leads(request):
                 lead.visit_date = date.today()
                 lead.employee_id = employee_id
             lead.save()
-        return redirect('leads')
+        return redirect(get_return_url())
     leads_qs = LeadEntry.objects.select_related('employee')
+    sort = request.GET.get('sort', 'recent')
     leads_qs = leads_qs.annotate(
         last_interaction_at=Greatest(
             Coalesce('visit_date', date(1900, 1, 1)),
             Coalesce('last_call_at', date(1900, 1, 1)),
         ),
-    ).order_by('-last_interaction_at', '-created_at')
+    )
+    if sort == 'status':
+        leads_qs = leads_qs.order_by('status', '-last_interaction_at', '-created_at')
+    elif sort == '-status':
+        leads_qs = leads_qs.order_by('-status', '-last_interaction_at', '-created_at')
+    else:
+        leads_qs = leads_qs.order_by('-last_interaction_at', '-created_at')
+
+    paginator = Paginator(leads_qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     return render(
         request,
         'crm/leads.html',
         {
-            'leads': leads_qs,
+            'leads': page_obj,
+            'page_obj': page_obj,
             'employees': employees_qs,
+            'sort': sort,
         },
     )
 
