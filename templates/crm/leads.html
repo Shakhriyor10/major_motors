@@ -78,13 +78,24 @@
               <th>Последний звонок</th>
               <th>Звонков</th>
               <th>Комментарий</th>
-              <th>Статус</th>
+              <th>
+                <a class="text-decoration-none" href="?sort={% if sort == 'status' %}-status{% else %}status{% endif %}">
+                  Статус {% if sort == 'status' %}↑{% elif sort == '-status' %}↓{% endif %}
+                </a>
+              </th>
               <th></th>
             </tr>
           </thead>
           <tbody id="leadsTableBody">
             {% for lead in leads %}
-              <tr>
+              <tr
+                data-lead-id="{{ lead.id }}"
+                data-lead-name="{{ lead.name|escapejs }}"
+                data-lead-phone="{{ lead.phone|escapejs }}"
+                data-lead-comment="{{ lead.comment|default:''|escapejs }}"
+                data-lead-status="{{ lead.status }}"
+                data-lead-employee-id="{{ lead.employee_id|default:'' }}"
+              >
                 <td>{{ lead.name }}</td>
                 <td>{{ lead.phone }}</td>
                 <td>{{ lead.visit_date|default:"—" }}</td>
@@ -124,6 +135,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="update_status">
                     <input type="hidden" name="lead_id" value="{{ lead.id }}">
+                    <input type="hidden" name="return_url" value="{{ request.get_full_path }}">
                     <select
                       name="status"
                       class="form-select form-select-sm lead-status-select {% if lead.status == 'open' %}lead-status-open{% elif lead.status == 'waiting' %}lead-status-waiting{% else %}lead-status-closed{% endif %}"
@@ -135,14 +147,25 @@
                   </form>
                 </td>
                 <td class="text-end">
-                  <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="lead_id" value="{{ lead.id }}">
-                    <button type="submit" class="btn btn-link text-danger p-0 lead-delete-button">
-                      Удалить
+                  <div class="d-flex align-items-center justify-content-end gap-3">
+                    <button
+                      type="button"
+                      class="btn btn-link p-0 text-secondary lead-edit-button"
+                      aria-label="Редактировать лид"
+                      title="Редактировать"
+                    >
+                      ✏️
                     </button>
-                  </form>
+                    <form method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="delete">
+                      <input type="hidden" name="lead_id" value="{{ lead.id }}">
+                      <input type="hidden" name="return_url" value="{{ request.get_full_path }}">
+                      <button type="submit" class="btn btn-link text-danger p-0 lead-delete-button">
+                        Удалить
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             {% empty %}
@@ -153,6 +176,23 @@
           </tbody>
         </table>
       </div>
+      {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="mt-3" aria-label="Навигация по лидам">
+          <ul class="pagination mb-0">
+            <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+              <a class="page-link" href="?page={% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% else %}1{% endif %}{% if sort != 'recent' %}&sort={{ sort }}{% endif %}">Назад</a>
+            </li>
+            {% for page_num in page_obj.paginator.page_range %}
+              <li class="page-item {% if page_num == page_obj.number %}active{% endif %}">
+                <a class="page-link" href="?page={{ page_num }}{% if sort != 'recent' %}&sort={{ sort }}{% endif %}">{{ page_num }}</a>
+              </li>
+            {% endfor %}
+            <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+              <a class="page-link" href="?page={% if page_obj.has_next %}{{ page_obj.next_page_number }}{% else %}{{ page_obj.paginator.num_pages }}{% endif %}{% if sort != 'recent' %}&sort={{ sort }}{% endif %}">Вперёд</a>
+            </li>
+          </ul>
+        </nav>
+      {% endif %}
     </div>
   </div>
 
@@ -166,6 +206,59 @@
         <div class="modal-body">
           <p id="lead-comment-text" class="mb-0 text-break"></p>
         </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal fade" id="lead-edit-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" id="leadEditForm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="edit">
+          <input type="hidden" name="lead_id" id="leadEditId">
+          <input type="hidden" name="return_url" value="{{ request.get_full_path }}">
+          <div class="modal-header">
+            <h5 class="modal-title">Редактировать лид</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label" for="leadEditName">Имя</label>
+              <input type="text" class="form-control" name="name" id="leadEditName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="leadEditPhone">Телефон</label>
+              <input type="text" class="form-control" name="phone" id="leadEditPhone" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="leadEditEmployee">Кто обслужил</label>
+              <select class="form-select" name="employee" id="leadEditEmployee">
+                <option value="">—</option>
+                {% for employee in employees %}
+                  <option value="{{ employee.id }}">{{ employee }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="leadEditStatus">Статус</label>
+              <select class="form-select" name="status" id="leadEditStatus">
+                <option value="open">Открытый</option>
+                <option value="waiting">В ожидании</option>
+                <option value="closed">Закрытый</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="leadEditComment">Комментарий</label>
+              <textarea class="form-control" name="comment" id="leadEditComment" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -283,10 +376,19 @@
 
     const commentButtons = document.querySelectorAll('.lead-comment-button');
     const deleteButtons = document.querySelectorAll('.lead-delete-button');
+    const editButtons = document.querySelectorAll('.lead-edit-button');
     const statusForms = document.querySelectorAll('.lead-status-form');
     const commentModalElement = document.getElementById('lead-comment-modal');
     const commentTextElement = document.getElementById('lead-comment-text');
     const commentModal = commentModalElement ? new bootstrap.Modal(commentModalElement) : null;
+    const editModalElement = document.getElementById('lead-edit-modal');
+    const editModal = editModalElement ? new bootstrap.Modal(editModalElement) : null;
+    const leadEditId = document.getElementById('leadEditId');
+    const leadEditName = document.getElementById('leadEditName');
+    const leadEditPhone = document.getElementById('leadEditPhone');
+    const leadEditEmployee = document.getElementById('leadEditEmployee');
+    const leadEditStatus = document.getElementById('leadEditStatus');
+    const leadEditComment = document.getElementById('leadEditComment');
 
     const updateStatusSelectClasses = (select, status) => {
       select.classList.remove('lead-status-open', 'lead-status-waiting', 'lead-status-closed');
@@ -332,6 +434,23 @@
           commentTextElement.textContent = comment;
         }
         commentModal?.show();
+      });
+    });
+
+
+    editButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const row = button.closest('tr');
+        if (!row) {
+          return;
+        }
+        if (leadEditId) leadEditId.value = row.dataset.leadId || '';
+        if (leadEditName) leadEditName.value = row.dataset.leadName || '';
+        if (leadEditPhone) leadEditPhone.value = row.dataset.leadPhone || '';
+        if (leadEditEmployee) leadEditEmployee.value = row.dataset.leadEmployeeId || '';
+        if (leadEditStatus) leadEditStatus.value = row.dataset.leadStatus || 'open';
+        if (leadEditComment) leadEditComment.value = row.dataset.leadComment || '';
+        editModal?.show();
       });
     });
 
