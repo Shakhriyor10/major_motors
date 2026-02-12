@@ -380,6 +380,21 @@ def leads(request):
                     update_data['status'] = status_value
                 if update_data['name'] and update_data['phone']:
                     LeadEntry.objects.filter(pk=lead_id).update(**update_data)
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        lead = LeadEntry.objects.select_related('employee').filter(pk=lead_id).first()
+                        if lead:
+                            return JsonResponse(
+                                {
+                                    'id': lead.id,
+                                    'name': lead.name,
+                                    'phone': lead.phone,
+                                    'comment': lead.comment or '',
+                                    'status': lead.status,
+                                    'status_display': lead.get_status_display(),
+                                    'employee_id': lead.employee_id,
+                                    'employee_name': str(lead.employee) if lead.employee else '—',
+                                }
+                            )
             return redirect(get_return_url())
         if action == 'delete':
             lead_id = request.POST.get('lead_id')
