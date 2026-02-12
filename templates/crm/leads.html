@@ -95,9 +95,9 @@
             {% for lead in leads %}
               <tr
                 data-lead-id="{{ lead.id }}"
-                data-lead-name="{{ lead.name|escapejs }}"
-                data-lead-phone="{{ lead.phone|escapejs }}"
-                data-lead-comment="{{ lead.comment|default:''|escapejs }}"
+                data-lead-name="{{ lead.name|escape }}"
+                data-lead-phone="{{ lead.phone|escape }}"
+                data-lead-comment="{{ lead.comment|default:''|escape }}"
                 data-lead-status="{{ lead.status }}"
                 data-lead-employee-id="{{ lead.employee_id|default:'' }}"
               >
@@ -303,19 +303,20 @@
       return parts.join('-');
     };
 
-    const normalizeLeadPhone = (rawValue) => {
-      const digits = (rawValue || '').replace(/\D/g, '');
-      if (!digits) return '';
+    const getLocalPhoneDigits = (rawValue) => {
+      let digits = (rawValue || '').replace(/\D/g, '');
       if (digits.startsWith('998')) {
-        const localDigits = digits.slice(3);
-        if (localDigits.length === 9) {
-          return `+998 ${formatPhoneDigits(localDigits)}`;
-        }
+        digits = digits.slice(3);
       }
-      if (digits.length === 9) {
-        return `+998 ${formatPhoneDigits(digits)}`;
+      return digits.slice(0, 9);
+    };
+
+    const normalizeLeadPhone = (rawValue) => {
+      const localDigits = getLocalPhoneDigits(rawValue);
+      if (!localDigits) {
+        return '';
       }
-      return rawValue;
+      return `+998 ${formatPhoneDigits(localDigits)}`;
     };
 
     const getStatusLabel = (status) => {
@@ -447,6 +448,13 @@
     const leadEditStatus = document.getElementById('leadEditStatus');
     const leadEditComment = document.getElementById('leadEditComment');
 
+
+    if (leadEditPhone) {
+      leadEditPhone.addEventListener('input', (event) => {
+        event.target.value = normalizeLeadPhone(event.target.value);
+      });
+    }
+
     const updateStatusBadge = (row, status) => {
       const badge = row.querySelector('.lead-status-badge');
       if (!badge) {
@@ -474,7 +482,7 @@
         }
         if (leadEditId) leadEditId.value = row.dataset.leadId || '';
         if (leadEditName) leadEditName.value = row.dataset.leadName || '';
-        if (leadEditPhone) leadEditPhone.value = row.dataset.leadPhone || '';
+        if (leadEditPhone) leadEditPhone.value = normalizeLeadPhone(row.dataset.leadPhone || '');
         if (leadEditEmployee) leadEditEmployee.value = row.dataset.leadEmployeeId || '';
         if (leadEditStatus) leadEditStatus.value = row.dataset.leadStatus || 'open';
         if (leadEditComment) leadEditComment.value = row.dataset.leadComment || '';
@@ -487,6 +495,11 @@
       leadEditForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const formData = new FormData(leadEditForm);
+        const formattedPhone = normalizeLeadPhone(formData.get('phone') || '');
+        if (leadEditPhone) {
+          leadEditPhone.value = formattedPhone;
+        }
+        formData.set('phone', formattedPhone);
         try {
           const response = await fetch(window.location.href, {
             method: 'POST',
@@ -504,7 +517,7 @@
             throw new Error('Lead row not found');
           }
           row.dataset.leadName = data.name || '';
-          row.dataset.leadPhone = data.phone || '';
+          row.dataset.leadPhone = normalizeLeadPhone(data.phone || '');
           row.dataset.leadComment = data.comment || '';
           row.dataset.leadStatus = data.status || 'open';
           row.dataset.leadEmployeeId = data.employee_id || '';
