@@ -153,7 +153,14 @@ class Customer(TimeStampedModel):
         return self.full_name
 
 
+
 class PowerOfAttorney(TimeStampedModel):
+    class Meta:
+        permissions = (
+            ('blocked_from_autosalon', 'Пользователь не может открывать страницу автосалона'),
+            ('hide_attorney_tab', 'Скрывать вкладку доверенности на странице автосалона'),
+        )
+
     created_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

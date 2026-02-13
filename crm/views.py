@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models import Count, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce, Greatest
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -718,6 +719,12 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
 
 @login_required
 def autosalon(request):
+    is_autosalon_blocked = request.user.has_perm('crm.blocked_from_autosalon') and not request.user.is_superuser
+    if is_autosalon_blocked:
+        raise PermissionDenied('У вас нет доступа к странице автосалона.')
+
+    can_view_attorney_tab = request.user.is_superuser or not request.user.has_perm('crm.hide_attorney_tab')
+
     def parse_datetime_value(value, default_value=None):
         if not value:
             return default_value
@@ -748,6 +755,8 @@ def autosalon(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'save_attorney':
+            if not can_view_attorney_tab:
+                raise PermissionDenied('У вас нет доступа к вкладке доверенности.')
             attorney_id = request.POST.get('attorney_id')
             attorney_data = {
                 'trustor_name': request.POST.get('attorney_trustor_name', '').strip(),
@@ -1287,7 +1296,7 @@ def autosalon(request):
         .filter(status=Deal.DealStatus.COMPLETED)
         .order_by('-signed_at', '-created_at')
     )
-    power_of_attorneys = PowerOfAttorney.objects.order_by('-updated_at')
+    power_of_attorneys = PowerOfAttorney.objects.order_by('-updated_at') if can_view_attorney_tab else []
     attorney_data = []
     for record in power_of_attorneys:
         attorney_data.append(
@@ -1383,7 +1392,7 @@ def autosalon(request):
         vehicle.default_unit_color = default_unit.color if default_unit and default_unit.color else vehicle.color
         vehicle.default_unit_year = default_unit.year if default_unit and default_unit.year else vehicle.year
         vehicle.default_unit_mileage = default_unit.mileage if default_unit and default_unit.mileage else vehicle.mileage
-    selected_attorney_id = request.GET.get('attorney_id')
+    selected_attorney_id = request.GET.get('attorney_id') if can_view_attorney_tab else None
     return render(
         request,
         'crm/autosalon_showroom.html',
@@ -1397,6 +1406,7 @@ def autosalon(request):
             'power_of_attorneys': power_of_attorneys,
             'attorney_data': attorney_data,
             'selected_attorney_id': selected_attorney_id,
+            'can_view_attorney_tab': can_view_attorney_tab,
         },
     )
 
