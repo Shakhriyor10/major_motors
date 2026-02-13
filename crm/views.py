@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models import Count, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce, Greatest
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -17,6 +18,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 from django.views.decorators.http import require_POST
 
+from .access import get_autosalon_access_flags
 from .models import (
     BankAccount,
     CashAccount,
@@ -718,6 +720,12 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
 
 @login_required
 def autosalon(request):
+    access_flags = get_autosalon_access_flags(request.user)
+    if not access_flags['can_access_autosalon']:
+        raise PermissionDenied('У вас нет доступа к странице автосалона.')
+
+    can_view_attorney_tab = access_flags['can_view_attorney_tab']
+
     def parse_datetime_value(value, default_value=None):
         if not value:
             return default_value
@@ -748,6 +756,8 @@ def autosalon(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'save_attorney':
+            if not can_view_attorney_tab:
+                raise PermissionDenied('У вас нет доступа к вкладке доверенности.')
             attorney_id = request.POST.get('attorney_id')
             attorney_data = {
                 'trustor_name': request.POST.get('attorney_trustor_name', '').strip(),
@@ -1287,7 +1297,7 @@ def autosalon(request):
         .filter(status=Deal.DealStatus.COMPLETED)
         .order_by('-signed_at', '-created_at')
     )
-    power_of_attorneys = PowerOfAttorney.objects.order_by('-updated_at')
+    power_of_attorneys = PowerOfAttorney.objects.order_by('-updated_at') if can_view_attorney_tab else []
     attorney_data = []
     for record in power_of_attorneys:
         attorney_data.append(
@@ -1383,7 +1393,7 @@ def autosalon(request):
         vehicle.default_unit_color = default_unit.color if default_unit and default_unit.color else vehicle.color
         vehicle.default_unit_year = default_unit.year if default_unit and default_unit.year else vehicle.year
         vehicle.default_unit_mileage = default_unit.mileage if default_unit and default_unit.mileage else vehicle.mileage
-    selected_attorney_id = request.GET.get('attorney_id')
+    selected_attorney_id = request.GET.get('attorney_id') if can_view_attorney_tab else None
     return render(
         request,
         'crm/autosalon_showroom.html',
@@ -1397,6 +1407,7 @@ def autosalon(request):
             'power_of_attorneys': power_of_attorneys,
             'attorney_data': attorney_data,
             'selected_attorney_id': selected_attorney_id,
+            'can_view_attorney_tab': can_view_attorney_tab,
         },
     )
 

@@ -153,6 +153,7 @@ class Customer(TimeStampedModel):
         return self.full_name
 
 
+
 class PowerOfAttorney(TimeStampedModel):
     created_by = models.ForeignKey(
         User,

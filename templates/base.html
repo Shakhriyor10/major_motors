@@ -26,13 +26,15 @@
           <li class="nav-item"><a class="nav-link" href="/dashboard/">Дашборд</a></li>
           <li class="nav-item"><a class="nav-link" href="/customers/">Клиенты</a></li>
           <li class="nav-item"><a class="nav-link" href="/leads/">Лиды</a></li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Автосалон</a>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="/autosalon/">Автосалон</a></li>
-              <li><a class="dropdown-item" href="/inventory/">Общий список</a></li>
-            </ul>
-          </li>
+          {% if can_access_autosalon %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Автосалон</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/autosalon/">Автосалон</a></li>
+                <li><a class="dropdown-item" href="/inventory/">Общий список</a></li>
+              </ul>
+            </li>
+          {% endif %}
           <li class="nav-item"><a class="nav-link" href="/deals/">Сделки</a></li>
           <li class="nav-item"><a class="nav-link" href="/cash/">Касса</a></li>
         </ul>
