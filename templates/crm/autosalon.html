@@ -700,6 +700,7 @@
         const { formatted } = sanitizePrice(initialValue);
         input.value = formatted;
       }
+      syncPriceInput(input);
       input.addEventListener('input', () => syncPriceInput(input));
       input.addEventListener('blur', () => syncPriceInput(input));
     });
