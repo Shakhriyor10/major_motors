@@ -593,89 +593,116 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
         except (TypeError, ValueError):
             return None
 
-    update_fields = []
-    vin = request.POST.get('vin', '').strip()
-    if vin:
-        vehicle.vin = vin
-        update_fields.append('vin')
-    elif vin == '':
-        vehicle.vin = None
-        update_fields.append('vin')
-    name = request.POST.get('name', '').strip()
-    if name:
-        vehicle.name = name
-        update_fields.append('name')
-    make = request.POST.get('make', '').strip()
-    if make:
-        vehicle.make = make
-        update_fields.append('make')
-    model = request.POST.get('model', '').strip()
-    if model:
-        vehicle.model = model
-        update_fields.append('model')
+    def has_field(name):
+        return name in request.POST
 
-    vehicle.year = to_int(request.POST.get('year'))
-    update_fields.append('year')
-    vehicle.mileage = to_int(request.POST.get('mileage'))
-    update_fields.append('mileage')
-    vehicle.color = request.POST.get('color', '').strip()
-    update_fields.append('color')
-    vehicle.body_type = request.POST.get('body_type', '').strip()
-    update_fields.append('body_type')
-    purchase_price_value = request.POST.get('purchase_price')
-    if purchase_price_value not in (None, ''):
+    update_fields = []
+    if has_field('vin'):
+        vehicle.vin = request.POST.get('vin', '').strip() or None
+        update_fields.append('vin')
+    if has_field('name'):
+        name = request.POST.get('name', '').strip()
+        if name:
+            vehicle.name = name
+            update_fields.append('name')
+    if has_field('make'):
+        make = request.POST.get('make', '').strip()
+        if make:
+            vehicle.make = make
+            update_fields.append('make')
+    if has_field('model'):
+        model = request.POST.get('model', '').strip()
+        if model:
+            vehicle.model = model
+            update_fields.append('model')
+    if has_field('year'):
+        vehicle.year = to_int(request.POST.get('year'))
+        update_fields.append('year')
+    if has_field('mileage'):
+        vehicle.mileage = to_int(request.POST.get('mileage'))
+        update_fields.append('mileage')
+    if has_field('color'):
+        vehicle.color = request.POST.get('color', '').strip()
+        update_fields.append('color')
+    if has_field('body_type'):
+        vehicle.body_type = request.POST.get('body_type', '').strip()
+        update_fields.append('body_type')
+    if has_field('purchase_price'):
+        purchase_price_value = request.POST.get('purchase_price')
         vehicle.purchase_price = to_decimal(purchase_price_value) or Decimal('0')
         update_fields.append('purchase_price')
-    vehicle.purchase_currency = Vehicle.Currency.UZS
-    update_fields.append('purchase_currency')
-    sale_price_value = request.POST.get('sale_price')
-    if sale_price_value not in (None, ''):
-        vehicle.sale_price = to_decimal(sale_price_value)
-        update_fields.append('sale_price')
-    vehicle.sale_currency = Vehicle.Currency.UZS
-    update_fields.append('sale_currency')
-    vehicle.stock_count = to_int(request.POST.get('stock_count')) or 1
-    update_fields.append('stock_count')
-    vehicle.seat_count = to_int(request.POST.get('seat_count'))
-    update_fields.append('seat_count')
-    vehicle.engine_type = serialize_engine_types(request.POST.getlist('engine_type'))
-    update_fields.append('engine_type')
-    vehicle.engine_volume = to_int(request.POST.get('engine_volume'))
-    update_fields.append('engine_volume')
-    vehicle.horsepower = to_int(request.POST.get('horsepower'))
-    update_fields.append('horsepower')
-    vehicle.transmission = request.POST.get('transmission', '')
-    update_fields.append('transmission')
-    vehicle.fuel_consumption = to_decimal(request.POST.get('fuel_consumption'))
-    update_fields.append('fuel_consumption')
-    vehicle.range_km = to_int(request.POST.get('range_km'))
-    update_fields.append('range_km')
-    vehicle.condition = request.POST.get('condition') or Vehicle.Condition.NEW
-    update_fields.append('condition')
-    vehicle.country = request.POST.get('country', '').strip()
-    update_fields.append('country')
-    vehicle.model_year = to_int(request.POST.get('model_year'))
-    update_fields.append('model_year')
-    vehicle.engine_number = request.POST.get('engine_number', '').strip()
-    update_fields.append('engine_number')
-    vehicle.gross_weight = to_int(request.POST.get('gross_weight'))
-    update_fields.append('gross_weight')
-    vehicle.description = request.POST.get('description', '').strip()
-    update_fields.append('description')
-    vehicle.status = request.POST.get('status') or Vehicle.VehicleStatus.FOR_SALE
-    update_fields.append('status')
-    vehicle.acquisition_type = request.POST.get('acquisition_type') or Vehicle.AcquisitionType.PURCHASE
-    update_fields.append('acquisition_type')
-    vehicle.counterparty_name = request.POST.get('counterparty_name', '').strip()
-    update_fields.append('counterparty_name')
-    vehicle.arrived_at = parse_date(request.POST.get('arrived_at') or '')
-    update_fields.append('arrived_at')
-    vehicle.location = request.POST.get('location', '').strip()
-    update_fields.append('location')
-    vehicle.notes = request.POST.get('notes', '').strip()
-    update_fields.append('notes')
+        vehicle.purchase_currency = Vehicle.Currency.UZS
+        update_fields.append('purchase_currency')
+    if has_field('sale_price'):
+        sale_price_value = request.POST.get('sale_price')
+        if sale_price_value not in (None, ''):
+            vehicle.sale_price = to_decimal(sale_price_value)
+            update_fields.append('sale_price')
+        vehicle.sale_currency = Vehicle.Currency.UZS
+        update_fields.append('sale_currency')
+    if has_field('stock_count'):
+        vehicle.stock_count = to_int(request.POST.get('stock_count')) or 1
+        update_fields.append('stock_count')
+    if has_field('seat_count'):
+        vehicle.seat_count = to_int(request.POST.get('seat_count'))
+        update_fields.append('seat_count')
+    if has_field('engine_type'):
+        vehicle.engine_type = serialize_engine_types(request.POST.getlist('engine_type'))
+        update_fields.append('engine_type')
+    if has_field('engine_volume'):
+        vehicle.engine_volume = to_int(request.POST.get('engine_volume'))
+        update_fields.append('engine_volume')
+    if has_field('horsepower'):
+        vehicle.horsepower = to_int(request.POST.get('horsepower'))
+        update_fields.append('horsepower')
+    if has_field('transmission'):
+        vehicle.transmission = request.POST.get('transmission', '')
+        update_fields.append('transmission')
+    if has_field('fuel_consumption'):
+        vehicle.fuel_consumption = to_decimal(request.POST.get('fuel_consumption'))
+        update_fields.append('fuel_consumption')
+    if has_field('range_km'):
+        vehicle.range_km = to_int(request.POST.get('range_km'))
+        update_fields.append('range_km')
+    if has_field('condition'):
+        vehicle.condition = request.POST.get('condition') or Vehicle.Condition.NEW
+        update_fields.append('condition')
+    if has_field('country'):
+        vehicle.country = request.POST.get('country', '').strip()
+        update_fields.append('country')
+    if has_field('model_year'):
+        vehicle.model_year = to_int(request.POST.get('model_year'))
+        update_fields.append('model_year')
+    if has_field('engine_number'):
+        vehicle.engine_number = request.POST.get('engine_number', '').strip()
+        update_fields.append('engine_number')
+    if has_field('gross_weight'):
+        vehicle.gross_weight = to_int(request.POST.get('gross_weight'))
+        update_fields.append('gross_weight')
+    if has_field('description'):
+        vehicle.description = request.POST.get('description', '').strip()
+        update_fields.append('description')
+    if has_field('status'):
+        vehicle.status = request.POST.get('status') or Vehicle.VehicleStatus.FOR_SALE
+        update_fields.append('status')
+    if has_field('acquisition_type'):
+        vehicle.acquisition_type = request.POST.get('acquisition_type') or Vehicle.AcquisitionType.PURCHASE
+        update_fields.append('acquisition_type')
+    if has_field('counterparty_name'):
+        vehicle.counterparty_name = request.POST.get('counterparty_name', '').strip()
+        update_fields.append('counterparty_name')
+    if has_field('arrived_at'):
+        vehicle.arrived_at = parse_date(request.POST.get('arrived_at') or '')
+        update_fields.append('arrived_at')
+    if has_field('location'):
+        vehicle.location = request.POST.get('location', '').strip()
+        update_fields.append('location')
+    if has_field('notes'):
+        vehicle.notes = request.POST.get('notes', '').strip()
+        update_fields.append('notes')
 
-    vehicle.save(update_fields=update_fields)
+    if update_fields:
+        vehicle.save(update_fields=update_fields)
     delete_photo_ids = request.POST.getlist('delete_photos')
     if delete_photo_ids:
         VehicleMedia.objects.filter(vehicle=vehicle, id__in=delete_photo_ids).delete()
