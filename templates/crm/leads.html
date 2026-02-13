@@ -381,6 +381,13 @@
       `;
     };
 
+    const decodeUnicodeSequences = (value) => {
+      if (!value || !value.includes('\\u')) {
+        return value || '';
+      }
+      return value.replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16)));
+    };
+
     const filterLeads = () => {
       const query = (leadSearchInput?.value || '').trim().toLowerCase();
       const status = leadStatusFilter?.value || 'all';
@@ -448,7 +455,7 @@
         }
         button.dataset.boundComment = '1';
         button.addEventListener('click', () => {
-          const comment = button.getAttribute('data-comment') || '';
+          const comment = decodeUnicodeSequences(button.getAttribute('data-comment') || '');
           if (commentTextElement) {
             commentTextElement.textContent = comment;
           }
