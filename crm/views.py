@@ -498,6 +498,7 @@ def _create_vehicle_from_form(request, options_qs):
         purchase_price=to_decimal(request.POST.get('purchase_price')) or Decimal('0'),
         purchase_currency=purchase_currency,
         sale_price=to_decimal(request.POST.get('sale_price')),
+        discount_price=to_decimal(request.POST.get('discount_price')),
         sale_currency=Vehicle.Currency.UZS,
         stock_count=to_int(request.POST.get('stock_count')) or 1,
         seat_count=to_int(request.POST.get('seat_count')),
@@ -632,6 +633,13 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
     if sale_price_value not in (None, ''):
         vehicle.sale_price = to_decimal(sale_price_value)
         update_fields.append('sale_price')
+    discount_price_value = request.POST.get('discount_price')
+    if discount_price_value not in (None, ''):
+        vehicle.discount_price = to_decimal(discount_price_value)
+        update_fields.append('discount_price')
+    elif discount_price_value == '':
+        vehicle.discount_price = None
+        update_fields.append('discount_price')
     vehicle.sale_currency = Vehicle.Currency.UZS
     update_fields.append('sale_currency')
     vehicle.stock_count = to_int(request.POST.get('stock_count')) or 1

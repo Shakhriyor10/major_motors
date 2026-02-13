@@ -241,6 +241,19 @@
       font-weight: 700;
     }
 
+    .showroom-price .value-old {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: rgba(248, 250, 252, 0.65);
+      text-decoration: line-through;
+    }
+
+    .showroom-price .value-discount {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fbbf24;
+    }
+
     .showroom-badges .badge {
       border-radius: 999px;
       padding: 0.3rem 0.6rem;
@@ -1178,7 +1191,7 @@
                 class="card showroom-card"
                 data-showroom-item
                 data-order="{{ forloop.counter }}"
-                data-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                data-price="{{ vehicle.discount_price|default:vehicle.sale_price|default:vehicle.purchase_price }}"
                 data-model="{{ vehicle.model|default:''|lower }}"
                 data-available="{% if vehicle.available_units_count %}{{ vehicle.available_units_count }}{% else %}{{ vehicle.stock_count|default:0 }}{% endif %}"
                 data-has-vin="{% if vehicle.available_vins or vehicle.vin or vehicle.default_unit_vin %}1{% else %}0{% endif %}"
@@ -1221,12 +1234,27 @@
                         </div>
                         <div class="showroom-price">
                           <div class="label">Цена</div>
-                          <div class="value">
-                            <span data-showroom-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
-                              {{ vehicle.sale_price|default:vehicle.purchase_price }}
-                            </span>
-                            {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
-                          </div>
+                          {% if vehicle.discount_price %}
+                            <div class="value value-old">
+                              <span data-showroom-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
+                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                              </span>
+                              {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
+                            </div>
+                            <div class="value value-discount">
+                              <span data-showroom-price="{{ vehicle.discount_price }}">
+                                {{ vehicle.discount_price }}
+                              </span>
+                              {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
+                            </div>
+                          {% else %}
+                            <div class="value">
+                              <span data-showroom-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
+                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                              </span>
+                              {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
+                            </div>
+                          {% endif %}
                         </div>
                       </div>
                       <div class="d-flex flex-wrap gap-2 align-items-center showroom-badges">
