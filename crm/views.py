@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 from django.views.decorators.http import require_POST
 
+from .access import get_autosalon_access_flags
 from .models import (
     BankAccount,
     CashAccount,
@@ -719,11 +720,11 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
 
 @login_required
 def autosalon(request):
-    is_autosalon_blocked = request.user.has_perm('crm.blocked_from_autosalon') and not request.user.is_superuser
-    if is_autosalon_blocked:
+    access_flags = get_autosalon_access_flags(request.user)
+    if not access_flags['can_access_autosalon']:
         raise PermissionDenied('У вас нет доступа к странице автосалона.')
 
-    can_view_attorney_tab = request.user.is_superuser or not request.user.has_perm('crm.hide_attorney_tab')
+    can_view_attorney_tab = access_flags['can_view_attorney_tab']
 
     def parse_datetime_value(value, default_value=None):
         if not value:
