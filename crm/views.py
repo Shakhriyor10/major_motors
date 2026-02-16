@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models import Count, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce, Greatest
-from django.http import JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -745,9 +745,13 @@ def autosalon(request):
         VehicleOption.objects.get_or_create(name=option_name)
     options_qs = VehicleOption.objects.order_by('name')
 
+    can_access_attorney = request.user.is_superuser or request.user.has_perm('crm.view_powerofattorney')
+
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'save_attorney':
+            if not can_access_attorney:
+                return HttpResponseForbidden('У вас нет доступа к вкладке «Доверенность».')
             attorney_id = request.POST.get('attorney_id')
             attorney_data = {
                 'trustor_name': request.POST.get('attorney_trustor_name', '').strip(),
@@ -1287,74 +1291,75 @@ def autosalon(request):
         .filter(status=Deal.DealStatus.COMPLETED)
         .order_by('-signed_at', '-created_at')
     )
-    power_of_attorneys = PowerOfAttorney.objects.order_by('-updated_at')
+    power_of_attorneys = PowerOfAttorney.objects.order_by('-updated_at') if can_access_attorney else []
     attorney_data = []
-    for record in power_of_attorneys:
-        attorney_data.append(
-            {
-                'id': record.pk,
-                'trustor_name': record.trustor_name,
-                'company_full_text': record.company_full_text,
-                'vehicle_name': record.vehicle_name,
-                'make': record.make,
-                'model_year': record.model_year,
-                'dvs': record.dvs,
-                'new_status': record.new_status,
-                'body_number': record.body_number,
-                'engine_number': record.engine_number,
-                'engine_type': record.engine_type,
-                'color': record.color,
-                'skd': record.skd,
-                'engine_volume': record.engine_volume,
-                'euro': record.euro,
-                'year': record.year,
-                'authorized_name_1': record.authorized_name_1,
-                'passport_1': record.passport_1,
-                'passport_issued_date_1': record.passport_issued_date_1.isoformat()
-                if record.passport_issued_date_1
-                else '',
-                'passport_issued_by_1': record.passport_issued_by_1,
-                'authorized_name_2': record.authorized_name_2,
-                'passport_2': record.passport_2,
-                'passport_issued_date_2': record.passport_issued_date_2.isoformat()
-                if record.passport_issued_date_2
-                else '',
-                'passport_issued_by_2': record.passport_issued_by_2,
-                'authorized_name_3': record.authorized_name_3,
-                'passport_3': record.passport_3,
-                'passport_issued_date_3': record.passport_issued_date_3.isoformat()
-                if record.passport_issued_date_3
-                else '',
-                'passport_issued_by_3': record.passport_issued_by_3,
-                'start_date': record.start_date.isoformat() if record.start_date else '',
-                'expiry_date': record.expiry_date.isoformat() if record.expiry_date else '',
-                'logo_text': record.logo_text,
-                'logo_text_bold': record.logo_text_bold,
-                'logo_text_italic': record.logo_text_italic,
-                'logo_text_underline': record.logo_text_underline,
-                'logo_width': record.logo_width,
-                'logo_font_size': record.logo_font_size,
-                'logo_align': record.logo_align,
-                'logo_margin_top': record.logo_margin_top,
-                'logo_margin_bottom': record.logo_margin_bottom,
-                'logo_show_image': record.logo_show_image,
-                'logo_image_data': record.logo_image_data,
-                'address_text': record.address_text,
-                'header_city': record.header_city,
-                'address_font_size': record.address_font_size,
-                'address_bold': record.address_bold,
-                'address_italic': record.address_italic,
-                'address_underline': record.address_underline,
-                'doc_text': record.doc_text,
-                'doc_show_image': record.doc_show_image,
-                'doc_image_width': record.doc_image_width,
-                'doc_font_size': record.doc_font_size,
-                'doc_justify': record.doc_justify,
-                'doc_margin_top': record.doc_margin_top,
-                'doc_text_align': record.doc_text_align,
-                'doc_image_data': record.doc_image_data,
-            },
-        )
+    if can_access_attorney:
+        for record in power_of_attorneys:
+            attorney_data.append(
+                {
+                    'id': record.pk,
+                    'trustor_name': record.trustor_name,
+                    'company_full_text': record.company_full_text,
+                    'vehicle_name': record.vehicle_name,
+                    'make': record.make,
+                    'model_year': record.model_year,
+                    'dvs': record.dvs,
+                    'new_status': record.new_status,
+                    'body_number': record.body_number,
+                    'engine_number': record.engine_number,
+                    'engine_type': record.engine_type,
+                    'color': record.color,
+                    'skd': record.skd,
+                    'engine_volume': record.engine_volume,
+                    'euro': record.euro,
+                    'year': record.year,
+                    'authorized_name_1': record.authorized_name_1,
+                    'passport_1': record.passport_1,
+                    'passport_issued_date_1': record.passport_issued_date_1.isoformat()
+                    if record.passport_issued_date_1
+                    else '',
+                    'passport_issued_by_1': record.passport_issued_by_1,
+                    'authorized_name_2': record.authorized_name_2,
+                    'passport_2': record.passport_2,
+                    'passport_issued_date_2': record.passport_issued_date_2.isoformat()
+                    if record.passport_issued_date_2
+                    else '',
+                    'passport_issued_by_2': record.passport_issued_by_2,
+                    'authorized_name_3': record.authorized_name_3,
+                    'passport_3': record.passport_3,
+                    'passport_issued_date_3': record.passport_issued_date_3.isoformat()
+                    if record.passport_issued_date_3
+                    else '',
+                    'passport_issued_by_3': record.passport_issued_by_3,
+                    'start_date': record.start_date.isoformat() if record.start_date else '',
+                    'expiry_date': record.expiry_date.isoformat() if record.expiry_date else '',
+                    'logo_text': record.logo_text,
+                    'logo_text_bold': record.logo_text_bold,
+                    'logo_text_italic': record.logo_text_italic,
+                    'logo_text_underline': record.logo_text_underline,
+                    'logo_width': record.logo_width,
+                    'logo_font_size': record.logo_font_size,
+                    'logo_align': record.logo_align,
+                    'logo_margin_top': record.logo_margin_top,
+                    'logo_margin_bottom': record.logo_margin_bottom,
+                    'logo_show_image': record.logo_show_image,
+                    'logo_image_data': record.logo_image_data,
+                    'address_text': record.address_text,
+                    'header_city': record.header_city,
+                    'address_font_size': record.address_font_size,
+                    'address_bold': record.address_bold,
+                    'address_italic': record.address_italic,
+                    'address_underline': record.address_underline,
+                    'doc_text': record.doc_text,
+                    'doc_show_image': record.doc_show_image,
+                    'doc_image_width': record.doc_image_width,
+                    'doc_font_size': record.doc_font_size,
+                    'doc_justify': record.doc_justify,
+                    'doc_margin_top': record.doc_margin_top,
+                    'doc_text_align': record.doc_text_align,
+                    'doc_image_data': record.doc_image_data,
+                },
+            )
     for vehicle in vehicles:
         vehicle.primary_photo = next((media for media in vehicle.media.all() if media.media_type == 'photo'), None)
         vehicle.active_reservation = next(iter(getattr(vehicle, 'active_reservations', [])), None)
@@ -1396,7 +1401,8 @@ def autosalon(request):
             'sold_deals': sold_deals,
             'power_of_attorneys': power_of_attorneys,
             'attorney_data': attorney_data,
-            'selected_attorney_id': selected_attorney_id,
+            'selected_attorney_id': selected_attorney_id if can_access_attorney else None,
+            'can_access_attorney': can_access_attorney,
         },
     )
 
