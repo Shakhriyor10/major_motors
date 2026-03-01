@@ -1497,7 +1497,7 @@
                 <div>
                   <label class="form-label" for="credit-annual-rate">Годовая процентная ставка</label>
                   <div class="input-group">
-                    <input type="number" min="0" step="0.01" class="form-control" id="credit-annual-rate" placeholder="Например, 24" value="27">
+                    <input type="number" min="0" step="0.01" class="form-control" id="credit-annual-rate" placeholder="Например, 24" value="25.9">
                     <span class="input-group-text">%</span>
                   </div>
                 </div>
@@ -3181,6 +3181,10 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditDownPaymentSuffix = document.getElementById('credit-down-payment-suffix');
     const creditDownPaymentHint = document.getElementById('credit-down-payment-hint');
     const creditAnnualRateInput = document.getElementById('credit-annual-rate');
+    const DEFAULT_CREDIT_ANNUAL_RATE = 25.9;
+    const REDUCED_CREDIT_ANNUAL_RATE = 24.9;
+    const REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD = 40;
+    let isCreditAnnualRateManuallyEdited = false;
     const creditMonthsInput = document.getElementById('credit-months');
     const creditCertificateFeeInput = document.getElementById('credit-certificate-fee');
     const creditCertificateCurrency = document.getElementById('credit-certificate-currency');
@@ -4034,6 +4038,42 @@ OOO «MAJOR MOTORS SAM»</div>
       }
     };
 
+    const calculateDownPaymentPercent = (price, rawDownPayment, isPercent) => {
+      if (!price || price <= 0) {
+        return 0;
+      }
+      if (isPercent) {
+        return rawDownPayment;
+      }
+      return (rawDownPayment / price) * 100;
+    };
+
+    const getAutoCreditAnnualRate = () => {
+      const price = parseNumber(creditVehiclePriceInput?.value);
+      const rawDownPayment = parseNumber(creditDownPaymentValue?.value);
+      const isPercent = creditDownPaymentType?.value === 'percent';
+      const downPaymentPercent = calculateDownPaymentPercent(price, rawDownPayment, isPercent);
+      return downPaymentPercent >= REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD
+        ? REDUCED_CREDIT_ANNUAL_RATE
+        : DEFAULT_CREDIT_ANNUAL_RATE;
+    };
+
+    const maybeApplyAutoCreditAnnualRate = (force = false) => {
+      if (!creditAnnualRateInput) {
+        return;
+      }
+      const autoRate = getAutoCreditAnnualRate();
+      const currentRate = parseNumber(creditAnnualRateInput.value);
+      const isCurrentAutoRate = currentRate === DEFAULT_CREDIT_ANNUAL_RATE || currentRate === REDUCED_CREDIT_ANNUAL_RATE;
+      if (!force && isCreditAnnualRateManuallyEdited && !isCurrentAutoRate) {
+        return;
+      }
+      creditAnnualRateInput.value = `${autoRate}`;
+      if (force || isCurrentAutoRate) {
+        isCreditAnnualRateManuallyEdited = false;
+      }
+    };
+
     const setCreditSummary = (values, currencyLabel) => {
       if (creditSummaryAmount) {
         creditSummaryAmount.textContent = toMoney(values.amount, currencyLabel);
@@ -4387,6 +4427,7 @@ OOO «MAJOR MOTORS SAM»</div>
     populateEmployeeSelects();
     populateCreditCustomerDatalist();
     updateCreditDownPaymentUI();
+    maybeApplyAutoCreditAnnualRate(true);
     setupPassportCombinedInputs();
 
     if (creditCustomerNameInput && creditCustomerDataList) {
@@ -4749,6 +4790,7 @@ OOO «MAJOR MOTORS SAM»</div>
       creditDownPaymentType.addEventListener('change', () => {
         updateCreditDownPaymentUI();
         maybeFormatDownPaymentValue();
+        maybeApplyAutoCreditAnnualRate();
         calculateCreditSchedule();
       });
     }
@@ -4760,6 +4802,7 @@ OOO «MAJOR MOTORS SAM»</div>
     if (creditVehiclePriceInput) {
       creditVehiclePriceInput.addEventListener('input', () => {
         applyMoneyFormatting(creditVehiclePriceInput);
+        maybeApplyAutoCreditAnnualRate();
         calculateCreditSchedule();
       });
     }
@@ -4767,12 +4810,16 @@ OOO «MAJOR MOTORS SAM»</div>
     if (creditDownPaymentValue) {
       creditDownPaymentValue.addEventListener('input', () => {
         maybeFormatDownPaymentValue();
+        maybeApplyAutoCreditAnnualRate();
         calculateCreditSchedule();
       });
     }
 
     if (creditAnnualRateInput) {
-      creditAnnualRateInput.addEventListener('input', calculateCreditSchedule);
+      creditAnnualRateInput.addEventListener('input', () => {
+        isCreditAnnualRateManuallyEdited = true;
+        calculateCreditSchedule();
+      });
     }
 
     if (creditMonthsInput) {
