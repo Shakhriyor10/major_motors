@@ -261,6 +261,26 @@
       box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
     }
 
+    .showroom-attribute-icon {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .showroom-attribute-icon span {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      background: #eef2ff;
+      color: #1d4ed8;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.88rem;
+    }
+
     .showroom-attribute strong {
       display: block;
       color: #1e293b;
@@ -296,6 +316,56 @@
       box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
     }
 
+    .showroom-layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .showroom-sidebar {
+      position: sticky;
+      top: 18px;
+    }
+
+    .showroom-filter-title {
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .showroom-filter-title .icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #fee2e2;
+      color: #dc2626;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+
+    .showroom-results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 16px;
+      padding: 10px 14px;
+      background: #fff;
+    }
+
+    .showroom-results-title {
+      font-size: 0.92rem;
+      color: #475569;
+      margin: 0;
+    }
+
     .showroom-toolbar .form-control,
     .showroom-toolbar .form-select {
       border-radius: 12px;
@@ -319,6 +389,16 @@
       text-align: center;
       color: #64748b;
       background: #f8fafc;
+    }
+
+    @media (max-width: 991.98px) {
+      .showroom-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .showroom-sidebar {
+        position: static;
+      }
     }
 
     .vehicle-detail-modal .modal-content {
@@ -1127,12 +1207,13 @@
 
   <div class="tab-content">
     <div class="tab-pane fade show active" id="autosalon-showroom" role="tabpanel" aria-labelledby="autosalon-showroom-tab">
-      <div class="vstack gap-4">
-        <div class="card showroom-toolbar">
-          <div class="card-body">
-            <div class="row g-3 align-items-end">
-              <div class="col-12 col-lg-4">
-                <label class="form-label" for="showroom-search">Поиск автомобиля</label>
+      <div class="showroom-layout">
+        <aside class="showroom-sidebar">
+          <div class="card showroom-toolbar">
+            <div class="card-body vstack gap-3">
+              <h5 class="showroom-filter-title mb-0"><span class="icon">🔎</span>Фильтры автомобилей</h5>
+              <div>
+                <label class="form-label" for="showroom-search">Поиск</label>
                 <input
                   type="text"
                   id="showroom-search"
@@ -1140,8 +1221,8 @@
                   placeholder="Марка, модель, VIN или описание"
                 >
               </div>
-              <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label" for="showroom-model-filter">Фильтр по модели</label>
+              <div>
+                <label class="form-label" for="showroom-model-filter">Марка/модель</label>
                 <select id="showroom-model-filter" class="form-select">
                   <option value="">Все модели</option>
                   {% for model_name in showroom_models %}
@@ -1149,14 +1230,14 @@
                   {% endfor %}
                 </select>
               </div>
-              <div class="col-12 col-md-4 col-lg-2">
+              <div>
                 <label class="form-label" for="showroom-availability-filter">Наличие</label>
                 <select id="showroom-availability-filter" class="form-select">
                   <option value="">Все</option>
                   <option value="in-stock">В наличии</option>
                 </select>
               </div>
-              <div class="col-12 col-md-4 col-lg-2">
+              <div>
                 <label class="form-label" for="showroom-sort">Сортировка</label>
                 <select id="showroom-sort" class="form-select">
                   <option value="default">По умолчанию</option>
@@ -1164,15 +1245,18 @@
                   <option value="price-desc">Цена ↓</option>
                 </select>
               </div>
-              <div class="col-12 col-md-4 col-lg-2 d-flex justify-content-md-end">
-                <div>
-                  <div class="form-label">Результаты</div>
-                  <div class="showroom-count" id="showroom-count">0</div>
-                </div>
-              </div>
             </div>
           </div>
-        </div>
+        </aside>
+
+        <div class="vstack gap-3">
+          <div class="showroom-results-header">
+            <p class="showroom-results-title mb-0">Автомобили в продаже</p>
+            <div class="d-flex align-items-center gap-2">
+              <span class="text-muted small">Результаты</span>
+              <div class="showroom-count" id="showroom-count">0</div>
+            </div>
+          </div>
         {% if vehicles %}
           <div class="vstack gap-3" id="showroom-list">
             {% for vehicle in vehicles %}
@@ -1261,47 +1345,71 @@
                       <div class="showroom-attributes text-muted small">
                         <div class="showroom-attribute">
                           <strong>КПП</strong>
-                          {{ vehicle.get_transmission_display|default:"—" }}
+                          <div class="showroom-attribute-icon">
+                            <span>⚙️</span>
+                            {{ vehicle.get_transmission_display|default:"—" }}
+                          </div>
                         </div>
                         <div class="showroom-attribute">
                           <strong>Двигатель</strong>
-                          {% if vehicle.engine_type_labels %}
-                            {{ vehicle.engine_type_labels|join:", " }}{% if vehicle.engine_volume %}, {{ vehicle.engine_volume }} см3{% endif %}
-                          {% elif vehicle.engine_volume %}
-                            {{ vehicle.engine_volume }} см3
-                          {% else %}
-                            —
-                          {% endif %}
+                          <div class="showroom-attribute-icon">
+                            <span>⛽</span>
+                            {% if vehicle.engine_type_labels %}
+                              {{ vehicle.engine_type_labels|join:", " }}{% if vehicle.engine_volume %}, {{ vehicle.engine_volume }} см3{% endif %}
+                            {% elif vehicle.engine_volume %}
+                              {{ vehicle.engine_volume }} см3
+                            {% else %}
+                              —
+                            {% endif %}
+                          </div>
                         </div>
                         {% if vehicle.status != 'inactive' %}
                           <div class="showroom-attribute">
                             <strong>Статус</strong>
-                            {{ vehicle.get_status_display }}
+                            <div class="showroom-attribute-icon">
+                              <span>✅</span>
+                              {{ vehicle.get_status_display }}
+                            </div>
                           </div>
                         {% endif %}
                         <div class="showroom-attribute">
                           <strong>Посадочные места</strong>
-                          {{ vehicle.seat_count|default:"—" }}
+                          <div class="showroom-attribute-icon">
+                            <span>💺</span>
+                            {{ vehicle.seat_count|default:"—" }}
+                          </div>
                         </div>
                         <div class="showroom-attribute">
                           <strong>Пробег</strong>
-                          {{ vehicle.mileage|default:"—" }} км
+                          <div class="showroom-attribute-icon">
+                            <span>🛣️</span>
+                            {{ vehicle.mileage|default:"—" }} км
+                          </div>
                         </div>
                         <div class="showroom-attribute">
                           <strong>В наличии</strong>
-                          {% if vehicle.available_units_count %}
-                            {{ vehicle.available_units_count }} шт
-                          {% else %}
-                            {{ vehicle.stock_count }} шт
-                          {% endif %}
+                          <div class="showroom-attribute-icon">
+                            <span>📦</span>
+                            {% if vehicle.available_units_count %}
+                              {{ vehicle.available_units_count }} шт
+                            {% else %}
+                              {{ vehicle.stock_count }} шт
+                            {% endif %}
+                          </div>
                         </div>
                         <div class="showroom-attribute">
                           <strong>Расход</strong>
-                          {% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}
+                          <div class="showroom-attribute-icon">
+                            <span>🔥</span>
+                            {% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}
+                          </div>
                         </div>
                         <div class="showroom-attribute">
                           <strong>Запас хода</strong>
-                          {% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}
+                          <div class="showroom-attribute-icon">
+                            <span>🔋</span>
+                            {% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}
+                          </div>
                         </div>
                       </div>
                       <div class="d-flex justify-content-end">
@@ -1376,6 +1484,7 @@
             Витрина пустая. Добавьте авто в общем списке и переведите статус в продажу.
           </div>
         {% endif %}
+        </div>
       </div>
     </div>
 
