@@ -4299,6 +4299,60 @@ OOO «MAJOR MOTORS SAM»</div>
       updateCreditPrintTable();
     };
 
+    const calculateCertificateFeeByPrice = (price) => {
+      const safePrice = Number(price) || 0;
+      if (safePrice <= 0) {
+        return 0;
+      }
+      const priceSteps = [
+        { price: 220000000, fee: 4500000 },
+        { price: 285000000, fee: 5400000 },
+        { price: 320000000, fee: 6000000 },
+        { price: 420000000, fee: 9800000 },
+      ];
+
+      const roundUpCertificateFee = (value) => {
+        if (!Number.isFinite(value) || value <= 0) {
+          return 0;
+        }
+        return Math.ceil(value / 100000) * 100000;
+      };
+
+      const interpolate = (left, right) => {
+        if (!left || !right || right.price === left.price) {
+          return left?.fee || right?.fee || 0;
+        }
+        const share = (safePrice - left.price) / (right.price - left.price);
+        return left.fee + (right.fee - left.fee) * share;
+      };
+
+      if (safePrice <= priceSteps[0].price) {
+        return roundUpCertificateFee(interpolate(priceSteps[0], priceSteps[1]));
+      }
+
+      for (let index = 1; index < priceSteps.length; index += 1) {
+        const left = priceSteps[index - 1];
+        const right = priceSteps[index];
+        if (safePrice <= right.price) {
+          return roundUpCertificateFee(interpolate(left, right));
+        }
+      }
+
+      const last = priceSteps[priceSteps.length - 1];
+      const prev = priceSteps[priceSteps.length - 2];
+      return roundUpCertificateFee(interpolate(prev, last));
+    };
+
+    const syncCertificateFeeByVehiclePrice = () => {
+      if (!creditVehiclePriceInput || !creditCertificateFeeInput) {
+        return;
+      }
+      const price = parseNumber(creditVehiclePriceInput.value);
+      const certificateFee = calculateCertificateFeeByPrice(price);
+      creditCertificateFeeInput.value = certificateFee ? String(certificateFee) : '';
+      applyMoneyFormatting(creditCertificateFeeInput);
+    };
+
     const updateDownPaymentVisibility = () => {
       if (!financingTypeSelect || !downPaymentField) {
         return;
@@ -4660,6 +4714,7 @@ OOO «MAJOR MOTORS SAM»</div>
           creditVehicleBadge.textContent = `${vehicleName} · ${currency}`;
         }
         updateCreditDownPaymentUI();
+        syncCertificateFeeByVehiclePrice();
         calculateCreditSchedule();
         if (creditTabButton) {
           const creditTab = bootstrap.Tab.getOrCreateInstance(creditTabButton);
@@ -4802,6 +4857,7 @@ OOO «MAJOR MOTORS SAM»</div>
     if (creditVehiclePriceInput) {
       creditVehiclePriceInput.addEventListener('input', () => {
         applyMoneyFormatting(creditVehiclePriceInput);
+        syncCertificateFeeByVehiclePrice();
         maybeApplyAutoCreditAnnualRate();
         calculateCreditSchedule();
       });
