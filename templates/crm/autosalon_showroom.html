@@ -4311,6 +4311,13 @@ OOO «MAJOR MOTORS SAM»</div>
         { price: 420000000, fee: 9800000 },
       ];
 
+      const roundUpCertificateFee = (value) => {
+        if (!Number.isFinite(value) || value <= 0) {
+          return 0;
+        }
+        return Math.ceil(value / 100000) * 100000;
+      };
+
       const interpolate = (left, right) => {
         if (!left || !right || right.price === left.price) {
           return left?.fee || right?.fee || 0;
@@ -4320,20 +4327,20 @@ OOO «MAJOR MOTORS SAM»</div>
       };
 
       if (safePrice <= priceSteps[0].price) {
-        return Math.max(Math.round(interpolate(priceSteps[0], priceSteps[1])), 0);
+        return roundUpCertificateFee(interpolate(priceSteps[0], priceSteps[1]));
       }
 
       for (let index = 1; index < priceSteps.length; index += 1) {
         const left = priceSteps[index - 1];
         const right = priceSteps[index];
         if (safePrice <= right.price) {
-          return Math.max(Math.round(interpolate(left, right)), 0);
+          return roundUpCertificateFee(interpolate(left, right));
         }
       }
 
       const last = priceSteps[priceSteps.length - 1];
       const prev = priceSteps[priceSteps.length - 2];
-      return Math.max(Math.round(interpolate(prev, last)), 0);
+      return roundUpCertificateFee(interpolate(prev, last));
     };
 
     const syncCertificateFeeByVehiclePrice = () => {
