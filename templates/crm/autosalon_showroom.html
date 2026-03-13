@@ -1556,6 +1556,13 @@
                   <div class="form-text" id="credit-down-payment-hint">Введите процент от стоимости автомобиля.</div>
                 </div>
                 <div>
+                  <label class="form-label" for="credit-payment-type">Тип графика платежей</label>
+                  <select class="form-select" id="credit-payment-type">
+                    <option value="annuity" selected>Аннуитетный</option>
+                    <option value="differentiated">Дифференцированный</option>
+                  </select>
+                </div>
+                <div>
                   <label class="form-label" for="credit-annual-rate">Годовая процентная ставка</label>
                   <div class="input-group">
                     <input type="number" min="0" step="0.01" class="form-control" id="credit-annual-rate" placeholder="Например, 24" value="25.9">
@@ -3241,6 +3248,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditDownPaymentValue = document.getElementById('credit-down-payment-value');
     const creditDownPaymentSuffix = document.getElementById('credit-down-payment-suffix');
     const creditDownPaymentHint = document.getElementById('credit-down-payment-hint');
+    const creditPaymentType = document.getElementById('credit-payment-type');
     const creditAnnualRateInput = document.getElementById('credit-annual-rate');
     const DEFAULT_CREDIT_ANNUAL_RATE = 25.9;
     const REDUCED_CREDIT_ANNUAL_RATE = 24.9;
@@ -3477,6 +3485,11 @@ OOO «MAJOR MOTORS SAM»</div>
       const safeValue = Number.isFinite(value) ? value : 0;
       const formatted = formatNumber(safeValue.toFixed(2));
       return `${formatted} ${currencyLabel}`.trim();
+    };
+
+    const roundMoneyValue = (value) => {
+      const safeValue = Number.isFinite(value) ? value : 0;
+      return Number(safeValue.toFixed(2));
     };
 
     formatShowroomPrices();
@@ -4140,7 +4153,7 @@ OOO «MAJOR MOTORS SAM»</div>
         creditSummaryAmount.textContent = toMoney(values.amount, currencyLabel);
       }
       if (creditSummaryMonthly) {
-        creditSummaryMonthly.textContent = toMoney(values.monthly, currencyLabel);
+        creditSummaryMonthly.textContent = values.monthlyDisplay || toMoney(values.monthly, currencyLabel);
       }
       if (creditSummaryOverpay) {
         creditSummaryOverpay.textContent = toMoney(values.overpay, currencyLabel);
@@ -4165,6 +4178,13 @@ OOO «MAJOR MOTORS SAM»</div>
     };
 
     const formatPercent = (value) => `${formatNumber(value.toFixed(2))} %`;
+
+    const getCreditPaymentTypeLabel = () => {
+      if (creditPaymentType?.value === 'differentiated') {
+        return 'Дифференцированный';
+      }
+      return 'Аннуитетный';
+    };
 
     const updateCreditPrintTable = () => {
       if (!creditPrintVehiclePrice || !creditPrintDownPayment || !creditPrintAnnualRate || !creditPrintMonths
@@ -4244,6 +4264,20 @@ OOO «MAJOR MOTORS SAM»</div>
       return date;
     };
 
+    const getDaysBetweenDates = (leftDate, rightDate) => {
+      if (!(leftDate instanceof Date) || !(rightDate instanceof Date)) {
+        return 30;
+      }
+      if (Number.isNaN(leftDate.getTime()) || Number.isNaN(rightDate.getTime())) {
+        return 30;
+      }
+      const dayMs = 24 * 60 * 60 * 1000;
+      const utcLeft = Date.UTC(leftDate.getFullYear(), leftDate.getMonth(), leftDate.getDate());
+      const utcRight = Date.UTC(rightDate.getFullYear(), rightDate.getMonth(), rightDate.getDate());
+      const diffDays = Math.round((utcRight - utcLeft) / dayMs);
+      return Math.max(diffDays, 1);
+    };
+
     const renderCreditSchedule = (schedule, currencyLabel) => {
       if (!creditScheduleBody) {
         return;
@@ -4287,6 +4321,7 @@ OOO «MAJOR MOTORS SAM»</div>
       const months = Math.max(parseInt(creditMonthsInput.value, 10) || 0, 0);
       const annualRate = parseNumber(creditAnnualRateInput.value);
       const monthlyRate = annualRate > 0 ? annualRate / 12 / 100 : 0;
+      const isDifferentiated = creditPaymentType?.value === 'differentiated';
       const baseDate = new Date();
 
       if (!price || !months) {
@@ -4298,6 +4333,7 @@ OOO «MAJOR MOTORS SAM»</div>
           insuranceAnnual: 0,
           insuranceTotal: 0,
           preliminary: 0,
+          monthlyDisplay: '—',
         }, currencyLabel);
         renderCreditSchedule([], currencyLabel);
         currentCreditSchedule = [];
@@ -4306,7 +4342,14 @@ OOO «MAJOR MOTORS SAM»</div>
       }
 
       let monthlyPayment = 0;
-      if (monthlyRate === 0) {
+      let monthlyDisplay = '—';
+      let fixedPrincipalPart = 0;
+      let fixedPrincipalPartRounded = 0;
+
+      if (isDifferentiated) {
+        fixedPrincipalPart = months > 0 ? creditAmount / months : 0;
+        fixedPrincipalPartRounded = roundMoneyValue(fixedPrincipalPart);
+      } else if (monthlyRate === 0) {
         monthlyPayment = creditAmount / months;
       } else {
         const factor = Math.pow(1 + monthlyRate, months);
@@ -4316,17 +4359,31 @@ OOO «MAJOR MOTORS SAM»</div>
       let balance = creditAmount;
       const schedule = [];
       let totalPaid = 0;
+      let minPayment = Number.POSITIVE_INFINITY;
+      let maxPayment = 0;
 
       for (let index = 1; index <= months; index += 1) {
-        const interest = balance * monthlyRate;
-        let principal = monthlyPayment - interest;
-        if (index === months) {
-          principal = balance;
-        }
-        const payment = principal + interest;
-        balance = Math.max(balance - principal, 0);
-        totalPaid += payment;
         const paymentDate = buildPaymentDate(baseDate, index);
+        const previousDate = buildPaymentDate(baseDate, index - 1) || baseDate;
+        const daysInPeriod = getDaysBetweenDates(previousDate, paymentDate || previousDate);
+        const differentiatedRate = (annualRate / 100) * (daysInPeriod / 365);
+        const interest = isDifferentiated
+          ? roundMoneyValue(balance * differentiatedRate)
+          : balance * monthlyRate;
+        let principal = isDifferentiated ? fixedPrincipalPartRounded : monthlyPayment - interest;
+        if (index === months) {
+          principal = isDifferentiated ? roundMoneyValue(balance) : balance;
+        }
+        const payment = isDifferentiated
+          ? roundMoneyValue(principal + interest)
+          : principal + interest;
+        balance = Math.max(
+          isDifferentiated ? roundMoneyValue(balance - principal) : (balance - principal),
+          0,
+        );
+        totalPaid += payment;
+        minPayment = Math.min(minPayment, payment);
+        maxPayment = Math.max(maxPayment, payment);
         const dateLabel = paymentDate ? paymentDate.toLocaleDateString('ru-RU') : '—';
         schedule.push({
           index,
@@ -4336,6 +4393,16 @@ OOO «MAJOR MOTORS SAM»</div>
           principal,
           balance,
         });
+      }
+
+      if (isDifferentiated) {
+        if (months === 1) {
+          monthlyDisplay = toMoney(maxPayment, currencyLabel);
+        } else {
+          monthlyDisplay = `от ${toMoney(minPayment, currencyLabel)} до ${toMoney(maxPayment, currencyLabel)}`;
+        }
+      } else {
+        monthlyDisplay = toMoney(monthlyPayment, currencyLabel);
       }
 
       const annualInsurance = (creditAmount * 1.34) * 0.009 + (creditAmount * 1.3) * 0.002;
@@ -4352,6 +4419,7 @@ OOO «MAJOR MOTORS SAM»</div>
           insuranceAnnual: annualInsurance,
           insuranceTotal,
           preliminary: preliminaryTotal,
+          monthlyDisplay,
         },
         currencyLabel,
       );
@@ -4937,6 +5005,10 @@ OOO «MAJOR MOTORS SAM»</div>
       });
     }
 
+    if (creditPaymentType) {
+      creditPaymentType.addEventListener('change', calculateCreditSchedule);
+    }
+
     if (creditMonthsInput) {
       creditMonthsInput.addEventListener('input', calculateCreditSchedule);
     }
@@ -5242,6 +5314,7 @@ OOO «MAJOR MOTORS SAM»</div>
       const summaryAmount = creditSummaryAmount?.textContent?.trim() || '—';
       const summaryMonthly = creditSummaryMonthly?.textContent?.trim() || '—';
       const summaryOverpay = creditSummaryOverpay?.textContent?.trim() || '—';
+      const paymentTypeLabel = getCreditPaymentTypeLabel();
       const summaryInsuranceTotal = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
       const summaryPreliminary = creditSummaryPreliminary?.textContent?.trim() || '—';
       const summaryCertificate = creditCertificateFeeInput?.value
@@ -5252,6 +5325,7 @@ OOO «MAJOR MOTORS SAM»</div>
         [],
         ['Итоги расчета'],
         ['Сумма кредита', summaryAmount],
+        ['Тип графика платежей', paymentTypeLabel],
         ['Ежемесячный платеж', summaryMonthly],
         ['Переплата по кредиту', summaryOverpay],
         ['Страхование (за весь срок)', summaryInsuranceTotal],
