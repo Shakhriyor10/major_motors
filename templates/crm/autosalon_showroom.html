@@ -3492,6 +3492,11 @@ OOO «MAJOR MOTORS SAM»</div>
       return `${formatted} ${currencyLabel}`.trim();
     };
 
+    const roundMoneyValue = (value) => {
+      const safeValue = Number.isFinite(value) ? value : 0;
+      return Number(safeValue.toFixed(2));
+    };
+
     formatShowroomPrices();
 
     const formatAttorneyDate = (value) => {
@@ -4332,9 +4337,11 @@ OOO «MAJOR MOTORS SAM»</div>
       let monthlyPayment = 0;
       let monthlyDisplay = '—';
       let fixedPrincipalPart = 0;
+      let fixedPrincipalPartRounded = 0;
 
       if (isDifferentiated) {
         fixedPrincipalPart = months > 0 ? creditAmount / months : 0;
+        fixedPrincipalPartRounded = roundMoneyValue(fixedPrincipalPart);
       } else if (monthlyRate === 0) {
         monthlyPayment = creditAmount / months;
       } else {
@@ -4349,13 +4356,20 @@ OOO «MAJOR MOTORS SAM»</div>
       let maxPayment = 0;
 
       for (let index = 1; index <= months; index += 1) {
-        const interest = balance * monthlyRate;
-        let principal = isDifferentiated ? fixedPrincipalPart : monthlyPayment - interest;
+        const interest = isDifferentiated
+          ? roundMoneyValue(balance * monthlyRate)
+          : balance * monthlyRate;
+        let principal = isDifferentiated ? fixedPrincipalPartRounded : monthlyPayment - interest;
         if (index === months) {
-          principal = balance;
+          principal = isDifferentiated ? roundMoneyValue(balance) : balance;
         }
-        const payment = principal + interest;
-        balance = Math.max(balance - principal, 0);
+        const payment = isDifferentiated
+          ? roundMoneyValue(principal + interest)
+          : principal + interest;
+        balance = Math.max(
+          isDifferentiated ? roundMoneyValue(balance - principal) : (balance - principal),
+          0,
+        );
         totalPaid += payment;
         minPayment = Math.min(minPayment, payment);
         maxPayment = Math.max(maxPayment, payment);
