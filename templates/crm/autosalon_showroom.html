@@ -4271,6 +4271,20 @@ OOO «MAJOR MOTORS SAM»</div>
       return date;
     };
 
+    const getDaysBetweenDates = (leftDate, rightDate) => {
+      if (!(leftDate instanceof Date) || !(rightDate instanceof Date)) {
+        return 30;
+      }
+      if (Number.isNaN(leftDate.getTime()) || Number.isNaN(rightDate.getTime())) {
+        return 30;
+      }
+      const dayMs = 24 * 60 * 60 * 1000;
+      const utcLeft = Date.UTC(leftDate.getFullYear(), leftDate.getMonth(), leftDate.getDate());
+      const utcRight = Date.UTC(rightDate.getFullYear(), rightDate.getMonth(), rightDate.getDate());
+      const diffDays = Math.round((utcRight - utcLeft) / dayMs);
+      return Math.max(diffDays, 1);
+    };
+
     const renderCreditSchedule = (schedule, currencyLabel) => {
       if (!creditScheduleBody) {
         return;
@@ -4356,8 +4370,12 @@ OOO «MAJOR MOTORS SAM»</div>
       let maxPayment = 0;
 
       for (let index = 1; index <= months; index += 1) {
+        const paymentDate = buildPaymentDate(baseDate, index);
+        const previousDate = buildPaymentDate(baseDate, index - 1) || baseDate;
+        const daysInPeriod = getDaysBetweenDates(previousDate, paymentDate || previousDate);
+        const differentiatedRate = (annualRate / 100) * (daysInPeriod / 365);
         const interest = isDifferentiated
-          ? roundMoneyValue(balance * monthlyRate)
+          ? roundMoneyValue(balance * differentiatedRate)
           : balance * monthlyRate;
         let principal = isDifferentiated ? fixedPrincipalPartRounded : monthlyPayment - interest;
         if (index === months) {
@@ -4373,7 +4391,6 @@ OOO «MAJOR MOTORS SAM»</div>
         totalPaid += payment;
         minPayment = Math.min(minPayment, payment);
         maxPayment = Math.max(maxPayment, payment);
-        const paymentDate = buildPaymentDate(baseDate, index);
         const dateLabel = paymentDate ? paymentDate.toLocaleDateString('ru-RU') : '—';
         schedule.push({
           index,
