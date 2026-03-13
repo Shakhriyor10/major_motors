@@ -220,25 +220,38 @@
     }
 
     .showroom-price {
-      background: #0f172a;
-      color: #f8fafc;
-      border-radius: 12px;
-      padding: 8px 12px;
-      min-width: 140px;
+      min-width: 160px;
       text-align: right;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      padding: 2px 0;
     }
 
     .showroom-price .label {
-      font-size: 0.65rem;
+      font-size: 0.64rem;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: rgba(248, 250, 252, 0.7);
+      letter-spacing: 0.1em;
+      color: #64748b;
+      font-weight: 600;
     }
 
     .showroom-price .value {
-      font-size: 1rem;
+      font-size: 1.2rem;
+      font-weight: 800;
+      line-height: 1;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+
+    .showroom-price .currency {
+      font-size: 0.74rem;
       font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #2563eb;
+      margin-left: 6px;
     }
 
     .showroom-badges .badge {
@@ -1257,7 +1270,7 @@
                             <span data-showroom-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
                               {{ vehicle.sale_price|default:vehicle.purchase_price }}
                             </span>
-                            {{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}
+                            <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
                           </div>
                         </div>
                       </div>
