@@ -1475,10 +1475,6 @@
                       <td id="credit-print-down-payment">—</td>
                     </tr>
                     <tr>
-                      <th>Тип графика</th>
-                      <td id="credit-print-payment-type">—</td>
-                    </tr>
-                    <tr>
                       <th>Годовая ставка</th>
                       <td id="credit-print-annual-rate">—</td>
                     </tr>
@@ -3272,7 +3268,6 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditPrintCustomerPhone = document.getElementById('credit-print-customer-phone');
     const creditPrintVehiclePrice = document.getElementById('credit-print-vehicle-price');
     const creditPrintDownPayment = document.getElementById('credit-print-down-payment');
-    const creditPrintPaymentType = document.getElementById('credit-print-payment-type');
     const creditPrintAnnualRate = document.getElementById('credit-print-annual-rate');
     const creditPrintMonths = document.getElementById('credit-print-months');
     const creditPrintCertificate = document.getElementById('credit-print-certificate');
@@ -4192,7 +4187,7 @@ OOO «MAJOR MOTORS SAM»</div>
     };
 
     const updateCreditPrintTable = () => {
-      if (!creditPrintVehiclePrice || !creditPrintDownPayment || !creditPrintPaymentType || !creditPrintAnnualRate || !creditPrintMonths
+      if (!creditPrintVehiclePrice || !creditPrintDownPayment || !creditPrintAnnualRate || !creditPrintMonths
         || !creditPrintCertificate || !creditPrintSummaryAmount
         || !creditPrintSummaryInsuranceTotal || !creditPrintSummaryPreliminary) {
         return;
@@ -4217,8 +4212,6 @@ OOO «MAJOR MOTORS SAM»</div>
       } else {
         creditPrintDownPayment.textContent = '—';
       }
-
-      creditPrintPaymentType.textContent = getCreditPaymentTypeLabel();
 
       creditPrintAnnualRate.textContent = annualRateValue
         ? formatPercent(parseNumber(annualRateValue))
