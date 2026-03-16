@@ -1539,7 +1539,7 @@
                 <div>
                   <label class="form-label" for="credit-vehicle-price">Стоимость автомобиля</label>
                   <div class="input-group">
-                    <input type="text" inputmode="decimal" class="form-control" id="credit-vehicle-price" placeholder="Например, 250000000">
+                    <input type="text" inputmode="decimal" class="form-control" id="credit-vehicle-price" placeholder="Например, 250000000" value="5 800 000">
                     <span class="input-group-text" id="credit-currency-label">UZS</span>
                   </div>
                 </div>
@@ -3251,6 +3251,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditPaymentType = document.getElementById('credit-payment-type');
     const creditAnnualRateInput = document.getElementById('credit-annual-rate');
     const DEFAULT_CREDIT_ANNUAL_RATE = 25.9;
+    const DEFAULT_CREDIT_AMOUNT = 5800000;
     const REDUCED_CREDIT_ANNUAL_RATE = 24.9;
     const REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD = 40;
     let isCreditAnnualRateManuallyEdited = false;
@@ -4428,55 +4429,13 @@ OOO «MAJOR MOTORS SAM»</div>
       updateCreditPrintTable();
     };
 
-    const calculateCertificateFeeByPrice = (price) => {
-      const safePrice = Number(price) || 0;
-      if (safePrice <= 0) {
-        return 0;
-      }
-      const priceSteps = [
-        { price: 220000000, fee: 4800000 },
-        { price: 420000000, fee: 10800000 },
-      ];
-
-      const roundUpCertificateFee = (value) => {
-        if (!Number.isFinite(value) || value <= 0) {
-          return 0;
-        }
-        return Math.ceil(value / 100000) * 100000;
-      };
-
-      const interpolate = (left, right) => {
-        if (!left || !right || right.price === left.price) {
-          return left?.fee || right?.fee || 0;
-        }
-        const share = (safePrice - left.price) / (right.price - left.price);
-        return left.fee + (right.fee - left.fee) * share;
-      };
-
-      if (safePrice <= priceSteps[0].price) {
-        return roundUpCertificateFee(interpolate(priceSteps[0], priceSteps[1]));
-      }
-
-      for (let index = 1; index < priceSteps.length; index += 1) {
-        const left = priceSteps[index - 1];
-        const right = priceSteps[index];
-        if (safePrice <= right.price) {
-          return roundUpCertificateFee(interpolate(left, right));
-        }
-      }
-
-      const last = priceSteps[priceSteps.length - 1];
-      const prev = priceSteps[priceSteps.length - 2];
-      return roundUpCertificateFee(interpolate(prev, last));
-    };
-
-    const syncCertificateFeeByVehiclePrice = () => {
+    const applyDefaultCreditAmounts = () => {
       if (!creditVehiclePriceInput || !creditCertificateFeeInput) {
         return;
       }
-      const price = parseNumber(creditVehiclePriceInput.value);
-      const certificateFee = calculateCertificateFeeByPrice(price);
-      creditCertificateFeeInput.value = certificateFee ? String(certificateFee) : '';
+      creditVehiclePriceInput.value = String(DEFAULT_CREDIT_AMOUNT);
+      creditCertificateFeeInput.value = String(DEFAULT_CREDIT_AMOUNT);
+      applyMoneyFormatting(creditVehiclePriceInput);
       applyMoneyFormatting(creditCertificateFeeInput);
     };
 
@@ -4824,12 +4783,8 @@ OOO «MAJOR MOTORS SAM»</div>
 
     document.querySelectorAll('[data-open-credit]').forEach((button) => {
       button.addEventListener('click', () => {
-        const price = button.dataset.vehiclePrice || '';
         const currency = button.dataset.vehicleCurrency?.toUpperCase() || 'UZS';
-        if (creditVehiclePriceInput) {
-          creditVehiclePriceInput.value = price;
-          applyMoneyFormatting(creditVehiclePriceInput);
-        }
+        applyDefaultCreditAmounts();
         if (creditCurrencyLabel) {
           creditCurrencyLabel.textContent = currency;
         }
@@ -4841,7 +4796,6 @@ OOO «MAJOR MOTORS SAM»</div>
           creditVehicleBadge.textContent = `${vehicleName} · ${currency}`;
         }
         updateCreditDownPaymentUI();
-        syncCertificateFeeByVehiclePrice();
         calculateCreditSchedule();
         if (creditTabButton) {
           const creditTab = bootstrap.Tab.getOrCreateInstance(creditTabButton);
@@ -4984,7 +4938,6 @@ OOO «MAJOR MOTORS SAM»</div>
     if (creditVehiclePriceInput) {
       creditVehiclePriceInput.addEventListener('input', () => {
         applyMoneyFormatting(creditVehiclePriceInput);
-        syncCertificateFeeByVehiclePrice();
         maybeApplyAutoCreditAnnualRate();
         calculateCreditSchedule();
       });
