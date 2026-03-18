@@ -1561,6 +1561,21 @@
                     <option value="annuity" selected>Аннуитетный</option>
                     <option value="differentiated">Дифференцированный</option>
                   </select>
+                  <div class="form-text mb-2">Выберите, какие столбцы показывать в таблице и при печати графика.</div>
+                  <div class="d-flex flex-column gap-2">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="credit-show-interest">
+                      <label class="form-check-label" for="credit-show-interest">Показывать столбец «Проценты»</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="credit-show-principal">
+                      <label class="form-check-label" for="credit-show-principal">Показывать столбец «Основной долг»</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="credit-show-balance">
+                      <label class="form-check-label" for="credit-show-balance">Показывать столбец «Остаток»</label>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label class="form-label" for="credit-annual-rate">Годовая процентная ставка</label>
@@ -1633,9 +1648,9 @@
                       <th>№</th>
                       <th>Дата платежа</th>
                       <th class="text-end">Платеж</th>
-                      <th class="text-end">Проценты</th>
-                      <th class="text-end">Основной долг</th>
-                      <th class="text-end">Остаток</th>
+                      <th class="text-end" data-credit-column="interest">Проценты</th>
+                      <th class="text-end" data-credit-column="principal">Основной долг</th>
+                      <th class="text-end" data-credit-column="balance">Остаток</th>
                     </tr>
                   </thead>
                   <tbody id="credit-schedule-body">
@@ -3249,6 +3264,9 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditDownPaymentSuffix = document.getElementById('credit-down-payment-suffix');
     const creditDownPaymentHint = document.getElementById('credit-down-payment-hint');
     const creditPaymentType = document.getElementById('credit-payment-type');
+    const creditShowInterestInput = document.getElementById('credit-show-interest');
+    const creditShowPrincipalInput = document.getElementById('credit-show-principal');
+    const creditShowBalanceInput = document.getElementById('credit-show-balance');
     const creditAnnualRateInput = document.getElementById('credit-annual-rate');
     const DEFAULT_CREDIT_ANNUAL_RATE = 25.9;
     const REDUCED_CREDIT_ANNUAL_RATE = 24.9;
@@ -4278,6 +4296,39 @@ OOO «MAJOR MOTORS SAM»</div>
       return Math.max(diffDays, 1);
     };
 
+    const getCreditScheduleVisibleColumnCount = () => {
+      let visibleColumnCount = 3;
+      if (creditShowInterestInput?.checked !== false) {
+        visibleColumnCount += 1;
+      }
+      if (creditShowPrincipalInput?.checked !== false) {
+        visibleColumnCount += 1;
+      }
+      if (creditShowBalanceInput?.checked !== false) {
+        visibleColumnCount += 1;
+      }
+      return visibleColumnCount;
+    };
+
+    const applyCreditScheduleColumnVisibility = () => {
+      const columnVisibility = {
+        interest: creditShowInterestInput?.checked !== false,
+        principal: creditShowPrincipalInput?.checked !== false,
+        balance: creditShowBalanceInput?.checked !== false,
+      };
+
+      Object.entries(columnVisibility).forEach(([columnName, isVisible]) => {
+        document.querySelectorAll(`[data-credit-column="${columnName}"]`).forEach((cell) => {
+          cell.style.display = isVisible ? '' : 'none';
+        });
+      });
+
+      const emptyStateCell = creditScheduleBody?.querySelector('[data-credit-schedule-empty]');
+      if (emptyStateCell) {
+        emptyStateCell.colSpan = getCreditScheduleVisibleColumnCount();
+      }
+    };
+
     const renderCreditSchedule = (schedule, currencyLabel) => {
       if (!creditScheduleBody) {
         return;
@@ -4285,8 +4336,9 @@ OOO «MAJOR MOTORS SAM»</div>
       creditScheduleBody.innerHTML = '';
       if (!schedule.length) {
         const row = document.createElement('tr');
-        row.innerHTML = '<td colspan="6" class="text-muted">Заполните параметры кредита для расчета графика.</td>';
+        row.innerHTML = `<td colspan="${getCreditScheduleVisibleColumnCount()}" class="text-muted" data-credit-schedule-empty>Заполните параметры кредита для расчета графика.</td>`;
         creditScheduleBody.appendChild(row);
+        applyCreditScheduleColumnVisibility();
         return;
       }
       schedule.forEach((item) => {
@@ -4295,12 +4347,13 @@ OOO «MAJOR MOTORS SAM»</div>
           <td>${item.index}</td>
           <td>${item.dateLabel}</td>
           <td class="text-end">${toMoney(item.payment, currencyLabel)}</td>
-          <td class="text-end">${toMoney(item.interest, currencyLabel)}</td>
-          <td class="text-end">${toMoney(item.principal, currencyLabel)}</td>
-          <td class="text-end">${toMoney(item.balance, currencyLabel)}</td>
+          <td class="text-end" data-credit-column="interest">${toMoney(item.interest, currencyLabel)}</td>
+          <td class="text-end" data-credit-column="principal">${toMoney(item.principal, currencyLabel)}</td>
+          <td class="text-end" data-credit-column="balance">${toMoney(item.balance, currencyLabel)}</td>
         `;
         creditScheduleBody.appendChild(row);
       });
+      applyCreditScheduleColumnVisibility();
     };
 
     const calculateCreditSchedule = () => {
@@ -5232,12 +5285,18 @@ OOO «MAJOR MOTORS SAM»</div>
           return;
         }
         updateCreditPrintTable();
+        applyCreditScheduleColumnVisibility();
         currentPrintTarget = creditPrintArea;
         document.body.classList.add('print-receipt-active');
         creditPrintArea.classList.add('is-print-target');
         window.print();
       });
     }
+
+    [creditShowInterestInput, creditShowPrincipalInput, creditShowBalanceInput].forEach((input) => {
+      input?.addEventListener('change', applyCreditScheduleColumnVisibility);
+    });
+    applyCreditScheduleColumnVisibility();
 
     if (attorneyPrintButton) {
       attorneyPrintButton.addEventListener('click', triggerAttorneyPrint);
