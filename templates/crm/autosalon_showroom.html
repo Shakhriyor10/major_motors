@@ -225,24 +225,36 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 2px;
+      gap: 4px;
       padding: 2px 0;
     }
 
-    .showroom-price .label {
-      font-size: 0.64rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #64748b;
-      font-weight: 600;
+    .showroom-price-list {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
     }
 
-    .showroom-price .value {
-      font-size: 1.2rem;
-      font-weight: 700;
-      line-height: 1;
+    .showroom-price-option {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      border: 0;
+      background: transparent;
+      padding: 0;
       color: #0f172a;
+      font-size: 0.96rem;
+      font-weight: 700;
+      line-height: 1.1;
       letter-spacing: -0.01em;
+      cursor: pointer;
+      text-align: right;
+    }
+
+    .showroom-price-option:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
     }
 
     .showroom-price .currency {
@@ -251,7 +263,7 @@
       letter-spacing: inherit;
       text-transform: none;
       color: inherit;
-      margin-left: 6px;
+      margin-left: 4px;
     }
 
     .showroom-badges .badge {
@@ -1265,12 +1277,67 @@
                           </div>
                         </div>
                         <div class="showroom-price">
-                          <div class="label">Цена</div>
-                          <div class="value">
-                            <span data-showroom-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
-                              {{ vehicle.sale_price|default:vehicle.purchase_price }}
-                            </span>
-                            <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
+                          <div class="showroom-price-list">
+                            <button
+                              class="showroom-price-option"
+                              type="button"
+                              data-open-credit
+                              data-credit-mode="standard"
+                              data-vehicle-name="{{ vehicle.name }}"
+                              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                              data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                              aria-label="Открыть кредитный калькулятор"
+                            >
+                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0">
+                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                              </span>
+                              <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
+                            </button>
+                            <button
+                              class="showroom-price-option"
+                              type="button"
+                              data-open-credit
+                              data-credit-mode="subsidy9"
+                              data-vehicle-name="{{ vehicle.name }}"
+                              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                              data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                              aria-label="Открыть субсидированный кредит 9%"
+                            >
+                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.09">
+                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                              </span>
+                              <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
+                            </button>
+                            <button
+                              class="showroom-price-option"
+                              type="button"
+                              data-open-credit
+                              data-credit-mode="subsidy10"
+                              data-vehicle-name="{{ vehicle.name }}"
+                              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                              data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                              aria-label="Открыть субсидированный кредит 10%"
+                            >
+                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.10">
+                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                              </span>
+                              <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
+                            </button>
+                            <button
+                              class="showroom-price-option"
+                              type="button"
+                              data-open-credit
+                              data-credit-mode="subsidy11"
+                              data-vehicle-name="{{ vehicle.name }}"
+                              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                              data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                              aria-label="Открыть субсидированный кредит 11%"
+                            >
+                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.11">
+                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                              </span>
+                              <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1415,6 +1482,7 @@
                             class="btn btn-outline-success"
                             type="button"
                             data-open-credit
+                            data-credit-mode="standard"
                             data-vehicle-name="{{ vehicle.name }}"
                             data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                             data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
@@ -1583,6 +1651,7 @@
                     <input type="number" min="0" step="0.01" class="form-control" id="credit-annual-rate" placeholder="Например, 24" value="25.9">
                     <span class="input-group-text">%</span>
                   </div>
+                  <div class="form-text" id="credit-rate-hint">Ставку можно изменить вручную.</div>
                 </div>
                 <div>
                   <label class="form-label" for="credit-months">Срок кредита (в месяцах)</label>
@@ -3268,10 +3337,53 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditShowPrincipalInput = document.getElementById('credit-show-principal');
     const creditShowBalanceInput = document.getElementById('credit-show-balance');
     const creditAnnualRateInput = document.getElementById('credit-annual-rate');
+    const creditRateHint = document.getElementById('credit-rate-hint');
     const DEFAULT_CREDIT_ANNUAL_RATE = 25.9;
     const REDUCED_CREDIT_ANNUAL_RATE = 24.9;
     const REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD = 40;
+    const SUBSIDY_CREDIT_PROGRAMS = {
+      subsidy9: {
+        label: 'Субсидия 9%',
+        priceFactor: 0.09,
+        defaultDownPayment: 30,
+        allowedMonths: new Set([12, 24, 36]),
+        invalidMessage: 'Для субсидии 9% доступны взнос от 30% и срок 12, 24 или 36 месяцев.',
+        rates: [
+          { min: 30, max: 39.999999, rates: { 12: 2, 24: 14, 36: 18 } },
+          { min: 40, max: 49.999999, rates: { 12: 0, 24: 12, 36: 17 } },
+          { min: 50, max: 59.999999, rates: { 12: 0, 24: 9.5, 36: 15.5 } },
+          { min: 60, max: Number.POSITIVE_INFINITY, rates: { 12: 0, 24: 5.5, 36: 12.5 } },
+        ],
+      },
+      subsidy10: {
+        label: 'Субсидия 10%',
+        priceFactor: 0.10,
+        defaultDownPayment: 30,
+        allowedMonths: new Set([12, 24, 36]),
+        invalidMessage: 'Для субсидии 10% доступны взнос от 30% до 69% и срок 12, 24 или 36 месяцев.',
+        rates: [
+          { min: 30, max: 39.999999, rates: { 12: 0, 24: 12.9, 36: 17.5 } },
+          { min: 40, max: 49.999999, rates: { 12: 0, 24: 10.5, 36: 16 } },
+          { min: 50, max: 59.999999, rates: { 12: 0, 24: 7.5, 36: 14 } },
+          { min: 60, max: 69.999999, rates: { 12: 0, 24: 3, 36: 11.5 } },
+        ],
+      },
+      subsidy11: {
+        label: 'Субсидия 11%',
+        priceFactor: 0.11,
+        defaultDownPayment: 30,
+        allowedMonths: new Set([12, 24, 36]),
+        invalidMessage: 'Для субсидии 11% доступны взнос от 30% и срок 12, 24 или 36 месяцев.',
+        rates: [
+          { min: 30, max: 39.999999, rates: { 12: 0, 24: 11.5, 36: 16.5 } },
+          { min: 40, max: 49.999999, rates: { 12: 0, 24: 9.0, 36: 15 } },
+          { min: 50, max: 59.999999, rates: { 12: 0, 24: 5.9, 36: 13 } },
+          { min: 60, max: Number.POSITIVE_INFINITY, rates: { 12: 0, 24: 1.0, 36: 9.5 } },
+        ],
+      },
+    };
     let isCreditAnnualRateManuallyEdited = false;
+    let currentCreditMode = 'standard';
     const creditMonthsInput = document.getElementById('credit-months');
     const creditCertificateFeeInput = document.getElementById('credit-certificate-fee');
     const creditCertificateCurrency = document.getElementById('credit-certificate-currency');
@@ -3482,12 +3594,17 @@ OOO «MAJOR MOTORS SAM»</div>
     const formatNumberString = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const formatNumber = (value) => formatNumberString(value);
     const formatShowroomPrices = () => {
-      document.querySelectorAll('[data-showroom-price]').forEach((priceElement) => {
-        const rawValue = priceElement.dataset.showroomPrice;
+      document.querySelectorAll('[data-showroom-price-option]').forEach((priceElement) => {
+        const rawValue = priceElement.dataset.showroomPriceOption;
+        const subsidyFactor = parseNumber(priceElement.dataset.subsidyFactor);
         if (!rawValue) {
           return;
         }
-        priceElement.textContent = formatNumberString(`${rawValue}`.replace(/\s+/g, ''));
+        const basePrice = parseNumber(rawValue);
+        const resolvedPrice = subsidyFactor > 0
+          ? roundMoneyValue(basePrice + (basePrice * subsidyFactor))
+          : basePrice;
+        priceElement.textContent = formatNumberString(`${resolvedPrice}`.replace(/\s+/g, ''));
       });
     };
     const parseNumber = (value) => {
@@ -4140,11 +4257,44 @@ OOO «MAJOR MOTORS SAM»</div>
       return (rawDownPayment / price) * 100;
     };
 
+    const isSubsidyCreditMode = () => currentCreditMode !== 'standard';
+
+    const getCurrentSubsidyProgram = () => (isSubsidyCreditMode() ? SUBSIDY_CREDIT_PROGRAMS[currentCreditMode] || null : null);
+
+    const getSubsidyCreditAnnualRate = (downPaymentPercent, months, subsidyProgram = getCurrentSubsidyProgram()) => {
+      const normalizedMonths = parseInt(months, 10) || 0;
+      if (!subsidyProgram) {
+        return null;
+      }
+      const matchedRule = subsidyProgram.rates.find((rule) => (
+        downPaymentPercent >= rule.min && downPaymentPercent <= rule.max
+      ));
+      if (!matchedRule || !subsidyProgram.allowedMonths.has(normalizedMonths)) {
+        return null;
+      }
+      return matchedRule.rates[normalizedMonths] ?? null;
+    };
+
+    const updateCreditRateHint = () => {
+      if (!creditRateHint) {
+        return;
+      }
+      const subsidyProgram = getCurrentSubsidyProgram();
+      if (subsidyProgram) {
+        creditRateHint.textContent = `В режиме «${subsidyProgram.label}» ставка рассчитывается автоматически по взносу и сроку 12, 24 или 36 месяцев.`;
+      } else {
+        creditRateHint.textContent = 'Ставку можно изменить вручную.';
+      }
+    };
+
     const getAutoCreditAnnualRate = () => {
       const price = parseNumber(creditVehiclePriceInput?.value);
       const rawDownPayment = parseNumber(creditDownPaymentValue?.value);
       const isPercent = creditDownPaymentType?.value === 'percent';
       const downPaymentPercent = calculateDownPaymentPercent(price, rawDownPayment, isPercent);
+      if (isSubsidyCreditMode()) {
+        return getSubsidyCreditAnnualRate(downPaymentPercent, creditMonthsInput?.value);
+      }
       return downPaymentPercent >= REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD
         ? REDUCED_CREDIT_ANNUAL_RATE
         : DEFAULT_CREDIT_ANNUAL_RATE;
@@ -4155,6 +4305,11 @@ OOO «MAJOR MOTORS SAM»</div>
         return;
       }
       const autoRate = getAutoCreditAnnualRate();
+      if (isSubsidyCreditMode()) {
+        creditAnnualRateInput.value = autoRate === null ? '' : `${autoRate}`;
+        isCreditAnnualRateManuallyEdited = false;
+        return;
+      }
       const currentRate = parseNumber(creditAnnualRateInput.value);
       const isCurrentAutoRate = currentRate === DEFAULT_CREDIT_ANNUAL_RATE || currentRate === REDUCED_CREDIT_ANNUAL_RATE;
       if (!force && isCreditAnnualRateManuallyEdited && !isCurrentAutoRate) {
@@ -4163,6 +4318,24 @@ OOO «MAJOR MOTORS SAM»</div>
       creditAnnualRateInput.value = `${autoRate}`;
       if (force || isCurrentAutoRate) {
         isCreditAnnualRateManuallyEdited = false;
+      }
+    };
+
+    const setCreditMode = (mode) => {
+      currentCreditMode = SUBSIDY_CREDIT_PROGRAMS[mode] ? mode : 'standard';
+      const subsidyProgram = getCurrentSubsidyProgram();
+      updateCreditRateHint();
+      if (creditAnnualRateInput) {
+        creditAnnualRateInput.readOnly = Boolean(subsidyProgram);
+      }
+      if (creditMonthsInput && subsidyProgram && !subsidyProgram.allowedMonths.has(parseInt(creditMonthsInput.value, 10) || 0)) {
+        creditMonthsInput.value = '12';
+      }
+      if (creditDownPaymentType && subsidyProgram) {
+        creditDownPaymentType.value = 'percent';
+      }
+      if (creditDownPaymentValue && subsidyProgram && !`${creditDownPaymentValue.value ?? ''}`.trim()) {
+        creditDownPaymentValue.value = `${subsidyProgram.defaultDownPayment}`;
       }
     };
 
@@ -4329,16 +4502,24 @@ OOO «MAJOR MOTORS SAM»</div>
       }
     };
 
+    const renderCreditEmptyState = (message = 'Заполните параметры кредита для расчета графика.') => {
+      if (!creditScheduleBody) {
+        return;
+      }
+      creditScheduleBody.innerHTML = '';
+      const row = document.createElement('tr');
+      row.innerHTML = `<td colspan="${getCreditScheduleVisibleColumnCount()}" class="text-muted" data-credit-schedule-empty>${message}</td>`;
+      creditScheduleBody.appendChild(row);
+      applyCreditScheduleColumnVisibility();
+    };
+
     const renderCreditSchedule = (schedule, currencyLabel) => {
       if (!creditScheduleBody) {
         return;
       }
       creditScheduleBody.innerHTML = '';
       if (!schedule.length) {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td colspan="${getCreditScheduleVisibleColumnCount()}" class="text-muted" data-credit-schedule-empty>Заполните параметры кредита для расчета графика.</td>`;
-        creditScheduleBody.appendChild(row);
-        applyCreditScheduleColumnVisibility();
+        renderCreditEmptyState();
         return;
       }
       schedule.forEach((item) => {
@@ -4392,6 +4573,31 @@ OOO «MAJOR MOTORS SAM»</div>
         currentCreditSchedule = [];
         updateCreditPrintTable();
         return;
+      }
+
+      const subsidyProgram = getCurrentSubsidyProgram();
+      if (subsidyProgram) {
+        const downPaymentPercent = calculateDownPaymentPercent(price, downPaymentRaw, isPercent);
+        const subsidyRate = getSubsidyCreditAnnualRate(downPaymentPercent, months, subsidyProgram);
+        if (subsidyRate === null) {
+          setCreditSummary({
+            amount: 0,
+            monthly: 0,
+            total: 0,
+            overpay: 0,
+            insuranceAnnual: 0,
+            insuranceTotal: 0,
+            preliminary: 0,
+            monthlyDisplay: '—',
+          }, currencyLabel);
+          renderCreditEmptyState(subsidyProgram.invalidMessage);
+          currentCreditSchedule = [];
+          updateCreditPrintTable();
+          return;
+        }
+        if (creditAnnualRateInput) {
+          creditAnnualRateInput.value = `${subsidyRate}`;
+        }
       }
 
       let monthlyPayment = 0;
@@ -4835,10 +5041,17 @@ OOO «MAJOR MOTORS SAM»</div>
 
     document.querySelectorAll('[data-open-credit]').forEach((button) => {
       button.addEventListener('click', () => {
-        const price = button.dataset.vehiclePrice || '';
+        const originalPrice = parseNumber(button.dataset.vehiclePrice || '0');
+        const requestedMode = button.dataset.creditMode || 'standard';
+        const subsidyProgram = SUBSIDY_CREDIT_PROGRAMS[requestedMode] || null;
+        const mode = subsidyProgram ? requestedMode : 'standard';
+        const resolvedPrice = subsidyProgram
+          ? roundMoneyValue(originalPrice + (originalPrice * subsidyProgram.priceFactor))
+          : originalPrice;
         const currency = button.dataset.vehicleCurrency?.toUpperCase() || 'UZS';
+        setCreditMode(mode);
         if (creditVehiclePriceInput) {
-          creditVehiclePriceInput.value = price;
+          creditVehiclePriceInput.value = resolvedPrice ? `${resolvedPrice}` : '';
           applyMoneyFormatting(creditVehiclePriceInput);
         }
         if (creditCurrencyLabel) {
@@ -4849,10 +5062,23 @@ OOO «MAJOR MOTORS SAM»</div>
         }
         if (creditVehicleBadge) {
           const vehicleName = button.dataset.vehicleName || 'Автомобиль';
-          creditVehicleBadge.textContent = `${vehicleName} · ${currency}`;
+          const badgePrefix = subsidyProgram ? subsidyProgram.label : 'Кредит';
+          creditVehicleBadge.textContent = `${badgePrefix} · ${vehicleName} · ${currency}`;
+        }
+        if (subsidyProgram) {
+          if (creditDownPaymentValue) {
+            creditDownPaymentValue.value = `${subsidyProgram.defaultDownPayment}`;
+          }
+          if (creditMonthsInput) {
+            creditMonthsInput.value = subsidyProgram.allowedMonths.has(parseInt(creditMonthsInput.value, 10) || 0)
+              ? `${parseInt(creditMonthsInput.value, 10) || 12}`
+              : '12';
+          }
+          maybeFormatDownPaymentValue();
         }
         updateCreditDownPaymentUI();
         syncCertificateFeeByVehiclePrice();
+        maybeApplyAutoCreditAnnualRate(true);
         calculateCreditSchedule();
         if (creditTabButton) {
           const creditTab = bootstrap.Tab.getOrCreateInstance(creditTabButton);
@@ -5010,7 +5236,9 @@ OOO «MAJOR MOTORS SAM»</div>
 
     if (creditAnnualRateInput) {
       creditAnnualRateInput.addEventListener('input', () => {
-        isCreditAnnualRateManuallyEdited = true;
+        if (!isSubsidyCreditMode()) {
+          isCreditAnnualRateManuallyEdited = true;
+        }
         calculateCreditSchedule();
       });
     }
@@ -5020,7 +5248,10 @@ OOO «MAJOR MOTORS SAM»</div>
     }
 
     if (creditMonthsInput) {
-      creditMonthsInput.addEventListener('input', calculateCreditSchedule);
+      creditMonthsInput.addEventListener('input', () => {
+        maybeApplyAutoCreditAnnualRate(isSubsidyCreditMode());
+        calculateCreditSchedule();
+      });
     }
 
     if (creditCertificateFeeInput) {
