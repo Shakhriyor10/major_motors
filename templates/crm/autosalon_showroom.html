@@ -4941,7 +4941,7 @@ OOO «MAJOR MOTORS SAM»</div>
         const originalPrice = parseNumber(button.dataset.vehiclePrice || '0');
         const mode = button.dataset.creditMode === 'subsidy' ? 'subsidy' : 'standard';
         const resolvedPrice = mode === 'subsidy'
-          ? roundMoneyValue(originalPrice * SUBSIDY_CREDIT_PRICE_FACTOR)
+          ? roundMoneyValue(originalPrice + (originalPrice * SUBSIDY_CREDIT_PRICE_FACTOR))
           : originalPrice;
         const currency = button.dataset.vehicleCurrency?.toUpperCase() || 'UZS';
         setCreditMode(mode);
