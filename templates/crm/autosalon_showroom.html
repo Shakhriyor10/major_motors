@@ -225,24 +225,36 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 2px;
+      gap: 4px;
       padding: 2px 0;
     }
 
-    .showroom-price .label {
-      font-size: 0.58rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #64748b;
-      font-weight: 600;
+    .showroom-price-list {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
     }
 
-    .showroom-price .value {
-      font-size: 1.05rem;
-      font-weight: 700;
-      line-height: 1;
+    .showroom-price-option {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      border: 0;
+      background: transparent;
+      padding: 0;
       color: #0f172a;
+      font-size: 0.96rem;
+      font-weight: 700;
+      line-height: 1.1;
       letter-spacing: -0.01em;
+      cursor: pointer;
+      text-align: right;
+    }
+
+    .showroom-price-option:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
     }
 
     .showroom-price .currency {
@@ -252,46 +264,6 @@
       text-transform: none;
       color: inherit;
       margin-left: 4px;
-    }
-
-    .showroom-subsidy-prices {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-      margin-top: 8px;
-    }
-
-    .showroom-subsidy-price {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 4px;
-      border: 0;
-      background: transparent;
-      padding: 0;
-      color: #334155;
-      font-size: 0.78rem;
-      font-weight: 600;
-      line-height: 1.2;
-      cursor: pointer;
-      text-align: right;
-    }
-
-    .showroom-subsidy-price:hover {
-      color: #0f172a;
-      text-decoration: underline;
-    }
-
-    .showroom-subsidy-price__label {
-      color: #64748b;
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .showroom-subsidy-price__value {
-      color: inherit;
     }
 
     .showroom-badges .badge {
@@ -1305,55 +1277,63 @@
                           </div>
                         </div>
                         <div class="showroom-price">
-                          <div class="label">Цена</div>
-                          <div class="value">
-                            <span data-showroom-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}">
-                              {{ vehicle.sale_price|default:vehicle.purchase_price }}
-                            </span>
-                            <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
-                          </div>
-                          <div class="showroom-subsidy-prices">
+                          <div class="showroom-price-list">
                             <button
-                              class="showroom-subsidy-price"
+                              class="showroom-price-option"
+                              type="button"
+                              data-open-credit
+                              data-credit-mode="standard"
+                              data-vehicle-name="{{ vehicle.name }}"
+                              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
+                              data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                              aria-label="Открыть кредитный калькулятор"
+                            >
+                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0">
+                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
+                              </span>
+                              <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
+                            </button>
+                            <button
+                              class="showroom-price-option"
                               type="button"
                               data-open-credit
                               data-credit-mode="subsidy9"
                               data-vehicle-name="{{ vehicle.name }}"
                               data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                               data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                              aria-label="Открыть субсидированный кредит 9%"
                             >
-                              <span class="showroom-subsidy-price__label">Субсидия 9%</span>
-                              <span class="showroom-subsidy-price__value" data-showroom-subsidy-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.09">
+                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.09">
                                 {{ vehicle.sale_price|default:vehicle.purchase_price }}
                               </span>
                               <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
                             </button>
                             <button
-                              class="showroom-subsidy-price"
+                              class="showroom-price-option"
                               type="button"
                               data-open-credit
                               data-credit-mode="subsidy10"
                               data-vehicle-name="{{ vehicle.name }}"
                               data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                               data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                              aria-label="Открыть субсидированный кредит 10%"
                             >
-                              <span class="showroom-subsidy-price__label">Субсидия 10%</span>
-                              <span class="showroom-subsidy-price__value" data-showroom-subsidy-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.10">
+                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.10">
                                 {{ vehicle.sale_price|default:vehicle.purchase_price }}
                               </span>
                               <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
                             </button>
                             <button
-                              class="showroom-subsidy-price"
+                              class="showroom-price-option"
                               type="button"
                               data-open-credit
                               data-credit-mode="subsidy11"
                               data-vehicle-name="{{ vehicle.name }}"
                               data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                               data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
+                              aria-label="Открыть субсидированный кредит 11%"
                             >
-                              <span class="showroom-subsidy-price__label">Субсидия 11%</span>
-                              <span class="showroom-subsidy-price__value" data-showroom-subsidy-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.11">
+                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.11">
                                 {{ vehicle.sale_price|default:vehicle.purchase_price }}
                               </span>
                               <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
@@ -3614,23 +3594,17 @@ OOO «MAJOR MOTORS SAM»</div>
     const formatNumberString = (value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const formatNumber = (value) => formatNumberString(value);
     const formatShowroomPrices = () => {
-      document.querySelectorAll('[data-showroom-price]').forEach((priceElement) => {
-        const rawValue = priceElement.dataset.showroomPrice;
-        if (!rawValue) {
-          return;
-        }
-        priceElement.textContent = formatNumberString(`${rawValue}`.replace(/\s+/g, ''));
-      });
-
-      document.querySelectorAll('[data-showroom-subsidy-price]').forEach((priceElement) => {
-        const rawValue = priceElement.dataset.showroomSubsidyPrice;
+      document.querySelectorAll('[data-showroom-price-option]').forEach((priceElement) => {
+        const rawValue = priceElement.dataset.showroomPriceOption;
         const subsidyFactor = parseNumber(priceElement.dataset.subsidyFactor);
         if (!rawValue) {
           return;
         }
         const basePrice = parseNumber(rawValue);
-        const subsidyPrice = roundMoneyValue(basePrice + (basePrice * subsidyFactor));
-        priceElement.textContent = formatNumberString(`${subsidyPrice}`.replace(/\s+/g, ''));
+        const resolvedPrice = subsidyFactor > 0
+          ? roundMoneyValue(basePrice + (basePrice * subsidyFactor))
+          : basePrice;
+        priceElement.textContent = formatNumberString(`${resolvedPrice}`.replace(/\s+/g, ''));
       });
     };
     const parseNumber = (value) => {
