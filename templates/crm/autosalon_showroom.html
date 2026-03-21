@@ -402,46 +402,47 @@
       background: #f8fafc;
     }
 
+    .showroom-summary-field {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.04);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      min-height: 100%;
+    }
+
     .showroom-toolbar-actions {
       display: flex;
-      flex-wrap: wrap;
-      align-items: stretch;
-      justify-content: flex-end;
-      gap: 0.9rem;
+      align-items: center;
+      gap: 0.75rem;
       padding: 14px;
       border-radius: 18px;
       background: rgba(255, 255, 255, 0.78);
       border: 1px solid rgba(148, 163, 184, 0.22);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
-      height: 100%;
-    }
-
-    .showroom-toolbar-summary,
-    .showroom-toolbar-price-controls {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 0.55rem;
-    }
-
-    .showroom-toolbar-price-controls {
-      flex: 1 1 290px;
-      min-width: 240px;
+      overflow-x: auto;
     }
 
     .showroom-toolbar-group-title {
+      flex: 0 0 auto;
       font-size: 0.76rem;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       color: #475569;
+      white-space: nowrap;
     }
 
     .showroom-visibility-toggles {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-start;
+      flex-wrap: nowrap;
+      align-items: center;
       gap: 0.55rem;
+      min-width: max-content;
     }
 
     .showroom-visibility-toggle {
@@ -475,6 +476,7 @@
     }
 
     .showroom-print-button {
+      flex: 0 0 auto;
       align-self: center;
       border-radius: 14px;
       min-height: 44px;
@@ -1444,79 +1446,79 @@
       <div class="vstack gap-4">
         <div class="card showroom-toolbar">
           <div class="card-body">
-            <div class="row g-3 align-items-end">
-              <div class="col-12 col-lg-4">
-                <div class="showroom-filter-field">
-                  <label class="form-label" for="showroom-search">Поиск автомобиля</label>
-                  <input
-                    type="text"
-                    id="showroom-search"
-                    class="form-control"
-                    placeholder="Марка, модель, VIN или описание"
-                  >
+            <div class="vstack gap-3">
+              <div class="row g-3 align-items-end">
+                <div class="col-12 col-lg-4">
+                  <div class="showroom-filter-field">
+                    <label class="form-label" for="showroom-search">Поиск автомобиля</label>
+                    <input
+                      type="text"
+                      id="showroom-search"
+                      class="form-control"
+                      placeholder="Марка, модель, VIN или описание"
+                    >
+                  </div>
                 </div>
-              </div>
-              <div class="col-12 col-md-4 col-lg-2">
-                <div class="showroom-filter-field">
-                  <label class="form-label" for="showroom-model-filter">Фильтр по модели</label>
-                  <select id="showroom-model-filter" class="form-select">
-                    <option value="">Все модели</option>
-                    {% for model_name in showroom_models %}
-                      <option value="{{ model_name|lower }}">{{ model_name }}</option>
-                    {% endfor %}
-                  </select>
+                <div class="col-12 col-md-3 col-lg-2">
+                  <div class="showroom-filter-field">
+                    <label class="form-label" for="showroom-model-filter">Фильтр по модели</label>
+                    <select id="showroom-model-filter" class="form-select">
+                      <option value="">Все модели</option>
+                      {% for model_name in showroom_models %}
+                        <option value="{{ model_name|lower }}">{{ model_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div class="col-12 col-md-4 col-lg-2">
-                <div class="showroom-filter-field">
-                  <label class="form-label" for="showroom-availability-filter">Наличие</label>
-                  <select id="showroom-availability-filter" class="form-select">
-                    <option value="">Все</option>
-                    <option value="in-stock">В наличии</option>
-                  </select>
+                <div class="col-12 col-md-3 col-lg-2">
+                  <div class="showroom-filter-field">
+                    <label class="form-label" for="showroom-availability-filter">Наличие</label>
+                    <select id="showroom-availability-filter" class="form-select">
+                      <option value="">Все</option>
+                      <option value="in-stock">В наличии</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div class="col-12 col-md-4 col-lg-2">
-                <div class="showroom-filter-field">
-                  <label class="form-label" for="showroom-sort">Сортировка</label>
-                  <select id="showroom-sort" class="form-select">
-                    <option value="default">По умолчанию</option>
-                    <option value="price-asc">Цена ↑</option>
-                    <option value="price-desc">Цена ↓</option>
-                  </select>
+                <div class="col-12 col-md-3 col-lg-2">
+                  <div class="showroom-filter-field">
+                    <label class="form-label" for="showroom-sort">Сортировка</label>
+                    <select id="showroom-sort" class="form-select">
+                      <option value="default">По умолчанию</option>
+                      <option value="price-asc">Цена ↑</option>
+                      <option value="price-desc">Цена ↓</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div class="col-12 col-lg-4">
-                <div class="showroom-toolbar-actions">
-                  <div class="showroom-toolbar-summary">
+                <div class="col-12 col-md-3 col-lg-2">
+                  <div class="showroom-summary-field">
                     <div class="showroom-toolbar-group-title">Результаты</div>
                     <div class="showroom-count" id="showroom-count">0</div>
                   </div>
-                  <div class="showroom-toolbar-price-controls">
-                    <div class="showroom-toolbar-group-title">Показывать цены</div>
-                    <div class="showroom-visibility-toggles">
-                    <label class="showroom-visibility-toggle" for="showroom-toggle-base-price">
-                      <input type="checkbox" id="showroom-toggle-base-price" data-price-toggle="base" checked>
-                      <span>Текущая цена</span>
-                    </label>
-                    <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-9">
-                      <input type="checkbox" id="showroom-toggle-subsidy-9" data-price-toggle="subsidy9" checked>
-                      <span>Субсидия 9%</span>
-                    </label>
-                    <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-10">
-                      <input type="checkbox" id="showroom-toggle-subsidy-10" data-price-toggle="subsidy10" checked>
-                      <span>Субсидия 10%</span>
-                    </label>
-                    <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-11">
-                      <input type="checkbox" id="showroom-toggle-subsidy-11" data-price-toggle="subsidy11" checked>
-                      <span>Субсидия 11%</span>
-                    </label>
-                    </div>
-                  </div>
-                  <button class="btn btn-dark showroom-print-button" type="button" id="showroom-print-button">
-                    Печать
-                  </button>
                 </div>
+              </div>
+              <div class="showroom-toolbar-actions">
+                <div class="showroom-toolbar-group-title">Показывать цены</div>
+                <div class="showroom-visibility-toggles">
+                  <label class="showroom-visibility-toggle" for="showroom-toggle-base-price">
+                    <input type="checkbox" id="showroom-toggle-base-price" data-price-toggle="base" checked>
+                    <span>Текущая цена</span>
+                  </label>
+                  <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-9">
+                    <input type="checkbox" id="showroom-toggle-subsidy-9" data-price-toggle="subsidy9" checked>
+                    <span>Субсидия 9%</span>
+                  </label>
+                  <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-10">
+                    <input type="checkbox" id="showroom-toggle-subsidy-10" data-price-toggle="subsidy10" checked>
+                    <span>Субсидия 10%</span>
+                  </label>
+                  <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-11">
+                    <input type="checkbox" id="showroom-toggle-subsidy-11" data-price-toggle="subsidy11" checked>
+                    <span>Субсидия 11%</span>
+                  </label>
+                </div>
+                <button class="btn btn-dark showroom-print-button" type="button" id="showroom-print-button">
+                  Печать
+                </button>
               </div>
             </div>
           </div>
