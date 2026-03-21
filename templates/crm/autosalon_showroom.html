@@ -4855,10 +4855,10 @@ OOO «MAJOR MOTORS SAM»</div>
       const printFrame = document.createElement('iframe');
       printFrame.setAttribute('title', 'credit-schedule-print-frame');
       printFrame.style.position = 'fixed';
-      printFrame.style.right = '0';
-      printFrame.style.bottom = '0';
-      printFrame.style.width = '0';
-      printFrame.style.height = '0';
+      printFrame.style.top = '0';
+      printFrame.style.left = '-10000px';
+      printFrame.style.width = '210mm';
+      printFrame.style.height = '297mm';
       printFrame.style.border = '0';
       printFrame.style.opacity = '0';
       printFrame.style.pointerEvents = 'none';
@@ -4879,6 +4879,29 @@ OOO «MAJOR MOTORS SAM»</div>
 
       const printClone = creditPrintArea.cloneNode(true);
       printClone.classList.add('is-print-target');
+
+      const triggerFramePrint = () => {
+        const frameWindow = printFrame.contentWindow;
+        if (!frameWindow) {
+          cleanup();
+          return;
+        }
+        frameWindow.addEventListener('afterprint', cleanup, { once: true });
+        frameWindow.focus();
+        frameWindow.print();
+        window.setTimeout(cleanup, 1500);
+      };
+
+      let hasTriggeredPrint = false;
+      const handleFrameLoad = () => {
+        if (hasTriggeredPrint) {
+          return;
+        }
+        hasTriggeredPrint = true;
+        window.setTimeout(triggerFramePrint, 300);
+      };
+
+      printFrame.addEventListener('load', handleFrameLoad, { once: true });
 
       printDocument.open();
       printDocument.write(`<!DOCTYPE html>
@@ -4904,19 +4927,7 @@ OOO «MAJOR MOTORS SAM»</div>
 </html>`);
       printDocument.close();
 
-      const triggerFramePrint = () => {
-        const frameWindow = printFrame.contentWindow;
-        if (!frameWindow) {
-          cleanup();
-          return;
-        }
-        frameWindow.addEventListener('afterprint', cleanup, { once: true });
-        frameWindow.focus();
-        frameWindow.print();
-        window.setTimeout(cleanup, 1500);
-      };
-
-      window.setTimeout(triggerFramePrint, 250);
+      window.setTimeout(handleFrameLoad, 1000);
     };
 
     const renderCreditEmptyState = (message = 'Заполните параметры кредита для расчета графика.') => {
