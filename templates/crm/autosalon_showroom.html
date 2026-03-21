@@ -351,10 +351,36 @@
       box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
     }
 
+    .showroom-toolbar .form-label {
+      margin-bottom: 0.45rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #475569;
+    }
+
+    .showroom-filter-field {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      height: 100%;
+    }
+
     .showroom-toolbar .form-control,
     .showroom-toolbar .form-select {
       border-radius: 12px;
       border-color: rgba(148, 163, 184, 0.4);
+      min-height: 44px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .showroom-toolbar .form-control:focus,
+    .showroom-toolbar .form-select:focus {
+      border-color: rgba(37, 99, 235, 0.5);
+      box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.12);
     }
 
     .showroom-count {
@@ -379,43 +405,83 @@
     .showroom-toolbar-actions {
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
+      align-items: stretch;
       justify-content: flex-end;
-      gap: 0.75rem;
+      gap: 0.9rem;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      height: 100%;
+    }
+
+    .showroom-toolbar-summary,
+    .showroom-toolbar-price-controls {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.55rem;
+    }
+
+    .showroom-toolbar-price-controls {
+      flex: 1 1 290px;
+      min-width: 240px;
+    }
+
+    .showroom-toolbar-group-title {
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #475569;
     }
 
     .showroom-visibility-toggles {
       display: flex;
       flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 0.5rem;
+      justify-content: flex-start;
+      gap: 0.55rem;
     }
 
     .showroom-visibility-toggle {
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
-      padding: 0.55rem 0.85rem;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+      gap: 0.5rem;
+      min-height: 42px;
+      padding: 0.65rem 0.9rem;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
       color: #0f172a;
       font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .showroom-visibility-toggle:hover {
+      transform: translateY(-1px);
+      border-color: rgba(37, 99, 235, 0.38);
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.1);
     }
 
     .showroom-visibility-toggle input {
       margin: 0;
       accent-color: #2563eb;
+      width: 1rem;
+      height: 1rem;
     }
 
     .showroom-print-button {
-      border-radius: 999px;
-      padding-inline: 1.1rem;
+      align-self: center;
+      border-radius: 14px;
+      min-height: 44px;
+      padding-inline: 1.2rem;
       font-weight: 700;
       white-space: nowrap;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.14);
     }
 
     .showroom-card.is-price-base-hidden [data-price-type="base"],
@@ -1380,45 +1446,55 @@
           <div class="card-body">
             <div class="row g-3 align-items-end">
               <div class="col-12 col-lg-4">
-                <label class="form-label" for="showroom-search">Поиск автомобиля</label>
-                <input
-                  type="text"
-                  id="showroom-search"
-                  class="form-control"
-                  placeholder="Марка, модель, VIN или описание"
-                >
+                <div class="showroom-filter-field">
+                  <label class="form-label" for="showroom-search">Поиск автомобиля</label>
+                  <input
+                    type="text"
+                    id="showroom-search"
+                    class="form-control"
+                    placeholder="Марка, модель, VIN или описание"
+                  >
+                </div>
               </div>
               <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label" for="showroom-model-filter">Фильтр по модели</label>
-                <select id="showroom-model-filter" class="form-select">
-                  <option value="">Все модели</option>
-                  {% for model_name in showroom_models %}
-                    <option value="{{ model_name|lower }}">{{ model_name }}</option>
-                  {% endfor %}
-                </select>
+                <div class="showroom-filter-field">
+                  <label class="form-label" for="showroom-model-filter">Фильтр по модели</label>
+                  <select id="showroom-model-filter" class="form-select">
+                    <option value="">Все модели</option>
+                    {% for model_name in showroom_models %}
+                      <option value="{{ model_name|lower }}">{{ model_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
               </div>
               <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label" for="showroom-availability-filter">Наличие</label>
-                <select id="showroom-availability-filter" class="form-select">
-                  <option value="">Все</option>
-                  <option value="in-stock">В наличии</option>
-                </select>
+                <div class="showroom-filter-field">
+                  <label class="form-label" for="showroom-availability-filter">Наличие</label>
+                  <select id="showroom-availability-filter" class="form-select">
+                    <option value="">Все</option>
+                    <option value="in-stock">В наличии</option>
+                  </select>
+                </div>
               </div>
               <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label" for="showroom-sort">Сортировка</label>
-                <select id="showroom-sort" class="form-select">
-                  <option value="default">По умолчанию</option>
-                  <option value="price-asc">Цена ↑</option>
-                  <option value="price-desc">Цена ↓</option>
-                </select>
+                <div class="showroom-filter-field">
+                  <label class="form-label" for="showroom-sort">Сортировка</label>
+                  <select id="showroom-sort" class="form-select">
+                    <option value="default">По умолчанию</option>
+                    <option value="price-asc">Цена ↑</option>
+                    <option value="price-desc">Цена ↓</option>
+                  </select>
+                </div>
               </div>
               <div class="col-12 col-lg-4">
                 <div class="showroom-toolbar-actions">
-                  <div>
-                    <div class="form-label">Результаты</div>
+                  <div class="showroom-toolbar-summary">
+                    <div class="showroom-toolbar-group-title">Результаты</div>
                     <div class="showroom-count" id="showroom-count">0</div>
                   </div>
-                  <div class="showroom-visibility-toggles">
+                  <div class="showroom-toolbar-price-controls">
+                    <div class="showroom-toolbar-group-title">Показывать цены</div>
+                    <div class="showroom-visibility-toggles">
                     <label class="showroom-visibility-toggle" for="showroom-toggle-base-price">
                       <input type="checkbox" id="showroom-toggle-base-price" data-price-toggle="base" checked>
                       <span>Текущая цена</span>
@@ -1435,6 +1511,7 @@
                       <input type="checkbox" id="showroom-toggle-subsidy-11" data-price-toggle="subsidy11" checked>
                       <span>Субсидия 11%</span>
                     </label>
+                    </div>
                   </div>
                   <button class="btn btn-dark showroom-print-button" type="button" id="showroom-print-button">
                     Печать
