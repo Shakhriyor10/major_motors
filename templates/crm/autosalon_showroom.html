@@ -1037,6 +1037,19 @@
         position: relative;
       }
 
+      body.print-receipt-active #autosalon-credit,
+      body.print-receipt-active #autosalon-credit.tab-pane,
+      body.print-receipt-active #autosalon-credit.fade,
+      body.print-receipt-active #autosalon-credit.show {
+        display: block !important;
+        opacity: 1 !important;
+      }
+
+      body.print-receipt-active #credit-print-area,
+      body.print-receipt-active #credit-print-area * {
+        visibility: visible !important;
+      }
+
       .credit-summary-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -1828,7 +1841,7 @@
     </div>
 
     <div class="tab-pane fade" id="autosalon-credit" role="tabpanel" aria-labelledby="autosalon-credit-tab">
-      <div id="credit-print-area" class="credit-print-area">
+      <div id="credit-print-area" class="credit-print-area print-receipt-area">
         <div class="credit-print-header d-none d-print-flex">
           <div class="credit-print-brand">
             <img class="credit-print-logo" src="{% static 'img/logo-2.png' %}" alt="Autocenter Samarkand">
