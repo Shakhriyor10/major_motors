@@ -351,10 +351,36 @@
       box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
     }
 
+    .showroom-toolbar .form-label {
+      margin-bottom: 0.45rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #475569;
+    }
+
+    .showroom-filter-field {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      height: 100%;
+    }
+
     .showroom-toolbar .form-control,
     .showroom-toolbar .form-select {
       border-radius: 12px;
       border-color: rgba(148, 163, 184, 0.4);
+      min-height: 44px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .showroom-toolbar .form-control:focus,
+    .showroom-toolbar .form-select:focus {
+      border-color: rgba(37, 99, 235, 0.5);
+      box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.12);
     }
 
     .showroom-count {
@@ -374,6 +400,241 @@
       text-align: center;
       color: #64748b;
       background: #f8fafc;
+    }
+
+    .showroom-summary-field {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.04);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      min-height: 100%;
+    }
+
+    .showroom-toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      overflow-x: auto;
+    }
+
+    .showroom-toolbar-group-title {
+      flex: 0 0 auto;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #475569;
+      white-space: nowrap;
+    }
+
+    .showroom-visibility-toggles {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.55rem;
+      min-width: max-content;
+    }
+
+    .showroom-visibility-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 42px;
+      padding: 0.65rem 0.9rem;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+      color: #0f172a;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .showroom-visibility-toggle:hover {
+      transform: translateY(-1px);
+      border-color: rgba(37, 99, 235, 0.38);
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.1);
+    }
+
+    .showroom-visibility-toggle input {
+      margin: 0;
+      accent-color: #2563eb;
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .showroom-print-button {
+      flex: 0 0 auto;
+      align-self: center;
+      border-radius: 14px;
+      min-height: 44px;
+      padding-inline: 1.2rem;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.14);
+    }
+
+    .showroom-card.is-price-base-hidden [data-price-type="base"],
+    .showroom-card.is-price-subsidy9-hidden [data-price-type="subsidy9"],
+    .showroom-card.is-price-subsidy10-hidden [data-price-type="subsidy10"],
+    .showroom-card.is-price-subsidy11-hidden [data-price-type="subsidy11"] {
+      display: none !important;
+    }
+
+    .showroom-card.is-price-list-empty .showroom-price {
+      display: none !important;
+    }
+
+    .showroom-description {
+      color: #475569;
+      font-size: 0.86rem;
+      line-height: 1.45;
+      background: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+
+      #autosalon-showroom,
+      #autosalon-showroom * {
+        visibility: visible !important;
+      }
+
+      #autosalon-showroom {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        background: #ffffff;
+      }
+
+      #autosalon-showroom .showroom-toolbar,
+      #autosalon-showroom .nav,
+      #autosalon-showroom .showroom-actions,
+      #autosalon-showroom .showroom-badges,
+      #autosalon-showroom .modal {
+        display: none !important;
+      }
+
+      #showroom-list {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 10mm !important;
+      }
+
+      #showroom-list > [data-showroom-item].d-none {
+        display: none !important;
+      }
+
+      #showroom-list > [data-showroom-item] {
+        display: block !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        height: 133.5mm;
+        min-height: 133.5mm;
+        max-height: 133.5mm;
+        overflow: hidden;
+      }
+
+      #showroom-list > [data-showroom-item].showroom-print-page-break {
+        page-break-after: always;
+      }
+
+      .showroom-card {
+        border: 1px solid #cbd5e1;
+        box-shadow: none;
+        border-radius: 16px;
+        height: 100%;
+      }
+
+      .showroom-card .row {
+        height: 100%;
+      }
+
+      .showroom-card:hover {
+        transform: none;
+        box-shadow: none;
+      }
+
+      .showroom-body {
+        padding: 12px 14px;
+      }
+
+      .showroom-title {
+        font-size: 15pt;
+      }
+
+      .showroom-subtitle,
+      .showroom-attribute-content span,
+      .showroom-description {
+        font-size: 10pt;
+      }
+
+      .showroom-price {
+        min-width: 0;
+      }
+
+      .showroom-price-option {
+        font-size: 13pt;
+      }
+
+      .showroom-media {
+        min-height: 100%;
+        height: 100%;
+        max-height: none;
+      }
+
+      .showroom-media > .btn {
+        display: block !important;
+        border: 0 !important;
+        background: transparent !important;
+        padding: 8px !important;
+        pointer-events: none !important;
+      }
+
+      .showroom-media::after {
+        inset: 8px;
+      }
+
+      .showroom-media img {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+        border-radius: 12px;
+      }
+
+      .showroom-attributes {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .showroom-description {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4;
+        overflow: hidden;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
     }
 
     .vehicle-detail-modal .modal-content {
@@ -1185,45 +1446,79 @@
       <div class="vstack gap-4">
         <div class="card showroom-toolbar">
           <div class="card-body">
-            <div class="row g-3 align-items-end">
-              <div class="col-12 col-lg-4">
-                <label class="form-label" for="showroom-search">Поиск автомобиля</label>
-                <input
-                  type="text"
-                  id="showroom-search"
-                  class="form-control"
-                  placeholder="Марка, модель, VIN или описание"
-                >
-              </div>
-              <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label" for="showroom-model-filter">Фильтр по модели</label>
-                <select id="showroom-model-filter" class="form-select">
-                  <option value="">Все модели</option>
-                  {% for model_name in showroom_models %}
-                    <option value="{{ model_name|lower }}">{{ model_name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label" for="showroom-availability-filter">Наличие</label>
-                <select id="showroom-availability-filter" class="form-select">
-                  <option value="">Все</option>
-                  <option value="in-stock">В наличии</option>
-                </select>
-              </div>
-              <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label" for="showroom-sort">Сортировка</label>
-                <select id="showroom-sort" class="form-select">
-                  <option value="default">По умолчанию</option>
-                  <option value="price-asc">Цена ↑</option>
-                  <option value="price-desc">Цена ↓</option>
-                </select>
-              </div>
-              <div class="col-12 col-md-4 col-lg-2 d-flex justify-content-md-end">
-                <div>
-                  <div class="form-label">Результаты</div>
-                  <div class="showroom-count" id="showroom-count">0</div>
+            <div class="vstack gap-3">
+              <div class="row g-3 align-items-end">
+                <div class="col-12 col-lg-4">
+                  <div class="showroom-filter-field">
+                    <label class="form-label" for="showroom-search">Поиск автомобиля</label>
+                    <input
+                      type="text"
+                      id="showroom-search"
+                      class="form-control"
+                      placeholder="Марка, модель, VIN или описание"
+                    >
+                  </div>
                 </div>
+                <div class="col-12 col-md-3 col-lg-2">
+                  <div class="showroom-filter-field">
+                    <label class="form-label" for="showroom-model-filter">Фильтр по модели</label>
+                    <select id="showroom-model-filter" class="form-select">
+                      <option value="">Все модели</option>
+                      {% for model_name in showroom_models %}
+                        <option value="{{ model_name|lower }}">{{ model_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="col-12 col-md-3 col-lg-2">
+                  <div class="showroom-filter-field">
+                    <label class="form-label" for="showroom-availability-filter">Наличие</label>
+                    <select id="showroom-availability-filter" class="form-select">
+                      <option value="">Все</option>
+                      <option value="in-stock">В наличии</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-12 col-md-3 col-lg-2">
+                  <div class="showroom-filter-field">
+                    <label class="form-label" for="showroom-sort">Сортировка</label>
+                    <select id="showroom-sort" class="form-select">
+                      <option value="default">По умолчанию</option>
+                      <option value="price-asc">Цена ↑</option>
+                      <option value="price-desc">Цена ↓</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-12 col-md-3 col-lg-2">
+                  <div class="showroom-summary-field">
+                    <div class="showroom-toolbar-group-title">Результаты</div>
+                    <div class="showroom-count" id="showroom-count">0</div>
+                  </div>
+                </div>
+              </div>
+              <div class="showroom-toolbar-actions">
+                <div class="showroom-toolbar-group-title">Показывать цены</div>
+                <div class="showroom-visibility-toggles">
+                  <label class="showroom-visibility-toggle" for="showroom-toggle-base-price">
+                    <input type="checkbox" id="showroom-toggle-base-price" data-price-toggle="base" checked>
+                    <span>Текущая цена</span>
+                  </label>
+                  <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-9">
+                    <input type="checkbox" id="showroom-toggle-subsidy-9" data-price-toggle="subsidy9" checked>
+                    <span>Субсидия 9%</span>
+                  </label>
+                  <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-10">
+                    <input type="checkbox" id="showroom-toggle-subsidy-10" data-price-toggle="subsidy10" checked>
+                    <span>Субсидия 10%</span>
+                  </label>
+                  <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-11">
+                    <input type="checkbox" id="showroom-toggle-subsidy-11" data-price-toggle="subsidy11" checked>
+                    <span>Субсидия 11%</span>
+                  </label>
+                </div>
+                <button class="btn btn-dark showroom-print-button" type="button" id="showroom-print-button">
+                  Печать
+                </button>
               </div>
             </div>
           </div>
@@ -1281,6 +1576,7 @@
                             <button
                               class="showroom-price-option"
                               type="button"
+                              data-price-type="base"
                               data-open-credit
                               data-credit-mode="standard"
                               data-vehicle-name="{{ vehicle.name }}"
@@ -1296,6 +1592,7 @@
                             <button
                               class="showroom-price-option"
                               type="button"
+                              data-price-type="subsidy9"
                               data-open-credit
                               data-credit-mode="subsidy9"
                               data-vehicle-name="{{ vehicle.name }}"
@@ -1311,6 +1608,7 @@
                             <button
                               class="showroom-price-option"
                               type="button"
+                              data-price-type="subsidy10"
                               data-open-credit
                               data-credit-mode="subsidy10"
                               data-vehicle-name="{{ vehicle.name }}"
@@ -1326,6 +1624,7 @@
                             <button
                               class="showroom-price-option"
                               type="button"
+                              data-price-type="subsidy11"
                               data-open-credit
                               data-credit-mode="subsidy11"
                               data-vehicle-name="{{ vehicle.name }}"
@@ -1432,6 +1731,9 @@
                           </div>
                         </div>
                       </div>
+                      {% if vehicle.description %}
+                        <div class="showroom-description">{{ vehicle.description }}</div>
+                      {% endif %}
                       <div class="d-flex justify-content-end">
                         <div class="d-flex flex-wrap gap-2 showroom-actions">
                           <button
@@ -6064,7 +6366,27 @@ OOO «MAJOR MOTORS SAM»</div>
     const showroomSort = document.getElementById('showroom-sort');
     const showroomCount = document.getElementById('showroom-count');
     const showroomEmpty = document.getElementById('showroom-empty');
+    const showroomPriceToggles = Array.from(document.querySelectorAll('[data-price-toggle]'));
+    const showroomPrintButton = document.getElementById('showroom-print-button');
     const showroomItems = showroomList ? Array.from(showroomList.querySelectorAll('[data-showroom-item]')) : [];
+
+    const showroomPriceTypes = ['base', 'subsidy9', 'subsidy10', 'subsidy11'];
+
+    const updateShowroomPriceVisibility = () => {
+      const visibilityState = showroomPriceTypes.reduce((acc, priceType) => {
+        const toggle = showroomPriceToggles.find((input) => input.dataset.priceToggle === priceType);
+        acc[priceType] = toggle ? toggle.checked : true;
+        return acc;
+      }, {});
+      const hasVisiblePrice = Object.values(visibilityState).some(Boolean);
+
+      showroomItems.forEach((item) => {
+        showroomPriceTypes.forEach((priceType) => {
+          item.classList.toggle(`is-price-${priceType}-hidden`, !visibilityState[priceType]);
+        });
+        item.classList.toggle('is-price-list-empty', !hasVisiblePrice);
+      });
+    };
 
     const updateShowroom = () => {
       if (!showroomList) {
@@ -6076,10 +6398,11 @@ OOO «MAJOR MOTORS SAM»</div>
       let visibleCount = 0;
       let visibleVinCount = 0;
 
+      let visiblePrintIndex = 0;
+
       showroomItems.forEach((item) => {
         const searchValue = (item.dataset.search || '').toLowerCase();
         const modelValue = item.dataset.model || '';
-        const availableCount = Number(item.dataset.available || 0);
         const hasVin = Number(item.dataset.hasVin || 0);
         const vinCount = Number(item.dataset.vinCount || 0);
         const matchesSearch = !searchTerm || searchValue.includes(searchTerm);
@@ -6088,9 +6411,14 @@ OOO «MAJOR MOTORS SAM»</div>
           || (selectedAvailability === 'in-stock' && hasVin > 0);
         const shouldShow = matchesSearch && matchesModel && matchesAvailability;
         item.classList.toggle('d-none', !shouldShow);
+        item.classList.remove('showroom-print-page-break');
         if (shouldShow) {
           visibleCount += 1;
           visibleVinCount += vinCount;
+          visiblePrintIndex += 1;
+          if (visiblePrintIndex % 2 === 0) {
+            item.classList.add('showroom-print-page-break');
+          }
         }
       });
 
@@ -6133,8 +6461,19 @@ OOO «MAJOR MOTORS SAM»</div>
     if (showroomSort) {
       showroomSort.addEventListener('change', updateShowroom);
     }
+    showroomPriceToggles.forEach((toggle) => {
+      toggle.addEventListener('change', updateShowroomPriceVisibility);
+    });
+    if (showroomPrintButton) {
+      showroomPrintButton.addEventListener('click', () => {
+        updateShowroom();
+        updateShowroomPriceVisibility();
+        window.print();
+      });
+    }
     if (showroomList) {
       updateShowroom();
+      updateShowroomPriceVisibility();
     }
 
     if (vehiclePhotoModal) {
