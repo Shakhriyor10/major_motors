@@ -535,7 +535,7 @@
       #showroom-list {
         display: grid !important;
         grid-template-columns: 1fr !important;
-        gap: 10mm !important;
+        gap: 6mm !important;
       }
 
       #showroom-list > [data-showroom-item].d-none {
@@ -546,10 +546,9 @@
         display: block !important;
         break-inside: avoid;
         page-break-inside: avoid;
-        height: 133.5mm;
-        min-height: 133.5mm;
-        max-height: 133.5mm;
-        overflow: hidden;
+        min-height: 122mm;
+        max-height: none;
+        overflow: visible;
       }
 
       #showroom-list > [data-showroom-item].showroom-print-page-break {
@@ -573,17 +572,19 @@
       }
 
       .showroom-body {
-        padding: 12px 14px;
+        gap: 0.4rem !important;
+        padding: 8px 10px;
       }
 
       .showroom-title {
-        font-size: 15pt;
+        font-size: 12.5pt;
       }
 
       .showroom-subtitle,
       .showroom-attribute-content span,
       .showroom-description {
-        font-size: 10pt;
+        font-size: 8.2pt;
+        line-height: 1.25;
       }
 
       .showroom-price {
@@ -591,7 +592,7 @@
       }
 
       .showroom-price-option {
-        font-size: 13pt;
+        font-size: 10.5pt;
       }
 
       .showroom-media {
@@ -604,12 +605,12 @@
         display: block !important;
         border: 0 !important;
         background: transparent !important;
-        padding: 8px !important;
+        padding: 6px !important;
         pointer-events: none !important;
       }
 
       .showroom-media::after {
-        inset: 8px;
+        inset: 6px;
       }
 
       .showroom-media img {
@@ -622,13 +623,17 @@
 
       .showroom-attributes {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px 10px;
       }
 
+      .showroom-attribute {
+        gap: 8px;
+        padding: 2px 0;
+      }
+
+      .showroom-subtitle,
       .showroom-description {
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 4;
-        overflow: hidden;
+        display: none !important;
       }
 
       @page {
