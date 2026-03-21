@@ -4834,6 +4834,91 @@ OOO «MAJOR MOTORS SAM»</div>
       }
     };
 
+    const collectCurrentDocumentStyles = () => {
+      const stylesheetLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .map((node) => node.outerHTML)
+        .join('\n');
+      const inlineStyles = Array.from(document.querySelectorAll('style'))
+        .map((node) => node.outerHTML)
+        .join('\n');
+      return `${stylesheetLinks}\n${inlineStyles}`;
+    };
+
+    const printCreditSchedule = () => {
+      if (!creditPrintArea) {
+        return;
+      }
+
+      updateCreditPrintTable();
+      applyCreditScheduleColumnVisibility();
+
+      const printFrame = document.createElement('iframe');
+      printFrame.setAttribute('title', 'credit-schedule-print-frame');
+      printFrame.style.position = 'fixed';
+      printFrame.style.right = '0';
+      printFrame.style.bottom = '0';
+      printFrame.style.width = '0';
+      printFrame.style.height = '0';
+      printFrame.style.border = '0';
+      printFrame.style.opacity = '0';
+      printFrame.style.pointerEvents = 'none';
+
+      const cleanup = () => {
+        window.setTimeout(() => {
+          printFrame.remove();
+        }, 300);
+      };
+
+      document.body.appendChild(printFrame);
+
+      const printDocument = printFrame.contentDocument || printFrame.contentWindow?.document;
+      if (!printDocument) {
+        printFrame.remove();
+        return;
+      }
+
+      const printClone = creditPrintArea.cloneNode(true);
+      printClone.classList.add('is-print-target');
+
+      printDocument.open();
+      printDocument.write(`<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <base href="${document.baseURI}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>График кредита</title>
+  ${collectCurrentDocumentStyles()}
+  <style>
+    body {
+      margin: 0;
+      background: #fff !important;
+    }
+  </style>
+</head>
+<body>
+  <main class="container py-4">
+    ${printClone.outerHTML}
+  </main>
+</body>
+</html>`);
+      printDocument.close();
+
+      const triggerFramePrint = () => {
+        const frameWindow = printFrame.contentWindow;
+        if (!frameWindow) {
+          cleanup();
+          return;
+        }
+        frameWindow.addEventListener('afterprint', cleanup, { once: true });
+        frameWindow.focus();
+        frameWindow.print();
+        window.setTimeout(cleanup, 1500);
+      };
+
+      window.setTimeout(triggerFramePrint, 250);
+    };
+
     const renderCreditEmptyState = (message = 'Заполните параметры кредита для расчета графика.') => {
       if (!creditScheduleBody) {
         return;
@@ -5843,17 +5928,7 @@ OOO «MAJOR MOTORS SAM»</div>
     }
 
     if (creditPrintButton) {
-      creditPrintButton.addEventListener('click', () => {
-        if (!creditPrintArea) {
-          return;
-        }
-        updateCreditPrintTable();
-        applyCreditScheduleColumnVisibility();
-        currentPrintTarget = creditPrintArea;
-        document.body.classList.add('print-receipt-active');
-        creditPrintArea.classList.add('is-print-target');
-        window.print();
-      });
+      creditPrintButton.addEventListener('click', printCreditSchedule);
     }
 
     [creditShowInterestInput, creditShowPrincipalInput, creditShowBalanceInput].forEach((input) => {
