@@ -4859,6 +4859,108 @@ OOO «MAJOR MOTORS SAM»</div>
       schedulePrintCleanup();
     };
 
+    const buildStandalonePrintDocument = (title, contentHtml, extraStyle = '') => {
+      const stylesheetLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .map((node) => node.outerHTML)
+        .join('\n');
+      const inlineStyles = Array.from(document.querySelectorAll('style'))
+        .map((node) => node.outerHTML)
+        .join('\n');
+      return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <base href="${document.baseURI}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title}</title>
+  ${stylesheetLinks}
+  ${inlineStyles}
+  <style>
+    body {
+      background: #fff !important;
+      padding: 0 !important;
+      margin: 0;
+    }
+
+    .tab-pane,
+    .tab-content,
+    .row,
+    .col-12,
+    .col-lg-4,
+    .col-lg-8 {
+      display: block !important;
+      opacity: 1 !important;
+    }
+
+    .credit-print-area {
+      display: block !important;
+      visibility: visible !important;
+    }
+
+    ${extraStyle}
+  </style>
+</head>
+<body>
+  <main class="container py-4">
+    ${contentHtml}
+  </main>
+</body>
+</html>`;
+    };
+
+    const printInStandaloneWindow = (title, contentHtml, extraStyle = '') => {
+      const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=1200,height=900');
+      if (!printWindow) {
+        return false;
+      }
+
+      const finishPrint = () => {
+        printWindow.focus();
+        printWindow.print();
+        window.setTimeout(() => {
+          printWindow.close();
+        }, 300);
+      };
+
+      printWindow.document.open();
+      printWindow.document.write(buildStandalonePrintDocument(title, contentHtml, extraStyle));
+      printWindow.document.close();
+
+      if (printWindow.document.readyState === 'complete') {
+        window.setTimeout(finishPrint, 150);
+      } else {
+        printWindow.addEventListener('load', () => {
+          window.setTimeout(finishPrint, 150);
+        }, { once: true });
+      }
+
+      return true;
+    };
+
+    const printCreditSchedule = () => {
+      if (!creditPrintArea) {
+        return;
+      }
+
+      updateCreditPrintTable();
+      applyCreditScheduleColumnVisibility();
+
+      const printed = printInStandaloneWindow(
+        'График кредита',
+        creditPrintArea.outerHTML,
+        `
+          .credit-print-area {
+            padding-top: 0;
+            margin-top: 0;
+          }
+        `,
+      );
+
+      if (!printed) {
+        triggerPrintTarget(creditPrintArea);
+      }
+    };
+
     const renderCreditEmptyState = (message = 'Заполните параметры кредита для расчета графика.') => {
       if (!creditScheduleBody) {
         return;
@@ -5862,12 +5964,7 @@ OOO «MAJOR MOTORS SAM»</div>
     }
 
     if (creditPrintButton) {
-      creditPrintButton.addEventListener('click', () => {
-        triggerPrintTarget(creditPrintArea, () => {
-          updateCreditPrintTable();
-          applyCreditScheduleColumnVisibility();
-        });
-      });
+      creditPrintButton.addEventListener('click', printCreditSchedule);
     }
 
     [creditShowInterestInput, creditShowPrincipalInput, creditShowBalanceInput].forEach((input) => {
