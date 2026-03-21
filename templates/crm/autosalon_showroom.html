@@ -418,8 +418,10 @@
       white-space: nowrap;
     }
 
-    .showroom-card.is-price-hidden [data-price-type="base"],
-    .showroom-card.is-subsidy-hidden [data-price-type="subsidy"] {
+    .showroom-card.is-price-base-hidden [data-price-type="base"],
+    .showroom-card.is-price-subsidy9-hidden [data-price-type="subsidy9"],
+    .showroom-card.is-price-subsidy10-hidden [data-price-type="subsidy10"],
+    .showroom-card.is-price-subsidy11-hidden [data-price-type="subsidy11"] {
       display: none !important;
     }
 
@@ -1386,12 +1388,20 @@
                   </div>
                   <div class="showroom-visibility-toggles">
                     <label class="showroom-visibility-toggle" for="showroom-toggle-base-price">
-                      <input type="checkbox" id="showroom-toggle-base-price" checked>
-                      <span>Показывать текущую цену</span>
+                      <input type="checkbox" id="showroom-toggle-base-price" data-price-toggle="base" checked>
+                      <span>Текущая цена</span>
                     </label>
-                    <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy">
-                      <input type="checkbox" id="showroom-toggle-subsidy" checked>
-                      <span>Показывать субсидии</span>
+                    <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-9">
+                      <input type="checkbox" id="showroom-toggle-subsidy-9" data-price-toggle="subsidy9" checked>
+                      <span>Субсидия 9%</span>
+                    </label>
+                    <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-10">
+                      <input type="checkbox" id="showroom-toggle-subsidy-10" data-price-toggle="subsidy10" checked>
+                      <span>Субсидия 10%</span>
+                    </label>
+                    <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-11">
+                      <input type="checkbox" id="showroom-toggle-subsidy-11" data-price-toggle="subsidy11" checked>
+                      <span>Субсидия 11%</span>
                     </label>
                   </div>
                   <button class="btn btn-dark showroom-print-button" type="button" id="showroom-print-button">
@@ -1471,7 +1481,7 @@
                             <button
                               class="showroom-price-option"
                               type="button"
-                              data-price-type="subsidy"
+                              data-price-type="subsidy9"
                               data-open-credit
                               data-credit-mode="subsidy9"
                               data-vehicle-name="{{ vehicle.name }}"
@@ -1487,7 +1497,7 @@
                             <button
                               class="showroom-price-option"
                               type="button"
-                              data-price-type="subsidy"
+                              data-price-type="subsidy10"
                               data-open-credit
                               data-credit-mode="subsidy10"
                               data-vehicle-name="{{ vehicle.name }}"
@@ -1503,7 +1513,7 @@
                             <button
                               class="showroom-price-option"
                               type="button"
-                              data-price-type="subsidy"
+                              data-price-type="subsidy11"
                               data-open-credit
                               data-credit-mode="subsidy11"
                               data-vehicle-name="{{ vehicle.name }}"
@@ -6245,18 +6255,25 @@ OOO «MAJOR MOTORS SAM»</div>
     const showroomSort = document.getElementById('showroom-sort');
     const showroomCount = document.getElementById('showroom-count');
     const showroomEmpty = document.getElementById('showroom-empty');
-    const showroomToggleBasePrice = document.getElementById('showroom-toggle-base-price');
-    const showroomToggleSubsidy = document.getElementById('showroom-toggle-subsidy');
+    const showroomPriceToggles = Array.from(document.querySelectorAll('[data-price-toggle]'));
     const showroomPrintButton = document.getElementById('showroom-print-button');
     const showroomItems = showroomList ? Array.from(showroomList.querySelectorAll('[data-showroom-item]')) : [];
 
+    const showroomPriceTypes = ['base', 'subsidy9', 'subsidy10', 'subsidy11'];
+
     const updateShowroomPriceVisibility = () => {
-      const showBasePrice = showroomToggleBasePrice ? showroomToggleBasePrice.checked : true;
-      const showSubsidy = showroomToggleSubsidy ? showroomToggleSubsidy.checked : true;
+      const visibilityState = showroomPriceTypes.reduce((acc, priceType) => {
+        const toggle = showroomPriceToggles.find((input) => input.dataset.priceToggle === priceType);
+        acc[priceType] = toggle ? toggle.checked : true;
+        return acc;
+      }, {});
+      const hasVisiblePrice = Object.values(visibilityState).some(Boolean);
+
       showroomItems.forEach((item) => {
-        item.classList.toggle('is-price-hidden', !showBasePrice);
-        item.classList.toggle('is-subsidy-hidden', !showSubsidy);
-        item.classList.toggle('is-price-list-empty', !showBasePrice && !showSubsidy);
+        showroomPriceTypes.forEach((priceType) => {
+          item.classList.toggle(`is-price-${priceType}-hidden`, !visibilityState[priceType]);
+        });
+        item.classList.toggle('is-price-list-empty', !hasVisiblePrice);
       });
     };
 
@@ -6333,12 +6350,9 @@ OOO «MAJOR MOTORS SAM»</div>
     if (showroomSort) {
       showroomSort.addEventListener('change', updateShowroom);
     }
-    if (showroomToggleBasePrice) {
-      showroomToggleBasePrice.addEventListener('change', updateShowroomPriceVisibility);
-    }
-    if (showroomToggleSubsidy) {
-      showroomToggleSubsidy.addEventListener('change', updateShowroomPriceVisibility);
-    }
+    showroomPriceToggles.forEach((toggle) => {
+      toggle.addEventListener('change', updateShowroomPriceVisibility);
+    });
     if (showroomPrintButton) {
       showroomPrintButton.addEventListener('click', () => {
         updateShowroom();
