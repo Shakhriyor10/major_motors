@@ -4541,7 +4541,10 @@ OOO «MAJOR MOTORS SAM»</div>
         return;
       }
       updateAttorneyPreview();
-      triggerPrintTarget(attorneyPrintArea);
+      currentPrintTarget = attorneyPrintArea;
+      document.body.classList.add('print-receipt-active');
+      attorneyPrintArea.classList.add('is-print-target');
+      window.print();
     };
 
     const showAttorneyTab = () => {
@@ -4815,149 +4818,6 @@ OOO «MAJOR MOTORS SAM»</div>
       const emptyStateCell = creditScheduleBody?.querySelector('[data-credit-schedule-empty]');
       if (emptyStateCell) {
         emptyStateCell.colSpan = getCreditScheduleVisibleColumnCount();
-      }
-    };
-
-    let printCleanupTimer = null;
-
-    const clearPrintCleanupTimer = () => {
-      if (printCleanupTimer) {
-        window.clearTimeout(printCleanupTimer);
-        printCleanupTimer = null;
-      }
-    };
-
-    const cleanupPrintMode = () => {
-      clearPrintCleanupTimer();
-      document.body.classList.remove('print-receipt-active');
-      if (currentPrintTarget) {
-        currentPrintTarget.classList.remove('is-print-target');
-        currentPrintTarget = null;
-      }
-    };
-
-    const schedulePrintCleanup = () => {
-      clearPrintCleanupTimer();
-      printCleanupTimer = window.setTimeout(() => {
-        cleanupPrintMode();
-      }, 1000);
-    };
-
-    const triggerPrintTarget = (target, beforePrint) => {
-      if (!target) {
-        return;
-      }
-      if (typeof beforePrint === 'function') {
-        beforePrint();
-      }
-      cleanupPrintMode();
-      currentPrintTarget = target;
-      document.body.classList.add('print-receipt-active');
-      target.classList.add('is-print-target');
-      schedulePrintCleanup();
-      window.print();
-      schedulePrintCleanup();
-    };
-
-    const buildStandalonePrintDocument = (title, contentHtml, extraStyle = '') => {
-      const stylesheetLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-        .map((node) => node.outerHTML)
-        .join('\n');
-      const inlineStyles = Array.from(document.querySelectorAll('style'))
-        .map((node) => node.outerHTML)
-        .join('\n');
-      return `<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <base href="${document.baseURI}">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${title}</title>
-  ${stylesheetLinks}
-  ${inlineStyles}
-  <style>
-    body {
-      background: #fff !important;
-      padding: 0 !important;
-      margin: 0;
-    }
-
-    .tab-pane,
-    .tab-content,
-    .row,
-    .col-12,
-    .col-lg-4,
-    .col-lg-8 {
-      display: block !important;
-      opacity: 1 !important;
-    }
-
-    .credit-print-area {
-      display: block !important;
-      visibility: visible !important;
-    }
-
-    ${extraStyle}
-  </style>
-</head>
-<body>
-  <main class="container py-4">
-    ${contentHtml}
-  </main>
-</body>
-</html>`;
-    };
-
-    const printInStandaloneWindow = (title, contentHtml, extraStyle = '') => {
-      const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=1200,height=900');
-      if (!printWindow) {
-        return false;
-      }
-
-      const finishPrint = () => {
-        printWindow.focus();
-        printWindow.print();
-        window.setTimeout(() => {
-          printWindow.close();
-        }, 300);
-      };
-
-      printWindow.document.open();
-      printWindow.document.write(buildStandalonePrintDocument(title, contentHtml, extraStyle));
-      printWindow.document.close();
-
-      if (printWindow.document.readyState === 'complete') {
-        window.setTimeout(finishPrint, 150);
-      } else {
-        printWindow.addEventListener('load', () => {
-          window.setTimeout(finishPrint, 150);
-        }, { once: true });
-      }
-
-      return true;
-    };
-
-    const printCreditSchedule = () => {
-      if (!creditPrintArea) {
-        return;
-      }
-
-      updateCreditPrintTable();
-      applyCreditScheduleColumnVisibility();
-
-      const printed = printInStandaloneWindow(
-        'График кредита',
-        creditPrintArea.outerHTML,
-        `
-          .credit-print-area {
-            padding-top: 0;
-            margin-top: 0;
-          }
-        `,
-      );
-
-      if (!printed) {
-        triggerPrintTarget(creditPrintArea);
       }
     };
 
@@ -5959,12 +5819,28 @@ OOO «MAJOR MOTORS SAM»</div>
 
     if (printButton) {
       printButton.addEventListener('click', () => {
-        triggerPrintTarget(saleReceiptArea);
+        if (!saleReceiptArea) {
+          return;
+        }
+        currentPrintTarget = saleReceiptArea;
+        document.body.classList.add('print-receipt-active');
+        saleReceiptArea.classList.add('is-print-target');
+        window.print();
       });
     }
 
     if (creditPrintButton) {
-      creditPrintButton.addEventListener('click', printCreditSchedule);
+      creditPrintButton.addEventListener('click', () => {
+        if (!creditPrintArea) {
+          return;
+        }
+        updateCreditPrintTable();
+        applyCreditScheduleColumnVisibility();
+        currentPrintTarget = creditPrintArea;
+        document.body.classList.add('print-receipt-active');
+        creditPrintArea.classList.add('is-print-target');
+        window.print();
+      });
     }
 
     [creditShowInterestInput, creditShowPrincipalInput, creditShowBalanceInput].forEach((input) => {
@@ -6383,33 +6259,18 @@ OOO «MAJOR MOTORS SAM»</div>
         if (!soldReceiptArea) {
           return;
         }
-        triggerPrintTarget(soldReceiptArea);
+        currentPrintTarget = soldReceiptArea;
+        document.body.classList.add('print-receipt-active');
+        soldReceiptArea.classList.add('is-print-target');
+        window.print();
       });
     }
 
-    if (window.matchMedia) {
-      const printMediaQuery = window.matchMedia('print');
-      const handlePrintMediaChange = (event) => {
-        if (!event.matches) {
-          cleanupPrintMode();
-        }
-      };
-      if (typeof printMediaQuery.addEventListener === 'function') {
-        printMediaQuery.addEventListener('change', handlePrintMediaChange);
-      } else if (typeof printMediaQuery.addListener === 'function') {
-        printMediaQuery.addListener(handlePrintMediaChange);
-      }
-    }
-
-    window.addEventListener('afterprint', cleanupPrintMode);
-    window.addEventListener('focus', () => {
-      if (document.body.classList.contains('print-receipt-active')) {
-        schedulePrintCleanup();
-      }
-    });
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && document.body.classList.contains('print-receipt-active')) {
-        schedulePrintCleanup();
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('print-receipt-active');
+      if (currentPrintTarget) {
+        currentPrintTarget.classList.remove('is-print-target');
+        currentPrintTarget = null;
       }
     });
 
