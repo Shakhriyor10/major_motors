@@ -508,6 +508,12 @@
     }
 
     @media print {
+      :root {
+        --print-page-margin: 6mm;
+        --print-card-gap: 1mm;
+        --print-card-height: calc((297mm - (var(--print-page-margin) * 2) - var(--print-card-gap)) / 2);
+      }
+
       body * {
         visibility: hidden !important;
       }
@@ -533,9 +539,7 @@
       }
 
       #showroom-list {
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        gap: 1mm !important;
+        display: block !important;
       }
 
       #showroom-list > [data-showroom-item].d-none {
@@ -547,12 +551,14 @@
         break-inside: avoid;
         page-break-inside: avoid;
         min-height: 0;
-        margin: 0;
-        max-height: none;
-        overflow: visible;
+        height: var(--print-card-height);
+        margin: 0 0 var(--print-card-gap) 0;
+        max-height: var(--print-card-height);
+        overflow: hidden;
       }
 
       #showroom-list > [data-showroom-item].showroom-print-page-break {
+        margin-bottom: 0;
         page-break-after: always;
       }
 
@@ -565,6 +571,7 @@
 
       .showroom-card .row {
         height: 100%;
+        flex-wrap: nowrap;
       }
 
       .showroom-card:hover {
@@ -607,6 +614,14 @@
         min-height: 100%;
         height: 100%;
         max-height: none;
+      }
+
+      #showroom-list > [data-showroom-item] .col-lg-5 {
+        width: 38%;
+      }
+
+      #showroom-list > [data-showroom-item] .col-lg-7 {
+        width: 62%;
       }
 
       .showroom-media > .btn {
