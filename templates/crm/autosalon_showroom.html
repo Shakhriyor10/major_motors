@@ -475,17 +475,6 @@
       height: 1rem;
     }
 
-    .showroom-print-button {
-      flex: 0 0 auto;
-      align-self: center;
-      border-radius: 14px;
-      min-height: 44px;
-      padding-inline: 1.2rem;
-      font-weight: 700;
-      white-space: nowrap;
-      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.14);
-    }
-
     .showroom-card.is-price-base-hidden [data-price-type="base"],
     .showroom-card.is-price-subsidy9-hidden [data-price-type="subsidy9"],
     .showroom-card.is-price-subsidy10-hidden [data-price-type="subsidy10"],
@@ -1533,9 +1522,6 @@
                     <span>Субсидия 11%</span>
                   </label>
                 </div>
-                <button class="btn btn-dark showroom-print-button" type="button" id="showroom-print-button">
-                  Печать
-                </button>
               </div>
             </div>
           </div>
@@ -2755,35 +2741,6 @@ OOO «MAJOR MOTORS SAM»</div>
                         >
                           👁️
                         </button>
-                        <button
-                          type="button"
-                          class="btn btn-outline-primary btn-sm"
-                          data-open-sold-receipt
-                          data-bs-toggle="modal"
-                          data-bs-target="#soldReceiptModal"
-                          data-receipt-number="{{ deal.id|default:'—' }}"
-                          data-receipt-date="{{ deal.signed_at|date:'d.m.Y H:i' }}"
-                          data-customer-name="{{ deal.customer.full_name }}"
-                          data-customer-phone="{{ deal.customer.phone }}"
-                          data-customer-passport="{{ deal.customer.passport_series }} {{ deal.customer.passport_number }}"
-                          data-customer-address="{{ deal.customer.address|default:'—' }}"
-                          data-vehicle-name="{{ deal.vehicle.name }}"
-                          data-vehicle-make="{{ deal.vehicle.make }}"
-                          data-vehicle-model="{{ deal.vehicle.model }}"
-                          data-vehicle-condition="{{ deal.vehicle.get_condition_display }}"
-                          data-vehicle-mileage="{{ deal.vehicle.mileage|default:'—' }}"
-                          data-vehicle-color="{{ deal.vehicle.color|default:'—' }}"
-                          data-vehicle-transmission="{{ deal.vehicle.get_transmission_display|default:'—' }}"
-                          data-vehicle-engine="{% if deal.vehicle.engine_type_labels %}{{ deal.vehicle.engine_type_labels|join:', ' }}{% if deal.vehicle.engine_volume %}, {{ deal.vehicle.engine_volume }} см3{% endif %}{% elif deal.vehicle.engine_volume %}{{ deal.vehicle.engine_volume }} см3{% else %}—{% endif %}"
-                          data-vehicle-seats="{{ deal.vehicle.seat_count|default:'—' }}"
-                          data-sale-price="{{ deal.sale_price }}"
-                          data-sale-currency="{{ deal.vehicle.sale_currency|default:deal.vehicle.purchase_currency|upper }}"
-                          data-financing="{{ deal.get_financing_type_display }}"
-                          data-manager="{% if deal.manager %}{{ deal.manager.get_full_name|default:deal.manager.username }}{% elif deal.sold_by_name %}{{ deal.sold_by_name }}{% else %}—{% endif %}"
-                          data-options="{% if deal.vehicle.options.exists %}{% for option in deal.vehicle.options.all %}{{ option.name }}{% if not forloop.last %}||{% endif %}{% endfor %}{% endif %}"
-                        >
-                          Печать
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -2938,9 +2895,6 @@ OOO «MAJOR MOTORS SAM»</div>
               <div>Стр. 1 / 1</div>
             </div>
           </section>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" type="button" id="print-sold-receipt">Печать</button>
         </div>
       </div>
     </div>
@@ -6009,7 +5963,6 @@ OOO «MAJOR MOTORS SAM»</div>
     const vehicleDetailModal = document.getElementById('vehicleDetailModal');
     const vehiclePhotoModal = document.getElementById('vehiclePhotoModal');
     const soldReceiptModal = document.getElementById('soldReceiptModal');
-    const soldReceiptPrintButton = document.getElementById('print-sold-receipt');
 
     const updateSoldSortIndicators = () => {
       soldSortIndicators.forEach((indicator) => {
@@ -6254,18 +6207,6 @@ OOO «MAJOR MOTORS SAM»</div>
       });
     }
 
-    if (soldReceiptPrintButton) {
-      soldReceiptPrintButton.addEventListener('click', () => {
-        if (!soldReceiptArea) {
-          return;
-        }
-        currentPrintTarget = soldReceiptArea;
-        document.body.classList.add('print-receipt-active');
-        soldReceiptArea.classList.add('is-print-target');
-        window.print();
-      });
-    }
-
     window.addEventListener('afterprint', () => {
       document.body.classList.remove('print-receipt-active');
       if (currentPrintTarget) {
@@ -6384,7 +6325,6 @@ OOO «MAJOR MOTORS SAM»</div>
     const showroomCount = document.getElementById('showroom-count');
     const showroomEmpty = document.getElementById('showroom-empty');
     const showroomPriceToggles = Array.from(document.querySelectorAll('[data-price-toggle]'));
-    const showroomPrintButton = document.getElementById('showroom-print-button');
     const showroomItems = showroomList ? Array.from(showroomList.querySelectorAll('[data-showroom-item]')) : [];
 
     const showroomPriceTypes = ['base', 'subsidy9', 'subsidy10', 'subsidy11'];
@@ -6481,13 +6421,6 @@ OOO «MAJOR MOTORS SAM»</div>
     showroomPriceToggles.forEach((toggle) => {
       toggle.addEventListener('change', updateShowroomPriceVisibility);
     });
-    if (showroomPrintButton) {
-      showroomPrintButton.addEventListener('click', () => {
-        updateShowroom();
-        updateShowroomPriceVisibility();
-        window.print();
-      });
-    }
     if (showroomList) {
       updateShowroom();
       updateShowroomPriceVisibility();
