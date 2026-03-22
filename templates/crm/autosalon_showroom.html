@@ -508,41 +508,41 @@
     }
 
     @media print {
-      body * {
+      body.showroom-print-active * {
         visibility: hidden !important;
       }
 
-      #autosalon-showroom,
-      #autosalon-showroom * {
+      body.showroom-print-active #autosalon-showroom,
+      body.showroom-print-active #autosalon-showroom * {
         visibility: visible !important;
       }
 
-      #autosalon-showroom {
+      body.showroom-print-active #autosalon-showroom {
         position: absolute;
         inset: 0;
         width: 100%;
         background: #ffffff;
       }
 
-      #autosalon-showroom .showroom-toolbar,
-      #autosalon-showroom .nav,
-      #autosalon-showroom .showroom-actions,
-      #autosalon-showroom .showroom-badges,
-      #autosalon-showroom .modal {
+      body.showroom-print-active #autosalon-showroom .showroom-toolbar,
+      body.showroom-print-active #autosalon-showroom .nav,
+      body.showroom-print-active #autosalon-showroom .showroom-actions,
+      body.showroom-print-active #autosalon-showroom .showroom-badges,
+      body.showroom-print-active #autosalon-showroom .modal {
         display: none !important;
       }
 
-      #showroom-list {
+      body.showroom-print-active #showroom-list {
         display: grid !important;
         grid-template-columns: 1fr !important;
         gap: 1mm !important;
       }
 
-      #showroom-list > [data-showroom-item].d-none {
+      body.showroom-print-active #showroom-list > [data-showroom-item].d-none {
         display: none !important;
       }
 
-      #showroom-list > [data-showroom-item] {
+      body.showroom-print-active #showroom-list > [data-showroom-item] {
         display: block !important;
         break-inside: avoid;
         page-break-inside: avoid;
@@ -552,64 +552,64 @@
         overflow: visible;
       }
 
-      #showroom-list > [data-showroom-item].showroom-print-page-break {
+      body.showroom-print-active #showroom-list > [data-showroom-item].showroom-print-page-break {
         page-break-after: always;
       }
 
-      .showroom-card {
+      body.showroom-print-active .showroom-card {
         border: 1px solid #cbd5e1;
         box-shadow: none;
         border-radius: 14px;
         height: 100%;
       }
 
-      .showroom-card .row {
+      body.showroom-print-active .showroom-card .row {
         height: 100%;
       }
 
-      .showroom-card:hover {
+      body.showroom-print-active .showroom-card:hover {
         transform: none;
         box-shadow: none;
       }
 
-      .showroom-body {
+      body.showroom-print-active .showroom-body {
         gap: 0.25rem !important;
         padding: 6px 8px;
       }
 
-      .showroom-title {
+      body.showroom-print-active .showroom-title {
         font-size: 11.5pt;
         line-height: 1.2;
         margin-bottom: 1px;
       }
 
-      .showroom-subtitle,
-      .showroom-attribute-content span,
-      .showroom-description {
+      body.showroom-print-active .showroom-subtitle,
+      body.showroom-print-active .showroom-attribute-content span,
+      body.showroom-print-active .showroom-description {
         font-size: 7.6pt;
         line-height: 1.15;
       }
 
-      .showroom-price {
+      body.showroom-print-active .showroom-price {
         min-width: 0;
         gap: 2px;
       }
 
-      .showroom-price-list {
+      body.showroom-print-active .showroom-price-list {
         gap: 2px;
       }
 
-      .showroom-price-option {
+      body.showroom-print-active .showroom-price-option {
         font-size: 9.2pt;
       }
 
-      .showroom-media {
+      body.showroom-print-active .showroom-media {
         min-height: 100%;
         height: 100%;
         max-height: none;
       }
 
-      .showroom-media > .btn {
+      body.showroom-print-active .showroom-media > .btn {
         display: block !important;
         border: 0 !important;
         background: transparent !important;
@@ -617,11 +617,11 @@
         pointer-events: none !important;
       }
 
-      .showroom-media::after {
+      body.showroom-print-active .showroom-media::after {
         inset: 4px;
       }
 
-      .showroom-media img {
+      body.showroom-print-active .showroom-media img {
         display: block !important;
         width: 100% !important;
         height: 100% !important;
@@ -629,22 +629,22 @@
         border-radius: 12px;
       }
 
-      .showroom-attributes {
+      body.showroom-print-active .showroom-attributes {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 2px 8px;
       }
 
-      .showroom-attribute {
+      body.showroom-print-active .showroom-attribute {
         gap: 6px;
         padding: 1px 0;
       }
 
-      .showroom-attribute-content strong {
+      body.showroom-print-active .showroom-attribute-content strong {
         line-height: 1.1;
       }
 
-      .showroom-subtitle,
-      .showroom-description {
+      body.showroom-print-active .showroom-subtitle,
+      body.showroom-print-active .showroom-description {
         display: none !important;
       }
 
@@ -6268,6 +6268,7 @@ OOO «MAJOR MOTORS SAM»</div>
 
     window.addEventListener('afterprint', () => {
       document.body.classList.remove('print-receipt-active');
+      document.body.classList.remove('showroom-print-active');
       if (currentPrintTarget) {
         currentPrintTarget.classList.remove('is-print-target');
         currentPrintTarget = null;
@@ -6485,6 +6486,7 @@ OOO «MAJOR MOTORS SAM»</div>
       showroomPrintButton.addEventListener('click', () => {
         updateShowroom();
         updateShowroomPriceVisibility();
+        document.body.classList.add('showroom-print-active');
         window.print();
       });
     }
