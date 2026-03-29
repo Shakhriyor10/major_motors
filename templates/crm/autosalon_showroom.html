@@ -1916,8 +1916,9 @@
               <div class="vstack gap-3">
                 <div>
                   <label class="form-label" for="credit-customer-name">Фамилия Имя</label>
-                  <input type="text" class="form-control" id="credit-customer-name" placeholder="Например, Иванов Иван" list="credit-customer-datalist">
-                  <datalist id="credit-customer-datalist"></datalist>
+                  <select class="form-select" id="credit-customer-name">
+                    <option value="">Выберите сотрудника</option>
+                  </select>
                 </div>
                 <div>
                   <label class="form-label" for="credit-customer-phone">Номер телефона</label>
@@ -3646,7 +3647,6 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditVehiclePriceInput = document.getElementById('credit-vehicle-price');
     const creditCurrencyLabel = document.getElementById('credit-currency-label');
     const creditCustomerNameInput = document.getElementById('credit-customer-name');
-    const creditCustomerDataList = document.getElementById('credit-customer-datalist');
     const creditCustomerPhoneInput = document.getElementById('credit-customer-phone');
     const creditDownPaymentType = document.getElementById('credit-down-payment-type');
     const creditDownPaymentValue = document.getElementById('credit-down-payment-value');
@@ -5124,8 +5124,8 @@ OOO «MAJOR MOTORS SAM»</div>
       });
     };
 
-    const populateCreditCustomerDatalist = () => {
-      if (!creditCustomerDataList) {
+    const populateCreditCustomerDropdown = () => {
+      if (!creditCustomerNameInput) {
         return;
       }
       const employees = getEmployees();
@@ -5133,11 +5133,12 @@ OOO «MAJOR MOTORS SAM»</div>
         .map((employee) => getEmployeeDisplayName(employee))
         .filter((name) => name);
       const uniqueNames = new Set(names);
-      creditCustomerDataList.innerHTML = '';
+      creditCustomerNameInput.innerHTML = '<option value="">Выберите сотрудника</option>';
       uniqueNames.forEach((name) => {
         const option = document.createElement('option');
         option.value = name;
-        creditCustomerDataList.appendChild(option);
+        option.textContent = name;
+        creditCustomerNameInput.appendChild(option);
       });
     };
 
@@ -5147,6 +5148,7 @@ OOO «MAJOR MOTORS SAM»</div>
       }
       const selectedName = creditCustomerNameInput.value.trim();
       if (!selectedName) {
+        creditCustomerPhoneInput.value = '';
         return;
       }
       const employees = getEmployees();
@@ -5161,12 +5163,12 @@ OOO «MAJOR MOTORS SAM»</div>
     };
 
     populateEmployeeSelects();
-    populateCreditCustomerDatalist();
+    populateCreditCustomerDropdown();
     updateCreditDownPaymentUI();
     maybeApplyAutoCreditAnnualRate(true);
     setupPassportCombinedInputs();
 
-    if (creditCustomerNameInput && creditCustomerDataList) {
+    if (creditCustomerNameInput) {
       creditCustomerNameInput.addEventListener('change', fillCreditCustomerPhone);
     }
 
