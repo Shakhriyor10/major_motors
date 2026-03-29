@@ -3574,6 +3574,7 @@ OOO «MAJOR MOTORS SAM»</div>
 {% block extra_scripts %}
   {{ showroom_units|json_script:"showroom-units" }}
   {{ attorney_data|json_script:"attorney-data" }}
+  {{ cash_employees_json|json_script:"cash-employees-data" }}
   <div id="selected-attorney-id" data-selected-attorney-id="{{ selected_attorney_id|default:'' }}"></div>
   <script>
     const showroomUnitsScript = document.getElementById('showroom-units');
@@ -5061,6 +5062,24 @@ OOO «MAJOR MOTORS SAM»</div>
         return [];
       }
     };
+    const cashEmployeesData = document.getElementById('cash-employees-data');
+    const employeesFromBackend = (() => {
+      if (!cashEmployeesData) {
+        return [];
+      }
+      try {
+        return JSON.parse(cashEmployeesData.textContent || '[]');
+      } catch (error) {
+        return [];
+      }
+    })();
+    const getEmployees = () => {
+      if (employeesFromBackend.length) {
+        localStorage.setItem(EMPLOYEES_KEY, JSON.stringify(employeesFromBackend));
+        return employeesFromBackend;
+      }
+      return loadItems(EMPLOYEES_KEY);
+    };
 
     const getEmployeeDisplayName = (employee) => {
       const lastName = employee.lastName || '';
@@ -5072,7 +5091,7 @@ OOO «MAJOR MOTORS SAM»</div>
       if (!employeeSelects.length) {
         return;
       }
-      const employees = loadItems(EMPLOYEES_KEY);
+      const employees = getEmployees();
       const options = employees
         .map((employee) => ({
           id: employee.id,
@@ -5109,7 +5128,7 @@ OOO «MAJOR MOTORS SAM»</div>
       if (!creditCustomerDataList) {
         return;
       }
-      const employees = loadItems(EMPLOYEES_KEY);
+      const employees = getEmployees();
       const names = employees
         .map((employee) => getEmployeeDisplayName(employee))
         .filter((name) => name);
@@ -5130,7 +5149,7 @@ OOO «MAJOR MOTORS SAM»</div>
       if (!selectedName) {
         return;
       }
-      const employees = loadItems(EMPLOYEES_KEY);
+      const employees = getEmployees();
       const matchedEmployee = employees.find((employee) => getEmployeeDisplayName(employee) === selectedName);
       if (!matchedEmployee) {
         return;
