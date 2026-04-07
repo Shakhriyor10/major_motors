@@ -2032,7 +2032,7 @@
                     <div class="fw-semibold" id="credit-summary-preliminary">—</div>
                   </div>
                 </div>
-                <div class="col-12 col-md-12 credit-summary-item credit-summary-item--wide">
+                <div class="col-12 col-md-12 credit-summary-item credit-summary-item--wide d-none" id="credit-summary-down-payment-net-item">
                   <div class="p-3 bg-body-tertiary rounded-3 h-100">
                     <div class="small text-muted">Первоначальный взнос (без страхования и сертификата)</div>
                     <div class="fw-semibold" id="credit-summary-down-payment-net">—</div>
@@ -3728,6 +3728,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditSummaryOverpay = document.getElementById('credit-summary-overpay');
     const creditSummaryInsuranceTotal = document.getElementById('credit-summary-insurance-total');
     const creditSummaryPreliminary = document.getElementById('credit-summary-preliminary');
+    const creditSummaryDownPaymentNetItem = document.getElementById('credit-summary-down-payment-net-item');
     const creditSummaryDownPaymentNet = document.getElementById('credit-summary-down-payment-net');
     const creditPrintVehicle = document.getElementById('credit-print-vehicle');
     const creditPrintDate = document.getElementById('credit-print-date');
@@ -4719,6 +4720,16 @@ OOO «MAJOR MOTORS SAM»</div>
       return 'Аннуитетный';
     };
 
+    const applyCreditNetDownPaymentVisibility = () => {
+      const shouldShow = Boolean(creditShowNetDownPaymentInput?.checked);
+      if (creditSummaryDownPaymentNetItem) {
+        creditSummaryDownPaymentNetItem.classList.toggle('d-none', !shouldShow);
+      }
+      if (creditPrintNetDownPaymentRow) {
+        creditPrintNetDownPaymentRow.style.display = shouldShow ? '' : 'none';
+      }
+    };
+
     const updateCreditPrintTable = () => {
       if (!creditPrintVehiclePrice || !creditPrintDownPayment || !creditPrintAnnualRate || !creditPrintMonths
         || !creditPrintCertificate || !creditPrintSummaryAmount
@@ -4763,7 +4774,7 @@ OOO «MAJOR MOTORS SAM»</div>
       creditPrintSummaryInsuranceTotal.textContent = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
       creditPrintSummaryPreliminary.textContent = creditSummaryPreliminary?.textContent?.trim() || '—';
       creditPrintSummaryDownPaymentNet.textContent = creditSummaryDownPaymentNet?.textContent?.trim() || '—';
-      creditPrintNetDownPaymentRow.style.display = creditShowNetDownPaymentInput?.checked ? '' : 'none';
+      applyCreditNetDownPaymentVisibility();
 
       if (creditPrintCustomerName) {
         creditPrintCustomerName.textContent = creditCustomerNameInput?.value?.trim() || '';
@@ -5876,7 +5887,11 @@ OOO «MAJOR MOTORS SAM»</div>
     [creditShowInterestInput, creditShowPrincipalInput, creditShowBalanceInput].forEach((input) => {
       input?.addEventListener('change', applyCreditScheduleColumnVisibility);
     });
-    creditShowNetDownPaymentInput?.addEventListener('change', updateCreditPrintTable);
+    creditShowNetDownPaymentInput?.addEventListener('change', () => {
+      applyCreditNetDownPaymentVisibility();
+      updateCreditPrintTable();
+    });
+    applyCreditNetDownPaymentVisibility();
     applyCreditScheduleColumnVisibility();
 
     if (attorneyPrintButton) {
