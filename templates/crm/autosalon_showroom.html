@@ -1892,10 +1892,8 @@
                       </th>
                     </tr>
                     <tr id="credit-print-net-down-payment-row" style="display: none;">
-                      <th class="credit-print-preliminary-cell" colspan="2">
-                        <span class="credit-print-preliminary-label">Первоначальный взнос (без страхования и сертификата)</span>
-                        <span id="credit-print-summary-down-payment-net" class="credit-print-preliminary-value">—</span>
-                      </th>
+                      <th>Первоначальная сумма (без страхования и сертификата)</th>
+                      <td id="credit-print-summary-down-payment-net">—</td>
                     </tr>
                   </table>
                 </td>
@@ -2008,6 +2006,12 @@
                     <div class="fw-semibold fs-5" id="credit-summary-amount">—</div>
                   </div>
                 </div>
+                <div class="col-12 col-md-6 credit-summary-item d-none" id="credit-summary-down-payment-net-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Первоначальная сумма (без страхования и сертификата)</div>
+                    <div class="fw-semibold" id="credit-summary-down-payment-net">—</div>
+                  </div>
+                </div>
                 <div class="col-12 col-md-6 credit-summary-item">
                   <div class="p-3 bg-body-tertiary rounded-3 h-100">
                     <div class="small text-muted">Ежемесячный платеж</div>
@@ -2030,12 +2034,6 @@
                   <div class="p-3 bg-body-tertiary rounded-3 h-100">
                     <div class="small text-muted">Все предварительные расходы</div>
                     <div class="fw-semibold" id="credit-summary-preliminary">—</div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-12 credit-summary-item credit-summary-item--wide d-none" id="credit-summary-down-payment-net-item">
-                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
-                    <div class="small text-muted">Первоначальный взнос (без страхования и сертификата)</div>
-                    <div class="fw-semibold" id="credit-summary-down-payment-net">—</div>
                   </div>
                 </div>
               </div>
