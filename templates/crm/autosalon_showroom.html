@@ -1881,6 +1881,10 @@
                       <th>Сумма кредита</th>
                       <td id="credit-print-summary-amount">—</td>
                     </tr>
+                    <tr id="credit-print-net-down-payment-row" style="display: none;">
+                      <th>Первоначальная сумма</th>
+                      <td id="credit-print-summary-down-payment-net">—</td>
+                    </tr>
                     <tr>
                       <th>Страхование (за весь срок)</th>
                       <td id="credit-print-summary-insurance-total">—</td>
@@ -1951,6 +1955,10 @@
                   <div class="form-text mb-2">Выберите, какие столбцы показывать в таблице и при печати графика.</div>
                   <div class="d-flex flex-column gap-2">
                     <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="credit-show-net-down-payment">
+                      <label class="form-check-label" for="credit-show-net-down-payment">Первоначальный взнос без страхования и сертификата</label>
+                    </div>
+                    <div class="form-check">
                       <input class="form-check-input" type="checkbox" id="credit-show-interest">
                       <label class="form-check-label" for="credit-show-interest">Показывать столбец «Проценты»</label>
                     </div>
@@ -1996,6 +2004,12 @@
                   <div class="p-3 bg-body-tertiary rounded-3 h-100">
                     <div class="small text-muted">Сумма кредита</div>
                     <div class="fw-semibold fs-5" id="credit-summary-amount">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 credit-summary-item d-none" id="credit-summary-down-payment-net-item">
+                  <div class="p-3 bg-body-tertiary rounded-3 h-100">
+                    <div class="small text-muted">Первоначальная сумма</div>
+                    <div class="fw-semibold" id="credit-summary-down-payment-net">—</div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6 credit-summary-item">
@@ -3655,6 +3669,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditShowInterestInput = document.getElementById('credit-show-interest');
     const creditShowPrincipalInput = document.getElementById('credit-show-principal');
     const creditShowBalanceInput = document.getElementById('credit-show-balance');
+    const creditShowNetDownPaymentInput = document.getElementById('credit-show-net-down-payment');
     const creditAnnualRateInput = document.getElementById('credit-annual-rate');
     const creditRateHint = document.getElementById('credit-rate-hint');
     const DEFAULT_CREDIT_ANNUAL_RATE = 25.9;
@@ -3711,6 +3726,8 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditSummaryOverpay = document.getElementById('credit-summary-overpay');
     const creditSummaryInsuranceTotal = document.getElementById('credit-summary-insurance-total');
     const creditSummaryPreliminary = document.getElementById('credit-summary-preliminary');
+    const creditSummaryDownPaymentNetItem = document.getElementById('credit-summary-down-payment-net-item');
+    const creditSummaryDownPaymentNet = document.getElementById('credit-summary-down-payment-net');
     const creditPrintVehicle = document.getElementById('credit-print-vehicle');
     const creditPrintDate = document.getElementById('credit-print-date');
     const creditPrintCustomerName = document.getElementById('credit-print-customer-name');
@@ -3723,6 +3740,8 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditPrintSummaryAmount = document.getElementById('credit-print-summary-amount');
     const creditPrintSummaryInsuranceTotal = document.getElementById('credit-print-summary-insurance-total');
     const creditPrintSummaryPreliminary = document.getElementById('credit-print-summary-preliminary');
+    const creditPrintSummaryDownPaymentNet = document.getElementById('credit-print-summary-down-payment-net');
+    const creditPrintNetDownPaymentRow = document.getElementById('credit-print-net-down-payment-row');
     const creditPrintVehicleRow = document.getElementById('credit-print-vehicle-row');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
     const attorneyForm = document.getElementById('attorney-form');
@@ -4674,6 +4693,9 @@ OOO «MAJOR MOTORS SAM»</div>
       if (creditSummaryPreliminary) {
         creditSummaryPreliminary.textContent = toMoney(values.preliminary, currencyLabel);
       }
+      if (creditSummaryDownPaymentNet) {
+        creditSummaryDownPaymentNet.textContent = toMoney(values.downPaymentNet, currencyLabel);
+      }
     };
 
     const updateCreditDownPaymentUI = () => {
@@ -4696,10 +4718,21 @@ OOO «MAJOR MOTORS SAM»</div>
       return 'Аннуитетный';
     };
 
+    const applyCreditNetDownPaymentVisibility = () => {
+      const shouldShow = Boolean(creditShowNetDownPaymentInput?.checked);
+      if (creditSummaryDownPaymentNetItem) {
+        creditSummaryDownPaymentNetItem.classList.toggle('d-none', !shouldShow);
+      }
+      if (creditPrintNetDownPaymentRow) {
+        creditPrintNetDownPaymentRow.style.display = shouldShow ? '' : 'none';
+      }
+    };
+
     const updateCreditPrintTable = () => {
       if (!creditPrintVehiclePrice || !creditPrintDownPayment || !creditPrintAnnualRate || !creditPrintMonths
         || !creditPrintCertificate || !creditPrintSummaryAmount
-        || !creditPrintSummaryInsuranceTotal || !creditPrintSummaryPreliminary) {
+        || !creditPrintSummaryInsuranceTotal || !creditPrintSummaryPreliminary
+        || !creditPrintSummaryDownPaymentNet || !creditPrintNetDownPaymentRow) {
         return;
       }
 
@@ -4738,6 +4771,8 @@ OOO «MAJOR MOTORS SAM»</div>
       creditPrintSummaryAmount.textContent = creditSummaryAmount?.textContent?.trim() || '—';
       creditPrintSummaryInsuranceTotal.textContent = creditSummaryInsuranceTotal?.textContent?.trim() || '—';
       creditPrintSummaryPreliminary.textContent = creditSummaryPreliminary?.textContent?.trim() || '—';
+      creditPrintSummaryDownPaymentNet.textContent = creditSummaryDownPaymentNet?.textContent?.trim() || '—';
+      applyCreditNetDownPaymentVisibility();
 
       if (creditPrintCustomerName) {
         creditPrintCustomerName.textContent = creditCustomerNameInput?.value?.trim() || '';
@@ -4886,6 +4921,7 @@ OOO «MAJOR MOTORS SAM»</div>
           insuranceAnnual: 0,
           insuranceTotal: 0,
           preliminary: 0,
+          downPaymentNet: 0,
           monthlyDisplay: '—',
         }, currencyLabel);
         renderCreditSchedule([], currencyLabel);
@@ -4907,6 +4943,7 @@ OOO «MAJOR MOTORS SAM»</div>
             insuranceAnnual: 0,
             insuranceTotal: 0,
             preliminary: 0,
+            downPaymentNet: 0,
             monthlyDisplay: '—',
           }, currencyLabel);
           renderCreditEmptyState(subsidyProgram.invalidMessage);
@@ -4987,6 +5024,7 @@ OOO «MAJOR MOTORS SAM»</div>
       const insuranceTotal = annualInsurance * (months / 12);
       const certificateFee = parseNumber(creditCertificateFeeInput?.value);
       const preliminaryTotal = cappedDownPayment + insuranceTotal + certificateFee;
+      const downPaymentNet = cappedDownPayment;
 
       setCreditSummary(
         {
@@ -4997,6 +5035,7 @@ OOO «MAJOR MOTORS SAM»</div>
           insuranceAnnual: annualInsurance,
           insuranceTotal,
           preliminary: preliminaryTotal,
+          downPaymentNet,
           monthlyDisplay,
         },
         currencyLabel,
@@ -5846,6 +5885,11 @@ OOO «MAJOR MOTORS SAM»</div>
     [creditShowInterestInput, creditShowPrincipalInput, creditShowBalanceInput].forEach((input) => {
       input?.addEventListener('change', applyCreditScheduleColumnVisibility);
     });
+    creditShowNetDownPaymentInput?.addEventListener('change', () => {
+      applyCreditNetDownPaymentVisibility();
+      updateCreditPrintTable();
+    });
+    applyCreditNetDownPaymentVisibility();
     applyCreditScheduleColumnVisibility();
 
     if (attorneyPrintButton) {
