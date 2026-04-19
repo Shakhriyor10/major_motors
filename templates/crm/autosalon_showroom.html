@@ -1211,18 +1211,27 @@
         max-width: 100%;
       }
 
-      .credit-print-area::before {
-        content: "";
-        position: absolute;
-        inset: 18mm 12mm;
-        background: url("{% static 'img/logo-2.png' %}") no-repeat center;
-        background-size: 72%;
-        opacity: 0.06;
-        pointer-events: none;
-        z-index: 0;
+      .credit-schedule-title h3 {
+        position: relative;
+        z-index: 1;
+        margin: 0;
       }
 
-      .credit-print-area > * {
+      .credit-summary-print {
+        position: relative;
+      }
+
+      .credit-summary-print::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url("{% static 'img/logo-2.png' %}") no-repeat center;
+        background-size: 90mm;
+        opacity: 0.08;
+        pointer-events: none;
+      }
+
+      .credit-summary-print > * {
         position: relative;
         z-index: 1;
       }
@@ -1997,7 +2006,7 @@
         </div>
         <div class="col-12 col-lg-8 print-full-width">
           <div class="card shadow-sm mb-4 d-print-none">
-            <div class="card-body">
+            <div class="card-body credit-summary-print">
               <h3 class="h6 mb-3">Итоги расчета</h3>
               <div class="row g-3 credit-summary-grid">
                 <div class="col-12 col-md-6 credit-summary-item">
@@ -2042,7 +2051,9 @@
 
           <div class="card shadow-sm">
             <div class="card-body">
-              <h3 class="h6 mb-3">График платежей</h3>
+              <div class="credit-schedule-title">
+                <h3 class="h6">График платежей</h3>
+              </div>
               <div class="table-responsive">
                 <table class="table table-sm align-middle mb-0 credit-schedule-table">
                   <thead class="table-light">
