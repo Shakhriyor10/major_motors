@@ -1037,6 +1037,19 @@
         position: relative;
       }
 
+      body.print-receipt-active #autosalon-credit,
+      body.print-receipt-active #autosalon-credit.tab-pane,
+      body.print-receipt-active #autosalon-credit.fade,
+      body.print-receipt-active #autosalon-credit.show {
+        display: block !important;
+        opacity: 1 !important;
+      }
+
+      body.print-receipt-active #credit-print-area,
+      body.print-receipt-active #credit-print-area * {
+        visibility: visible !important;
+      }
+
       .credit-summary-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -1828,7 +1841,7 @@
     </div>
 
     <div class="tab-pane fade" id="autosalon-credit" role="tabpanel" aria-labelledby="autosalon-credit-tab">
-      <div id="credit-print-area" class="credit-print-area">
+      <div id="credit-print-area" class="credit-print-area print-receipt-area">
         <div class="credit-print-header d-none d-print-flex">
           <div class="credit-print-brand">
             <img class="credit-print-logo" src="{% static 'img/logo_ac2.png' %}" alt="Autocenter Samarkand">
@@ -4856,6 +4869,102 @@ OOO «MAJOR MOTORS SAM»</div>
       }
     };
 
+    const collectCurrentDocumentStyles = () => {
+      const stylesheetLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .map((node) => node.outerHTML)
+        .join('\n');
+      const inlineStyles = Array.from(document.querySelectorAll('style'))
+        .map((node) => node.outerHTML)
+        .join('\n');
+      return `${stylesheetLinks}\n${inlineStyles}`;
+    };
+
+    const printCreditSchedule = () => {
+      if (!creditPrintArea) {
+        return;
+      }
+
+      updateCreditPrintTable();
+      applyCreditScheduleColumnVisibility();
+
+      const printFrame = document.createElement('iframe');
+      printFrame.setAttribute('title', 'credit-schedule-print-frame');
+      printFrame.style.position = 'fixed';
+      printFrame.style.top = '0';
+      printFrame.style.left = '-10000px';
+      printFrame.style.width = '210mm';
+      printFrame.style.height = '297mm';
+      printFrame.style.border = '0';
+      printFrame.style.opacity = '0';
+      printFrame.style.pointerEvents = 'none';
+
+      const cleanup = () => {
+        window.setTimeout(() => {
+          printFrame.remove();
+        }, 300);
+      };
+
+      document.body.appendChild(printFrame);
+
+      const printDocument = printFrame.contentDocument || printFrame.contentWindow?.document;
+      if (!printDocument) {
+        printFrame.remove();
+        return;
+      }
+
+      const printClone = creditPrintArea.cloneNode(true);
+      printClone.classList.add('is-print-target');
+
+      const triggerFramePrint = () => {
+        const frameWindow = printFrame.contentWindow;
+        if (!frameWindow) {
+          cleanup();
+          return;
+        }
+        frameWindow.addEventListener('afterprint', cleanup, { once: true });
+        frameWindow.focus();
+        frameWindow.print();
+        window.setTimeout(cleanup, 1500);
+      };
+
+      let hasTriggeredPrint = false;
+      const handleFrameLoad = () => {
+        if (hasTriggeredPrint) {
+          return;
+        }
+        hasTriggeredPrint = true;
+        window.setTimeout(triggerFramePrint, 300);
+      };
+
+      printFrame.addEventListener('load', handleFrameLoad, { once: true });
+
+      printDocument.open();
+      printDocument.write(`<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <base href="${document.baseURI}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>График кредита</title>
+  ${collectCurrentDocumentStyles()}
+  <style>
+    body {
+      margin: 0;
+      background: #fff !important;
+    }
+  </style>
+</head>
+<body>
+  <main class="container py-4">
+    ${printClone.outerHTML}
+  </main>
+</body>
+</html>`);
+      printDocument.close();
+
+      window.setTimeout(handleFrameLoad, 1000);
+    };
+
     const renderCreditEmptyState = (message = 'Заполните параметры кредита для расчета графика.') => {
       if (!creditScheduleBody) {
         return;
@@ -5869,17 +5978,7 @@ OOO «MAJOR MOTORS SAM»</div>
     }
 
     if (creditPrintButton) {
-      creditPrintButton.addEventListener('click', () => {
-        if (!creditPrintArea) {
-          return;
-        }
-        updateCreditPrintTable();
-        applyCreditScheduleColumnVisibility();
-        currentPrintTarget = creditPrintArea;
-        document.body.classList.add('print-receipt-active');
-        creditPrintArea.classList.add('is-print-target');
-        window.print();
-      });
+      creditPrintButton.addEventListener('click', printCreditSchedule);
     }
 
     [creditShowInterestInput, creditShowPrincipalInput, creditShowBalanceInput].forEach((input) => {
