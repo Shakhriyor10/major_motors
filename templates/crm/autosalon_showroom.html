@@ -487,8 +487,6 @@
     }
 
     .showroom-card.is-price-base-hidden [data-price-type="base"],
-    .showroom-card.is-price-subsidy9-hidden [data-price-type="subsidy9"],
-    .showroom-card.is-price-subsidy10-hidden [data-price-type="subsidy10"],
     .showroom-card.is-price-subsidy11-hidden [data-price-type="subsidy11"] {
       display: none !important;
     }
@@ -1215,7 +1213,7 @@
         content: "";
         position: absolute;
         inset: 18mm 12mm;
-        background: url("{% static 'img/logo_ac2.png' %}") no-repeat center;
+        background: url("{% static 'img/logo-2.png' %}") no-repeat center;
         background-size: 72%;
         opacity: 0.06;
         pointer-events: none;
@@ -1520,14 +1518,6 @@
                     <input type="checkbox" id="showroom-toggle-base-price" data-price-toggle="base" checked>
                     <span>Текущая цена</span>
                   </label>
-                  <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-9">
-                    <input type="checkbox" id="showroom-toggle-subsidy-9" data-price-toggle="subsidy9">
-                    <span>Субсидия 9%</span>
-                  </label>
-                  <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-10">
-                    <input type="checkbox" id="showroom-toggle-subsidy-10" data-price-toggle="subsidy10">
-                    <span>Субсидия 10%</span>
-                  </label>
                   <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-11">
                     <input type="checkbox" id="showroom-toggle-subsidy-11" data-price-toggle="subsidy11">
                     <span>Субсидия 11%</span>
@@ -1602,38 +1592,6 @@
                               aria-label="Открыть кредитный калькулятор"
                             >
                               <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0">
-                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
-                              </span>
-                              <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
-                            </button>
-                            <button
-                              class="showroom-price-option"
-                              type="button"
-                              data-price-type="subsidy9"
-                              data-open-credit
-                              data-credit-mode="subsidy9"
-                              data-vehicle-name="{{ vehicle.name }}"
-                              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
-                              data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
-                              aria-label="Открыть субсидированный кредит 9%"
-                            >
-                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.09">
-                                {{ vehicle.sale_price|default:vehicle.purchase_price }}
-                              </span>
-                              <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
-                            </button>
-                            <button
-                              class="showroom-price-option"
-                              type="button"
-                              data-price-type="subsidy10"
-                              data-open-credit
-                              data-credit-mode="subsidy10"
-                              data-vehicle-name="{{ vehicle.name }}"
-                              data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
-                              data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
-                              aria-label="Открыть субсидированный кредит 10%"
-                            >
-                              <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.10">
                                 {{ vehicle.sale_price|default:vehicle.purchase_price }}
                               </span>
                               <span class="currency">{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}</span>
@@ -1831,8 +1789,8 @@
       <div id="credit-print-area" class="credit-print-area">
         <div class="credit-print-header d-none d-print-flex">
           <div class="credit-print-brand">
-            <img class="credit-print-logo" src="{% static 'img/logo_ac2.png' %}" alt="Autocenter Samarkand">
-<!--            <div class="credit-print-title">Autocenter Samarkand</div>-->
+            <img class="credit-print-logo" src="{% static 'img/logo-2.png' %}" alt="Autocenter Samarkand">
+            <div class="credit-print-title">Autocenter Samarkand</div>
           </div>
           <div class="credit-print-meta">
             <div><span class="text-muted"></span> <span id="credit-print-customer-name" class="credit-print-emphasis credit-print-customer-name"></span></div>
@@ -3676,32 +3634,6 @@ OOO «MAJOR MOTORS SAM»</div>
     const REDUCED_CREDIT_ANNUAL_RATE = 24.9;
     const REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD = 40;
     const SUBSIDY_CREDIT_PROGRAMS = {
-      subsidy9: {
-        label: 'Субсидия 9%',
-        priceFactor: 0.09,
-        defaultDownPayment: 30,
-        allowedMonths: new Set([12, 24, 36]),
-        invalidMessage: 'Для субсидии 9% доступны взнос от 30% и срок 12, 24 или 36 месяцев.',
-        rates: [
-          { min: 30, max: 39.999999, rates: { 12: 2, 24: 14, 36: 18 } },
-          { min: 40, max: 49.999999, rates: { 12: 0, 24: 12, 36: 17 } },
-          { min: 50, max: 59.999999, rates: { 12: 0, 24: 9.5, 36: 15.5 } },
-          { min: 60, max: Number.POSITIVE_INFINITY, rates: { 12: 0, 24: 5.5, 36: 12.5 } },
-        ],
-      },
-      subsidy10: {
-        label: 'Субсидия 10%',
-        priceFactor: 0.10,
-        defaultDownPayment: 30,
-        allowedMonths: new Set([12, 24, 36]),
-        invalidMessage: 'Для субсидии 10% доступны взнос от 30% до 69% и срок 12, 24 или 36 месяцев.',
-        rates: [
-          { min: 30, max: 39.999999, rates: { 12: 0, 24: 12.9, 36: 17.5 } },
-          { min: 40, max: 49.999999, rates: { 12: 0, 24: 10.5, 36: 16 } },
-          { min: 50, max: 59.999999, rates: { 12: 0, 24: 7.5, 36: 14 } },
-          { min: 60, max: 69.999999, rates: { 12: 0, 24: 3, 36: 11.5 } },
-        ],
-      },
       subsidy11: {
         label: 'Субсидия 11%',
         priceFactor: 0.11,
@@ -6432,7 +6364,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const showroomPrintButton = document.getElementById('showroom-print-button');
     const showroomItems = showroomList ? Array.from(showroomList.querySelectorAll('[data-showroom-item]')) : [];
 
-    const showroomPriceTypes = ['base', 'subsidy9', 'subsidy10', 'subsidy11'];
+    const showroomPriceTypes = ['base', 'subsidy11'];
 
     const updateShowroomPriceVisibility = () => {
       const visibilityState = showroomPriceTypes.reduce((acc, priceType) => {
