@@ -1827,7 +1827,7 @@
                       <th>Срок кредита</th>
                       <td id="credit-print-months">—</td>
                     </tr>
-                    <tr>
+                    <tr id="credit-print-certificate-row">
                       <th>Сертификат соответствия</th>
                       <td id="credit-print-certificate">—</td>
                     </tr>
@@ -1927,6 +1927,10 @@
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" id="credit-show-balance">
                       <label class="form-check-label" for="credit-show-balance">Показывать столбец «Остаток»</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="credit-show-certificate" checked>
+                      <label class="form-check-label" for="credit-show-certificate">Показывать сертификат соответствия при печати</label>
                     </div>
                   </div>
                 </div>
@@ -3628,10 +3632,13 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditShowPrincipalInput = document.getElementById('credit-show-principal');
     const creditShowBalanceInput = document.getElementById('credit-show-balance');
     const creditShowNetDownPaymentInput = document.getElementById('credit-show-net-down-payment');
+    const creditShowCertificateInput = document.getElementById('credit-show-certificate');
     const creditAnnualRateInput = document.getElementById('credit-annual-rate');
     const creditRateHint = document.getElementById('credit-rate-hint');
     const DEFAULT_CREDIT_ANNUAL_RATE = 25.9;
-    const REDUCED_CREDIT_ANNUAL_RATE = 24.9;
+    const STANDARD_CREDIT_ANNUAL_RATE = 23.9;
+    const REDUCED_CREDIT_ANNUAL_RATE = 22.9;
+    const STANDARD_CREDIT_DOWN_PAYMENT_THRESHOLD = 25;
     const REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD = 40;
     const SUBSIDY_CREDIT_PROGRAMS = {
       subsidy11: {
@@ -3669,6 +3676,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditPrintAnnualRate = document.getElementById('credit-print-annual-rate');
     const creditPrintMonths = document.getElementById('credit-print-months');
     const creditPrintCertificate = document.getElementById('credit-print-certificate');
+    const creditPrintCertificateRow = document.getElementById('credit-print-certificate-row');
     const creditPrintSummaryAmount = document.getElementById('credit-print-summary-amount');
     const creditPrintSummaryInsuranceTotal = document.getElementById('credit-print-summary-insurance-total');
     const creditPrintSummaryPreliminary = document.getElementById('credit-print-summary-preliminary');
@@ -4512,8 +4520,16 @@ OOO «MAJOR MOTORS SAM»</div>
       if (creditDownPaymentType?.value === 'amount') {
         applyMoneyFormatting(creditDownPaymentValue);
       } else {
-        const cleaned = `${creditDownPaymentValue.value ?? ''}`.trim();
-        creditDownPaymentValue.value = cleaned ? `${parseNumber(cleaned)}` : '';
+        const normalized = `${creditDownPaymentValue.value ?? ''}`
+          .trim()
+          .replace(',', '.')
+          .replace(/[^\d.]/g, '');
+        const [integerPart = '', ...decimalParts] = normalized.split('.');
+        const hasDecimalSeparator = normalized.includes('.');
+        const decimalPart = decimalParts.join('').slice(0, 2);
+        creditDownPaymentValue.value = hasDecimalSeparator
+          ? `${integerPart}.${decimalPart}`
+          : integerPart;
       }
     };
 
@@ -4565,9 +4581,13 @@ OOO «MAJOR MOTORS SAM»</div>
       if (isSubsidyCreditMode()) {
         return getSubsidyCreditAnnualRate(downPaymentPercent, creditMonthsInput?.value);
       }
-      return downPaymentPercent >= REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD
-        ? REDUCED_CREDIT_ANNUAL_RATE
-        : DEFAULT_CREDIT_ANNUAL_RATE;
+      if (downPaymentPercent >= REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD) {
+        return REDUCED_CREDIT_ANNUAL_RATE;
+      }
+      if (downPaymentPercent >= STANDARD_CREDIT_DOWN_PAYMENT_THRESHOLD) {
+        return STANDARD_CREDIT_ANNUAL_RATE;
+      }
+      return DEFAULT_CREDIT_ANNUAL_RATE;
     };
 
     const maybeApplyAutoCreditAnnualRate = (force = false) => {
@@ -4581,7 +4601,11 @@ OOO «MAJOR MOTORS SAM»</div>
         return;
       }
       const currentRate = parseNumber(creditAnnualRateInput.value);
-      const isCurrentAutoRate = currentRate === DEFAULT_CREDIT_ANNUAL_RATE || currentRate === REDUCED_CREDIT_ANNUAL_RATE;
+      const isCurrentAutoRate = [
+        DEFAULT_CREDIT_ANNUAL_RATE,
+        STANDARD_CREDIT_ANNUAL_RATE,
+        REDUCED_CREDIT_ANNUAL_RATE,
+      ].includes(currentRate);
       if (!force && isCreditAnnualRateManuallyEdited && !isCurrentAutoRate) {
         return;
       }
@@ -4660,6 +4684,12 @@ OOO «MAJOR MOTORS SAM»</div>
       }
     };
 
+    const applyCreditCertificatePrintVisibility = () => {
+      if (creditPrintCertificateRow) {
+        creditPrintCertificateRow.style.display = creditShowCertificateInput?.checked ? '' : 'none';
+      }
+    };
+
     const updateCreditPrintTable = () => {
       if (!creditPrintVehiclePrice || !creditPrintDownPayment || !creditPrintAnnualRate || !creditPrintMonths
         || !creditPrintCertificate || !creditPrintSummaryAmount
@@ -4705,6 +4735,7 @@ OOO «MAJOR MOTORS SAM»</div>
       creditPrintSummaryPreliminary.textContent = creditSummaryPreliminary?.textContent?.trim() || '—';
       creditPrintSummaryDownPaymentNet.textContent = creditSummaryDownPaymentNet?.textContent?.trim() || '—';
       applyCreditNetDownPaymentVisibility();
+      applyCreditCertificatePrintVisibility();
 
       if (creditPrintCustomerName) {
         creditPrintCustomerName.textContent = creditCustomerNameInput?.value?.trim() || '';
@@ -5821,7 +5852,9 @@ OOO «MAJOR MOTORS SAM»</div>
       applyCreditNetDownPaymentVisibility();
       updateCreditPrintTable();
     });
+    creditShowCertificateInput?.addEventListener('change', applyCreditCertificatePrintVisibility);
     applyCreditNetDownPaymentVisibility();
+    applyCreditCertificatePrintVisibility();
     applyCreditScheduleColumnVisibility();
 
     if (attorneyPrintButton) {
