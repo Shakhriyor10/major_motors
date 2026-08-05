@@ -1053,7 +1053,7 @@
         justify-content: space-between;
         align-items: flex-end;
         padding: 0 12mm 4mm;
-        border-bottom: 2px solid #0b1f4b;
+        border-bottom: 2px solid #a61f2b;
         margin-bottom: 4mm;
       }
 
@@ -1073,19 +1073,19 @@
         font-size: 18px;
         font-weight: 600;
         letter-spacing: 0.4px;
-        color: #0b1f4b;
+        color: #a61f2b;
       }
 
       .credit-print-meta {
         text-align: right;
         font-size: 11px;
-        color: #2c3e66;
+        color: #71343a;
       }
 
       .credit-print-meta .credit-print-emphasis {
         font-size: 12.5px;
         font-weight: 600;
-        color: #0b1f4b;
+        color: #a61f2b;
       }
 
       .credit-print-meta .credit-print-customer-name {
@@ -1096,7 +1096,7 @@
       .credit-print-table {
         width: 100%;
         border-collapse: collapse;
-        border: 1px solid #0b1f4b;
+        border: 1px solid #a61f2b;
         font-size: 11px;
         background: #fff;
       }
@@ -1109,7 +1109,7 @@
       }
 
       .credit-print-table thead th {
-        background: #0b1f4b;
+        background: #a61f2b;
         color: #fff;
         text-transform: uppercase;
         font-size: 10px;
@@ -1135,13 +1135,13 @@
       .credit-print-table-inner th {
         width: 58%;
         font-weight: 500;
-        color: #2c3e66;
+        color: #71343a;
       }
 
       .credit-print-table-inner td {
         text-align: right;
         font-weight: 600;
-        color: #0b1f4b;
+        color: #a61f2b;
       }
 
       .credit-print-preliminary-cell {
@@ -1151,7 +1151,7 @@
 
       .credit-print-preliminary-label {
         font-size: 12px;
-        color: #2c3e66;
+        color: #71343a;
         text-transform: uppercase;
         letter-spacing: 0.4px;
         margin-bottom: 4mm;
@@ -1161,7 +1161,7 @@
       .credit-print-preliminary-value {
         font-size: 20px;
         font-weight: 700;
-        color: #0b1f4b;
+        color: #a61f2b;
         display: block;
       }
 
@@ -1181,12 +1181,12 @@
       .credit-schedule-table {
         width: 100%;
         border-collapse: collapse;
-        border: 1px solid #0b1f4b;
+        border: 1px solid #a61f2b;
         font-size: 10px;
       }
 
       .credit-schedule-table thead th {
-        background: #122a61;
+        background: #a61f2b;
         color: #fff;
         text-transform: uppercase;
         font-size: 9px;
@@ -1201,7 +1201,80 @@
       }
 
       .credit-schedule-table tbody tr:nth-child(even) {
-        background: #f3f6fb;
+        background: #fff2f3;
+      }
+
+      .credit-print-area.credit-print-compact {
+        margin-top: -23mm;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-header {
+        padding-bottom: 2mm;
+        margin-bottom: 2mm;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-logo {
+        width: 15mm;
+        height: 15mm;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-title {
+        font-size: 14px;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-meta {
+        font-size: 8px;
+        line-height: 1.1;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-meta .credit-print-emphasis {
+        font-size: 9px;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-meta .credit-print-customer-name {
+        font-size: 11px;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-table {
+        font-size: 8px;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-table th,
+      .credit-print-area.credit-print-compact .credit-print-table td {
+        padding: 2px 5px;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-table-inner th,
+      .credit-print-area.credit-print-compact .credit-print-table-inner td {
+        padding: 1px 0;
+        line-height: 1.05;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-preliminary-cell {
+        padding: 2mm 5mm;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-preliminary-label {
+        margin-bottom: 1mm;
+        font-size: 8px;
+      }
+
+      .credit-print-area.credit-print-compact .credit-print-preliminary-value {
+        font-size: 12px;
+      }
+
+      .credit-print-area.credit-print-compact .credit-schedule-table {
+        font-size: 7px;
+      }
+
+      .credit-print-area.credit-print-compact .credit-schedule-table thead th {
+        font-size: 6.5px;
+      }
+
+      .credit-print-area.credit-print-compact .credit-schedule-table th,
+      .credit-print-area.credit-print-compact .credit-schedule-table td {
+        padding: 1px 4px;
+        line-height: 1;
       }
 
       .print-full-width {
@@ -1213,7 +1286,7 @@
         content: "";
         position: absolute;
         inset: 18mm 12mm;
-        background: url("{% static 'img/logo_ac2.png' %}") no-repeat center;
+        background: url("{% static 'img/logo-2.png' %}") no-repeat center;
         background-size: 72%;
         opacity: 0.06;
         pointer-events: none;
@@ -1520,7 +1593,7 @@
                   </label>
                   <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-11">
                     <input type="checkbox" id="showroom-toggle-subsidy-11" data-price-toggle="subsidy11">
-                    <span>Рассрочка</span>
+                    <span>Субсидия 11%</span>
                   </label>
                 </div>
                 <button class="btn btn-dark showroom-print-button" type="button" id="showroom-print-button">
@@ -1789,7 +1862,7 @@
       <div id="credit-print-area" class="credit-print-area">
         <div class="credit-print-header d-none d-print-flex">
           <div class="credit-print-brand">
-            <img class="credit-print-logo" src="{% static 'img/logo_ac2.png' %}" alt="Autocenter Samarkand">
+            <img class="credit-print-logo" src="{% static 'img/logo-2.png' %}" alt="Autocenter Samarkand">
             <div class="credit-print-title">Autocenter Samarkand</div>
           </div>
           <div class="credit-print-meta">
@@ -1944,7 +2017,8 @@
                 </div>
                 <div>
                   <label class="form-label" for="credit-months">Срок кредита (в месяцах)</label>
-                  <input type="number" min="1" step="1" class="form-control" id="credit-months" placeholder="Например, 36" value="36">
+                  <input type="number" min="1" max="60" step="1" class="form-control" id="credit-months" placeholder="Например, 36" value="36">
+                  <div class="form-text">Максимальный срок — 60 месяцев.</div>
                 </div>
                 <div>
                   <label class="form-label" for="credit-certificate-fee">Сертификат соответствия</label>
@@ -3642,7 +3716,7 @@ OOO «MAJOR MOTORS SAM»</div>
     const REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD = 40;
     const SUBSIDY_CREDIT_PROGRAMS = {
       subsidy11: {
-        label: 'Рассрочка',
+        label: 'Субсидия 11%',
         priceFactor: 0.11,
         defaultDownPayment: 30,
         allowedMonths: new Set([12, 24, 36]),
@@ -4869,7 +4943,11 @@ OOO «MAJOR MOTORS SAM»</div>
       const downPaymentAmount = isPercent ? (price * downPaymentRaw) / 100 : downPaymentRaw;
       const cappedDownPayment = Math.min(downPaymentAmount, price);
       const creditAmount = Math.max(price - cappedDownPayment, 0);
-      const months = Math.max(parseInt(creditMonthsInput.value, 10) || 0, 0);
+      const rawMonths = Math.max(parseInt(creditMonthsInput.value, 10) || 0, 0);
+      const months = Math.min(rawMonths, 60);
+      if (rawMonths > 60) {
+        creditMonthsInput.value = '60';
+      }
       const annualRate = parseNumber(creditAnnualRateInput.value);
       const monthlyRate = annualRate > 0 ? annualRate / 12 / 100 : 0;
       const isDifferentiated = creditPaymentType?.value === 'differentiated';
@@ -5570,6 +5648,10 @@ OOO «MAJOR MOTORS SAM»</div>
 
     if (creditMonthsInput) {
       creditMonthsInput.addEventListener('input', () => {
+        const enteredMonths = parseInt(creditMonthsInput.value, 10);
+        if (enteredMonths > 60) {
+          creditMonthsInput.value = '60';
+        }
         maybeApplyAutoCreditAnnualRate(isSubsidyCreditMode());
         calculateCreditSchedule();
       });
@@ -5838,6 +5920,8 @@ OOO «MAJOR MOTORS SAM»</div>
         }
         updateCreditPrintTable();
         applyCreditScheduleColumnVisibility();
+        const months = Math.min(parseInt(creditMonthsInput?.value, 10) || 0, 60);
+        creditPrintArea.classList.toggle('credit-print-compact', months > 36);
         currentPrintTarget = creditPrintArea;
         document.body.classList.add('print-receipt-active');
         creditPrintArea.classList.add('is-print-target');
@@ -6280,6 +6364,7 @@ OOO «MAJOR MOTORS SAM»</div>
       document.body.classList.remove('showroom-print-active');
       if (currentPrintTarget) {
         currentPrintTarget.classList.remove('is-print-target');
+        currentPrintTarget.classList.remove('credit-print-compact');
         currentPrintTarget = null;
       }
     });
