@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Настройки оформления · Major Motors{% endblock %}
+
+{% block extra_styles %}
+  <style>
+    .theme-settings-card {
+      max-width: 760px;
+      border: 0;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
+    }
+
+    .theme-preview {
+      min-height: 150px;
+      padding: 28px;
+      color: #fff;
+      background: linear-gradient(110deg,
+        color-mix(in srgb, var(--preview-color) 60%, #000),
+        var(--preview-color) 55%,
+        color-mix(in srgb, var(--preview-color) 72%, #fff)
+      );
+      transition: background 160ms ease;
+    }
+
+    .theme-color-control {
+      width: 84px;
+      height: 52px;
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    .theme-hex {
+      min-width: 110px;
+      font-variant-numeric: tabular-nums;
+      text-transform: uppercase;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="card theme-settings-card mx-auto" id="theme-settings-card" style="--preview-color: {{ theme.primary_color }};">
+    <div class="theme-preview" id="theme-preview">
+      <div class="small text-white-50 mb-2">Предпросмотр навигации</div>
+      <h1 class="h3 mb-2">Оформление Major Motors</h1>
+      <p class="mb-0 opacity-75">Выбранный цвет применяется ко всему интерфейсу и печатному графику кредита.</p>
+    </div>
+    <div class="card-body p-4 p-md-5">
+      <h2 class="h5 mb-2">Основной цвет проекта</h2>
+      <p class="text-muted mb-4">Выберите оттенок — тёмная и светлая части градиента будут рассчитаны автоматически.</p>
+
+      {% if theme_saved %}
+        <div class="alert alert-success">Цвет сохранён и уже применяется ко всем страницам.</div>
+      {% endif %}
+      {% if theme_error %}
+        <div class="alert alert-danger">{{ theme_error }}</div>
+      {% endif %}
+
+      <form method="post" class="d-flex flex-wrap align-items-end gap-3">
+        {% csrf_token %}
+        <div>
+          <label class="form-label" for="primary-color">Цвет</label>
+          <input class="form-control form-control-color theme-color-control" type="color" id="primary-color" name="primary_color" value="{{ theme.primary_color }}" title="Выберите основной цвет">
+        </div>
+        <div>
+          <label class="form-label" for="theme-hex">HEX</label>
+          <input class="form-control theme-hex" id="theme-hex" value="{{ theme.primary_color }}" readonly>
+        </div>
+        <button class="btn btn-primary px-4" type="submit">Сохранить цвет</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script>
+    const colorPicker = document.getElementById('primary-color');
+    const themePreview = document.getElementById('theme-settings-card');
+    const themeHex = document.getElementById('theme-hex');
+    colorPicker?.addEventListener('input', () => {
+      themePreview?.style.setProperty('--preview-color', colorPicker.value);
+      if (themeHex) themeHex.value = colorPicker.value.toUpperCase();
+    });
+  </script>
+{% endblock %}
