@@ -9,9 +9,9 @@
   {% block extra_styles %}{% endblock %}
   <style>
     :root {
-      --major-red: #b4232f;
-      --major-red-dark: #861923;
-      --major-red-soft: #fff1f2;
+      --major-red: {{ site_primary_color|default:'#b4232f' }};
+      --major-red-dark: color-mix(in srgb, var(--major-red) 72%, #000);
+      --major-red-soft: color-mix(in srgb, var(--major-red) 9%, #fff);
       --bs-primary: var(--major-red);
       --bs-primary-rgb: 180, 35, 47;
       --bs-link-color: var(--major-red);
@@ -19,7 +19,11 @@
     }
 
     .navbar.bg-dark {
-      background: linear-gradient(110deg, #68131b, var(--major-red) 55%, #d84a56) !important;
+      background: linear-gradient(110deg,
+        color-mix(in srgb, var(--major-red) 60%, #000),
+        var(--major-red) 55%,
+        color-mix(in srgb, var(--major-red) 72%, #fff)
+      ) !important;
       box-shadow: 0 5px 20px rgba(111, 18, 28, 0.22);
     }
 
@@ -44,8 +48,8 @@
     .form-control:focus,
     .form-select:focus,
     .form-check-input:focus {
-      border-color: #d65b65;
-      box-shadow: 0 0 0 0.25rem rgba(180, 35, 47, 0.16);
+      border-color: color-mix(in srgb, var(--major-red) 65%, #fff);
+      box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--major-red) 18%, transparent);
     }
 
     .form-check-input:checked {
@@ -88,6 +92,7 @@
           {% endif %}
           <li class="nav-item"><a class="nav-link" href="/deals/">Сделки</a></li>
           <li class="nav-item"><a class="nav-link" href="/cash/">Касса</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'theme-settings' %}">Настройки</a></li>
         </ul>
         <div class="d-flex align-items-center gap-3 text-white">
           <button

@@ -13,6 +13,18 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
+class SiteTheme(TimeStampedModel):
+    primary_color = models.CharField(max_length=7, default='#b4232f')
+
+    @classmethod
+    def get_current(cls):
+        theme, _ = cls.objects.get_or_create(pk=1)
+        return theme
+
+    def __str__(self):
+        return f'Основной цвет: {self.primary_color}'
+
+
 class Role(models.Model):
     class RoleName(models.TextChoices):
         ADMIN = 'admin', 'Админ'

@@ -32,6 +32,7 @@ from .models import (
     PowerOfAttorney,
     Reservation,
     Role,
+    SiteTheme,
     Vehicle,
     VehicleUnit,
     VehicleOption,
@@ -65,6 +66,28 @@ def _get_passport_parts(request, fallback_series='', fallback_number=''):
 @login_required
 def home(request):
     return redirect('autosalon')
+
+
+@login_required
+def theme_settings(request):
+    theme = SiteTheme.get_current()
+    error = ''
+    saved = request.GET.get('saved') == '1'
+
+    if request.method == 'POST':
+        primary_color = request.POST.get('primary_color', '').strip().lower()
+        if not re.fullmatch(r'#[0-9a-f]{6}', primary_color):
+            error = 'Выберите корректный цвет в формате #RRGGBB.'
+        else:
+            theme.primary_color = primary_color
+            theme.save(update_fields=['primary_color', 'updated_at'])
+            return redirect(f"{reverse('theme-settings')}?saved=1")
+
+    return render(request, 'crm/settings.html', {
+        'theme': theme,
+        'theme_error': error,
+        'theme_saved': saved,
+    })
 
 
 @login_required
