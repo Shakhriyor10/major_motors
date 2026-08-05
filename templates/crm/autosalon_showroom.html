@@ -1206,6 +1206,9 @@
 
       .credit-print-area.credit-print-compact {
         margin-top: -23mm;
+        --credit-print-row-height: 3.4mm;
+        --credit-print-font-size: 8.5px;
+        --credit-print-head-font-size: 7.5px;
       }
 
       .credit-print-area.credit-print-compact .credit-print-header {
@@ -1264,17 +1267,22 @@
       }
 
       .credit-print-area.credit-print-compact .credit-schedule-table {
-        font-size: 7px;
+        font-size: var(--credit-print-font-size);
       }
 
       .credit-print-area.credit-print-compact .credit-schedule-table thead th {
-        font-size: 6.5px;
+        font-size: var(--credit-print-head-font-size);
       }
 
       .credit-print-area.credit-print-compact .credit-schedule-table th,
       .credit-print-area.credit-print-compact .credit-schedule-table td {
-        padding: 1px 4px;
+        padding: 0 4px;
         line-height: 1;
+        vertical-align: middle;
+      }
+
+      .credit-print-area.credit-print-compact .credit-schedule-table tbody tr {
+        height: var(--credit-print-row-height);
       }
 
       .print-full-width {
@@ -5922,6 +5930,14 @@ OOO «MAJOR MOTORS SAM»</div>
         applyCreditScheduleColumnVisibility();
         const months = Math.min(parseInt(creditMonthsInput?.value, 10) || 0, 60);
         creditPrintArea.classList.toggle('credit-print-compact', months > 36);
+        if (months > 36) {
+          const rowHeightMm = Math.max(3.4, Math.min(5.35, 205 / months));
+          const bodyFontPx = Math.max(8.5, Math.min(11.4, 16 - (months * 0.125)));
+          const headFontPx = Math.max(7.5, bodyFontPx - 1);
+          creditPrintArea.style.setProperty('--credit-print-row-height', `${rowHeightMm.toFixed(2)}mm`);
+          creditPrintArea.style.setProperty('--credit-print-font-size', `${bodyFontPx.toFixed(2)}px`);
+          creditPrintArea.style.setProperty('--credit-print-head-font-size', `${headFontPx.toFixed(2)}px`);
+        }
         currentPrintTarget = creditPrintArea;
         document.body.classList.add('print-receipt-active');
         creditPrintArea.classList.add('is-print-target');
@@ -6365,6 +6381,9 @@ OOO «MAJOR MOTORS SAM»</div>
       if (currentPrintTarget) {
         currentPrintTarget.classList.remove('is-print-target');
         currentPrintTarget.classList.remove('credit-print-compact');
+        currentPrintTarget.style.removeProperty('--credit-print-row-height');
+        currentPrintTarget.style.removeProperty('--credit-print-font-size');
+        currentPrintTarget.style.removeProperty('--credit-print-head-font-size');
         currentPrintTarget = null;
       }
     });
