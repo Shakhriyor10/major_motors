@@ -928,6 +928,31 @@ class TicTacToeGame(TimeStampedModel):
         return f'Крестики-нолики #{self.pk}'
 
 
+class CheckersGame(TimeStampedModel):
+    class Status(models.TextChoices):
+        WAITING = 'waiting', 'Ожидает соперника'
+        ACTIVE = 'active', 'Идёт игра'
+        FINISHED = 'finished', 'Завершена'
+
+    player_white = models.ForeignKey(User, on_delete=models.CASCADE, related_name='checkers_games_as_white')
+    player_black = models.ForeignKey(User, on_delete=models.CASCADE, related_name='checkers_games_as_black', null=True, blank=True)
+    board = models.JSONField(default=list)
+    current_turn = models.CharField(max_length=1, default='w')
+    forced_piece = models.IntegerField(null=True, blank=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.WAITING)
+    winner = models.CharField(max_length=1, blank=True)
+    finish_reason = models.CharField(max_length=32, blank=True)
+    draw_offered_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='checkers_draw_offers')
+    history = models.JSONField(default=list, blank=True)
+    version = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f'Шашки #{self.pk}'
+
+
 class ServiceItem(TimeStampedModel):
     service_order = models.ForeignKey(ServiceOrder, on_delete=models.CASCADE, related_name='items')
     description = models.TextField()

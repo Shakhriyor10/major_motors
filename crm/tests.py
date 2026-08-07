@@ -2,7 +2,8 @@ import json
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from .models import TicTacToeGame
+from .checkers import captures_from, initial_board, legal_moves
+from .models import CheckersGame, TicTacToeGame
 
 class TicTacToeGameTests(TestCase):
     def setUp(self):
@@ -30,3 +31,64 @@ class TicTacToeGameTests(TestCase):
         outsider = get_user_model().objects.create_user('outsider', password='test')
         client = Client(); client.force_login(outsider)
         self.assertEqual(client.get(reverse('tic-tac-toe-state', args=[game.id])).status_code, 403)
+
+
+class CheckersRulesTests(TestCase):
+    def empty(self):
+        return [''] * 64
+
+    def test_initial_position_has_24_pieces_and_seven_moves(self):
+        board = initial_board()
+        self.assertEqual(sum(bool(p) for p in board), 24)
+        self.assertEqual(len(legal_moves(board, 'w')), 7)
+
+    def test_capture_is_mandatory_and_man_captures_backwards(self):
+        board = self.empty()
+        board[26], board[35] = 'w', 'b'
+        self.assertEqual(legal_moves(board, 'w'), [{'from': 26, 'to': 44, 'capture': 35}])
+
+    def test_flying_king_can_land_beyond_captured_piece(self):
+        board = self.empty()
+        board[49], board[35] = 'W', 'b'
+        destinations = {m['to'] for m in captures_from(board, 49)}
+        self.assertEqual(destinations, {28, 21, 14, 7})
+
+
+class CheckersApiTests(TestCase):
+    def setUp(self):
+        users = get_user_model()
+        self.white = users.objects.create_user('white', password='test')
+        self.black = users.objects.create_user('black', password='test')
+        self.wc, self.bc = Client(), Client()
+        self.wc.force_login(self.white); self.bc.force_login(self.black)
+
+    def move(self, client, game, start, end):
+        return client.post(reverse('checkers-move', args=[game.id]), json.dumps({'from': start, 'to': end}), content_type='application/json')
+
+    def test_join_move_and_live_state(self):
+        created = self.wc.post(reverse('checkers-create')).json()
+        self.assertEqual(self.bc.post(reverse('checkers-join', args=[created['id']])).status_code, 200)
+        game = CheckersGame.objects.get(pk=created['id'])
+        self.assertEqual(self.move(self.wc, game, 40, 33).status_code, 200)
+        state = self.bc.get(reverse('checkers-state', args=[game.id])).json()
+        self.assertEqual((state['board'][40], state['board'][33], state['turn']), ('', 'w', 'b'))
+
+    def test_multiple_capture_forces_same_piece_and_promotes(self):
+        board = [''] * 64
+        board[49], board[42], board[28], board[14] = 'w', 'b', 'b', 'b'
+        game = CheckersGame.objects.create(player_white=self.white, player_black=self.black, board=board, status='active')
+        first = self.move(self.wc, game, 49, 35).json()
+        self.assertEqual((first['forced_piece'], first['turn']), (35, 'w'))
+        second = self.move(self.wc, game, 35, 21).json()
+        self.assertEqual((second['forced_piece'], second['turn']), (21, 'w'))
+        third = self.move(self.wc, game, 21, 7).json()
+        self.assertEqual(third['board'][7], 'W')
+
+    def test_resign_draw_and_rematch(self):
+        game = CheckersGame.objects.create(player_white=self.white, player_black=self.black, board=initial_board(), status='active')
+        offer = self.wc.post(reverse('checkers-draw', args=[game.id]), json.dumps({'action': 'offer'}), content_type='application/json')
+        self.assertEqual(offer.status_code, 200)
+        accepted = self.bc.post(reverse('checkers-draw', args=[game.id]), json.dumps({'action': 'accept'}), content_type='application/json').json()
+        self.assertEqual((accepted['status'], accepted['winner']), ('finished', 'd'))
+        rematch = self.wc.post(reverse('checkers-rematch', args=[game.id])).json()
+        self.assertEqual((rematch['status'], rematch['player_white'], rematch['player_black']), ('active', 'black', 'white'))

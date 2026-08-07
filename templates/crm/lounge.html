@@ -8,6 +8,7 @@
 {% block content %}
 <div class="card shadow-sm lounge"><div class="card-body p-4 p-md-5">
  <div class="text-uppercase text-primary small fw-bold">Игровой салон</div><h1 class="h3">Крестики-нолики</h1><p class="text-muted">Играйте вдвоём без обновления страницы.</p>
+ <a class="btn btn-dark w-100 mb-3" href="{% url 'checkers' %}">Открыть русские шашки</a>
  <div id="msg" class="alert d-none"></div>
  <section id="lobby"><button id="create" class="btn btn-primary btn-lg w-100 my-3">Создать игру</button><h2 class="h6 mt-3">Открытые игры</h2><div id="waiting">Ищем игроков…</div></section>
  <section id="game" class="d-none text-center"><div id="players" class="fw-semibold"></div><div id="status" class="text-muted"></div><div id="board" class="board"></div><a class="btn btn-outline-secondary" href="{% url 'lounge' %}">Вернуться в лобби</a></section>
