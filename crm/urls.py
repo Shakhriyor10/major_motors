@@ -3,6 +3,7 @@ from django.urls import path
 
 from . import views
 from . import checkers as checkers_views
+from . import snake as snake_views
 
 urlpatterns = [
     path('login/', auth_views.LoginView.as_view(), name='login'),
@@ -34,6 +35,9 @@ urlpatterns = [
     path('lounge/checkers/<int:game_id>/resign/', checkers_views.resign, name='checkers-resign'),
     path('lounge/checkers/<int:game_id>/draw/', checkers_views.draw, name='checkers-draw'),
     path('lounge/checkers/<int:game_id>/rematch/', checkers_views.rematch, name='checkers-rematch'),
+    path('lounge/snake/', snake_views.page, name='snake'),
+    path('lounge/snake/state/', snake_views.state, name='snake-state'),
+    path('lounge/snake/submit/', snake_views.submit, name='snake-submit'),
     path('cash/employees/save/', views.cash_employee_save, name='cash-employee-save'),
     path('cash/employees/delete/', views.cash_employee_delete, name='cash-employee-delete'),
 ]

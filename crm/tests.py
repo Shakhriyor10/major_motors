@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from .checkers import captures_from, initial_board, legal_moves
-from .models import CheckersGame, SiteTheme, TicTacToeGame
+from .models import CheckersGame, SiteTheme, SnakeScore, TicTacToeGame
 
 class TicTacToeGameTests(TestCase):
     def setUp(self):
@@ -130,19 +130,43 @@ class GamesHubTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Крестики-нолики')
         self.assertContains(response, 'Русские шашки')
+        self.assertContains(response, 'Змейка')
         self.assertNotContains(response, 'Полный сброс игр')
 
     def test_only_admin_can_fully_reset_all_games(self):
         TicTacToeGame.objects.create(player_x=self.user)
         CheckersGame.objects.create(player_white=self.user, board=initial_board())
+        SnakeScore.objects.create(user=self.user, best_score=12, games_played=1)
         self.client.force_login(self.user)
         denied = self.client.post(reverse('games-reset'))
         self.assertEqual(denied.status_code, 403)
-        self.assertEqual(TicTacToeGame.objects.count() + CheckersGame.objects.count(), 2)
+        self.assertEqual(TicTacToeGame.objects.count() + CheckersGame.objects.count() + SnakeScore.objects.count(), 3)
 
         self.client.force_login(self.admin)
         response = self.client.post(reverse('games-reset'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['deleted'], 2)
+        self.assertEqual(response.json()['deleted'], 3)
         self.assertFalse(TicTacToeGame.objects.exists())
         self.assertFalse(CheckersGame.objects.exists())
+        self.assertFalse(SnakeScore.objects.exists())
+
+
+class SnakeApiTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user('snake-player', password='test')
+        self.client.force_login(self.user)
+
+    def test_page_and_score_persistence(self):
+        self.assertEqual(self.client.get(reverse('snake')).status_code, 200)
+        first = self.client.post(reverse('snake-submit'), json.dumps({'score': 5}), content_type='application/json')
+        second = self.client.post(reverse('snake-submit'), json.dumps({'score': 3}), content_type='application/json')
+        self.assertEqual((first.status_code, second.status_code), (200, 200))
+        score = SnakeScore.objects.get(user=self.user)
+        self.assertEqual((score.best_score, score.games_played), (5, 2))
+        state = self.client.get(reverse('snake-state')).json()
+        self.assertEqual((state['best_score'], state['games_played']), (5, 2))
+
+    def test_impossible_score_is_rejected(self):
+        response = self.client.post(reverse('snake-submit'), json.dumps({'score': 398}), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(SnakeScore.objects.filter(user=self.user).exists())

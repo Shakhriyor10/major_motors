@@ -983,6 +983,18 @@ class CheckersGame(TimeStampedModel):
         return f'Шашки #{self.pk}'
 
 
+class SnakeScore(TimeStampedModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='snake_score')
+    best_score = models.PositiveIntegerField(default=0)
+    games_played = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-best_score', 'updated_at']
+
+    def __str__(self):
+        return f'{self.user}: {self.best_score}'
+
+
 class ServiceItem(TimeStampedModel):
     service_order = models.ForeignKey(ServiceOrder, on_delete=models.CASCADE, related_name='items')
     description = models.TextField()

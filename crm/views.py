@@ -33,6 +33,7 @@ from .models import (
     PowerOfAttorney,
     Reservation,
     Role,
+    SnakeScore,
     SiteTheme,
     TicTacToeGame,
     Vehicle,
@@ -61,6 +62,7 @@ def lounge(request):
     return render(request, 'crm/games.html', {
         'tic_tac_toe_count': TicTacToeGame.objects.count(),
         'checkers_count': CheckersGame.objects.count(),
+        'snake_players': SnakeScore.objects.count(),
     })
 
 
@@ -77,13 +79,16 @@ def games_reset(request):
     with transaction.atomic():
         tic_count = TicTacToeGame.objects.count()
         checkers_count = CheckersGame.objects.count()
+        snake_count = SnakeScore.objects.count()
         TicTacToeGame.objects.all().delete()
         CheckersGame.objects.all().delete()
+        SnakeScore.objects.all().delete()
     return JsonResponse({
         'ok': True,
-        'deleted': tic_count + checkers_count,
+        'deleted': tic_count + checkers_count + snake_count,
         'tic_tac_toe': tic_count,
         'checkers': checkers_count,
+        'snake': snake_count,
     })
 
 
