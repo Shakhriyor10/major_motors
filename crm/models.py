@@ -995,6 +995,34 @@ class SnakeScore(TimeStampedModel):
         return f'{self.user}: {self.best_score}'
 
 
+class BattleshipGame(TimeStampedModel):
+    class Status(models.TextChoices):
+        WAITING = 'waiting', 'Ожидает соперника'
+        PLACING = 'placing', 'Расстановка кораблей'
+        ACTIVE = 'active', 'Идёт игра'
+        FINISHED = 'finished', 'Завершена'
+
+    player_one = models.ForeignKey(User, on_delete=models.CASCADE, related_name='battleship_games_as_one')
+    player_two = models.ForeignKey(User, on_delete=models.CASCADE, related_name='battleship_games_as_two', null=True, blank=True)
+    board_one = models.JSONField(default=list, blank=True)
+    board_two = models.JSONField(default=list, blank=True)
+    shots_one = models.JSONField(default=list, blank=True)
+    shots_two = models.JSONField(default=list, blank=True)
+    ready_one = models.BooleanField(default=False)
+    ready_two = models.BooleanField(default=False)
+    current_turn = models.PositiveSmallIntegerField(default=1)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.WAITING)
+    winner = models.PositiveSmallIntegerField(null=True, blank=True)
+    finish_reason = models.CharField(max_length=32, blank=True)
+    version = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f'Морской бой #{self.pk}'
+
+
 class ServiceItem(TimeStampedModel):
     service_order = models.ForeignKey(ServiceOrder, on_delete=models.CASCADE, related_name='items')
     description = models.TextField()

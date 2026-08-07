@@ -3,7 +3,8 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from .checkers import captures_from, initial_board, legal_moves
-from .models import CheckersGame, SiteTheme, SnakeScore, TicTacToeGame
+from .battleship import random_fleet, validate_ships
+from .models import BattleshipGame, CheckersGame, SiteTheme, SnakeScore, TicTacToeGame
 
 class TicTacToeGameTests(TestCase):
     def setUp(self):
@@ -131,24 +132,27 @@ class GamesHubTests(TestCase):
         self.assertContains(response, 'Крестики-нолики')
         self.assertContains(response, 'Русские шашки')
         self.assertContains(response, 'Змейка')
+        self.assertContains(response, 'Морской бой')
         self.assertNotContains(response, 'Полный сброс игр')
 
     def test_only_admin_can_fully_reset_all_games(self):
         TicTacToeGame.objects.create(player_x=self.user)
         CheckersGame.objects.create(player_white=self.user, board=initial_board())
         SnakeScore.objects.create(user=self.user, best_score=12, games_played=1)
+        BattleshipGame.objects.create(player_one=self.user)
         self.client.force_login(self.user)
         denied = self.client.post(reverse('games-reset'))
         self.assertEqual(denied.status_code, 403)
-        self.assertEqual(TicTacToeGame.objects.count() + CheckersGame.objects.count() + SnakeScore.objects.count(), 3)
+        self.assertEqual(TicTacToeGame.objects.count() + CheckersGame.objects.count() + SnakeScore.objects.count() + BattleshipGame.objects.count(), 4)
 
         self.client.force_login(self.admin)
         response = self.client.post(reverse('games-reset'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['deleted'], 3)
+        self.assertEqual(response.json()['deleted'], 4)
         self.assertFalse(TicTacToeGame.objects.exists())
         self.assertFalse(CheckersGame.objects.exists())
         self.assertFalse(SnakeScore.objects.exists())
+        self.assertFalse(BattleshipGame.objects.exists())
 
 
 class SnakeApiTests(TestCase):
@@ -170,3 +174,44 @@ class SnakeApiTests(TestCase):
         response = self.client.post(reverse('snake-submit'), json.dumps({'score': 398}), content_type='application/json')
         self.assertEqual(response.status_code, 400)
         self.assertFalse(SnakeScore.objects.filter(user=self.user).exists())
+
+
+class BattleshipTests(TestCase):
+    def setUp(self):
+        users = get_user_model()
+        self.one = users.objects.create_user('captain-one', password='test')
+        self.two = users.objects.create_user('captain-two', password='test')
+        self.c1, self.c2 = Client(), Client()
+        self.c1.force_login(self.one); self.c2.force_login(self.two)
+
+    def post_json(self, client, name, game=None, data=None):
+        args = [game.id] if game else []
+        return client.post(reverse(name, args=args), json.dumps(data or {}), content_type='application/json')
+
+    def test_random_fleet_is_always_valid(self):
+        for _ in range(15):
+            fleet = random_fleet()
+            self.assertEqual(validate_ships(fleet), fleet)
+            self.assertEqual(sum(map(len, fleet)), 20)
+
+    def test_two_players_setup_shoot_and_hidden_board(self):
+        created = self.post_json(self.c1, 'battleship-create').json()
+        game = BattleshipGame.objects.get(pk=created['id'])
+        self.assertEqual(self.post_json(self.c2, 'battleship-join', game).status_code, 200)
+        fleet_one, fleet_two = random_fleet(), random_fleet()
+        self.assertEqual(self.post_json(self.c1, 'battleship-setup', game, {'ships': fleet_one}).status_code, 200)
+        ready = self.post_json(self.c2, 'battleship-setup', game, {'ships': fleet_two}).json()
+        self.assertEqual(ready['status'], 'active')
+        self.assertNotIn(fleet_one[0][0], set(ready['own_ships'][0]) if ready['own_ships'] else set())
+        miss = next(cell for cell in range(100) if cell not in {c for ship in fleet_two for c in ship})
+        result = self.post_json(self.c1, 'battleship-shoot', game, {'cell': miss}).json()
+        self.assertEqual((result['last_shot']['hit'], result['turn']), (False, 2))
+        hit = fleet_one[0][0]
+        result = self.post_json(self.c2, 'battleship-shoot', game, {'cell': hit}).json()
+        self.assertEqual((result['last_shot']['hit'], result['turn']), (True, 2))
+        self.assertEqual(self.post_json(self.c2, 'battleship-shoot', game, {'cell': hit}).status_code, 409)
+
+    def test_invalid_touching_fleet_rejected(self):
+        game = BattleshipGame.objects.create(player_one=self.one, player_two=self.two, status='placing')
+        invalid = [[0, 1, 2, 3], [10, 11, 12], [20, 21, 22], [30, 31], [40, 41], [50, 51], [60], [70], [80], [90]]
+        self.assertEqual(self.post_json(self.c1, 'battleship-setup', game, {'ships': invalid}).status_code, 400)

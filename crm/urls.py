@@ -4,6 +4,7 @@ from django.urls import path
 from . import views
 from . import checkers as checkers_views
 from . import snake as snake_views
+from . import battleship as battleship_views
 
 urlpatterns = [
     path('login/', auth_views.LoginView.as_view(), name='login'),
@@ -38,6 +39,15 @@ urlpatterns = [
     path('lounge/snake/', snake_views.page, name='snake'),
     path('lounge/snake/state/', snake_views.state, name='snake-state'),
     path('lounge/snake/submit/', snake_views.submit, name='snake-submit'),
+    path('lounge/battleship/', battleship_views.page, name='battleship'),
+    path('lounge/battleship/lobby/', battleship_views.lobby, name='battleship-lobby'),
+    path('lounge/battleship/create/', battleship_views.create, name='battleship-create'),
+    path('lounge/battleship/<int:game_id>/join/', battleship_views.join, name='battleship-join'),
+    path('lounge/battleship/<int:game_id>/state/', battleship_views.state, name='battleship-state'),
+    path('lounge/battleship/<int:game_id>/setup/', battleship_views.setup, name='battleship-setup'),
+    path('lounge/battleship/<int:game_id>/shoot/', battleship_views.shoot, name='battleship-shoot'),
+    path('lounge/battleship/<int:game_id>/resign/', battleship_views.resign, name='battleship-resign'),
+    path('lounge/battleship/<int:game_id>/rematch/', battleship_views.rematch, name='battleship-rematch'),
     path('cash/employees/save/', views.cash_employee_save, name='cash-employee-save'),
     path('cash/employees/delete/', views.cash_employee_delete, name='cash-employee-delete'),
 ]
