@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Салон · Major Motors{% endblock %}
+{% block extra_styles %}
+<style>
+.lounge{max-width:760px;margin:auto;border:0;border-radius:24px}.board{width:min(100%,440px);display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px auto}.cell{aspect-ratio:1;border:0;border-radius:18px;background:#eef2f7;font-size:clamp(3rem,9vw,5rem);font-weight:800}.cell.x{color:#0d6efd}.cell.o{color:#dc3545}.cell:not(:disabled):hover{background:#dce7f5}.wait-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#20c997;margin-right:8px}
+</style>
+{% endblock %}
+{% block content %}
+<div class="card shadow-sm lounge"><div class="card-body p-4 p-md-5">
+ <div class="text-uppercase text-primary small fw-bold">Игровой салон</div><h1 class="h3">Крестики-нолики</h1><p class="text-muted">Играйте вдвоём без обновления страницы.</p>
+ <div id="msg" class="alert d-none"></div>
+ <section id="lobby"><button id="create" class="btn btn-primary btn-lg w-100 my-3">Создать игру</button><h2 class="h6 mt-3">Открытые игры</h2><div id="waiting">Ищем игроков…</div></section>
+ <section id="game" class="d-none text-center"><div id="players" class="fw-semibold"></div><div id="status" class="text-muted"></div><div id="board" class="board"></div><a class="btn btn-outline-secondary" href="{% url 'lounge' %}">Вернуться в лобби</a></section>
+</div></div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+(()=>{const $=s=>document.querySelector(s),csrf=document.cookie.split('; ').find(x=>x.startsWith('csrftoken='))?.split('=')[1]||'';let id=+new URLSearchParams(location.search).get('game')||null,busy=false,version=-1;
+async function api(url,opt={}){const r=await fetch(url,{credentials:'same-origin',...opt,headers:{'X-CSRFToken':csrf,'Content-Type':'application/json'}}),d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка соединения');return d}
+function error(e){$('#msg').textContent=e.message;$('#msg').className='alert alert-danger'}
+function open(d){id=d.id;history.replaceState({},'',`?game=${id}`);$('#lobby').classList.add('d-none');$('#game').classList.remove('d-none');render(d)}
+function render(d){version=d.version;$('#players').textContent=`${d.player_x} (X) — ${d.player_o||'ожидаем соперника…'} (O)`;$('#status').textContent=d.status==='waiting'?'Ожидаем второго игрока…':d.status==='finished'?(d.winner==='D'?'Ничья!':d.winner===d.symbol?'Вы победили!':'Победил соперник.'):(d.can_move?`Ваш ход (${d.symbol})`:`Ход соперника (${d.turn})`);$('#board').innerHTML='';d.board.forEach((v,i)=>{let b=document.createElement('button');b.className=`cell ${v.toLowerCase()}`;b.textContent=v==='-'?'':v;b.disabled=!d.can_move||v!=='-';b.onclick=()=>move(i);$('#board').append(b)})}
+async function move(position){if(busy)return;busy=true;try{render(await api(`/lounge/tic-tac-toe/${id}/move/`,{method:'POST',body:JSON.stringify({position})}))}catch(e){error(e);pollGame()}finally{busy=false}}
+async function pollGame(){if(!id)return;try{let d=await api(`/lounge/tic-tac-toe/${id}/state/`);if(d.version!==version)render(d)}catch(e){error(e)}}
+async function join(game){try{open(await api(`/lounge/tic-tac-toe/${game}/join/`,{method:'POST',body:'{}'}))}catch(e){error(e);pollLobby()}}
+async function pollLobby(){if(id)return;try{let d=await api('{% url "tic-tac-toe-lobby" %}');if(d.current_game)return open(d.current_game);let w=$('#waiting');w.innerHTML='';if(!d.waiting.length)w.textContent='Пока нет открытых игр.';d.waiting.forEach(x=>{let row=document.createElement('div'),name=document.createElement('span'),btn=document.createElement('button');row.className='wait-row';name.textContent=x.username;btn.className='btn btn-outline-primary btn-sm';btn.textContent='Присоединиться';btn.onclick=()=>join(x.id);row.append(name,btn);w.append(row)})}catch(e){error(e)}}
+$('#create').onclick=async()=>{try{open(await api('{% url "tic-tac-toe-create" %}',{method:'POST',body:'{}'}))}catch(e){error(e)}};id?pollGame():pollLobby();setInterval(()=>id?pollGame():pollLobby(),1000)})();
+</script>
+{% endblock %}

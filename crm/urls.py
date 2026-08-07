@@ -16,6 +16,12 @@ urlpatterns = [
     path('inventory/', views.inventory, name='inventory'),
     path('deals/', views.deals, name='deals'),
     path('cash/', views.cash_dashboard, name='cash-dashboard'),
+    path('lounge/', views.lounge, name='lounge'),
+    path('lounge/tic-tac-toe/lobby/', views.tic_tac_toe_lobby, name='tic-tac-toe-lobby'),
+    path('lounge/tic-tac-toe/create/', views.tic_tac_toe_create, name='tic-tac-toe-create'),
+    path('lounge/tic-tac-toe/<int:game_id>/join/', views.tic_tac_toe_join, name='tic-tac-toe-join'),
+    path('lounge/tic-tac-toe/<int:game_id>/state/', views.tic_tac_toe_state, name='tic-tac-toe-state'),
+    path('lounge/tic-tac-toe/<int:game_id>/move/', views.tic_tac_toe_move, name='tic-tac-toe-move'),
     path('cash/employees/save/', views.cash_employee_save, name='cash-employee-save'),
     path('cash/employees/delete/', views.cash_employee_delete, name='cash-employee-delete'),
 ]

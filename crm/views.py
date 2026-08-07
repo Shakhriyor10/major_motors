@@ -7,11 +7,11 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Count, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce, Greatest
 from django.http import HttpResponseForbidden, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
@@ -33,12 +33,103 @@ from .models import (
     Reservation,
     Role,
     SiteTheme,
+    TicTacToeGame,
     Vehicle,
     VehicleUnit,
     VehicleOption,
     VehicleExpense,
     VehicleMedia,
 )
+
+
+TIC_TAC_TOE_LINES = ((0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),(2,5,8),(0,4,8),(2,4,6))
+
+
+def _tic_tac_toe_payload(game, user):
+    symbol = 'X' if game.player_x_id == user.id else ('O' if game.player_o_id == user.id else '')
+    return {'id': game.id, 'board': list(game.board), 'status': game.status,
+            'turn': game.current_turn, 'winner': game.winner, 'version': game.version,
+            'symbol': symbol, 'can_move': game.status == 'active' and game.current_turn == symbol,
+            'player_x': game.player_x.get_username(),
+            'player_o': game.player_o.get_username() if game.player_o else None,
+            'updated_at': game.updated_at.isoformat()}
+
+
+@login_required
+def lounge(request):
+    return render(request, 'crm/lounge.html')
+
+
+@login_required
+def tic_tac_toe_lobby(request):
+    waiting = TicTacToeGame.objects.filter(status='waiting', player_o__isnull=True).exclude(player_x=request.user).select_related('player_x')[:20]
+    mine = TicTacToeGame.objects.filter(Q(player_x=request.user) | Q(player_o=request.user), status__in=['waiting','active']).select_related('player_x','player_o').first()
+    return JsonResponse({'waiting': [{'id': g.id, 'username': g.player_x.get_username()} for g in waiting],
+                         'current_game': _tic_tac_toe_payload(mine, request.user) if mine else None})
+
+
+@login_required
+@require_POST
+def tic_tac_toe_create(request):
+    game = TicTacToeGame.objects.filter(Q(player_x=request.user) | Q(player_o=request.user), status__in=['waiting','active']).select_related('player_x','player_o').first()
+    game = game or TicTacToeGame.objects.create(player_x=request.user)
+    return JsonResponse(_tic_tac_toe_payload(game, request.user))
+
+
+@login_required
+@require_POST
+def tic_tac_toe_join(request, game_id):
+    with transaction.atomic():
+        game = get_object_or_404(TicTacToeGame.objects.select_for_update(), pk=game_id)
+        if game.player_x_id == request.user.id:
+            return JsonResponse({'error': 'Нельзя играть против самого себя.'}, status=400)
+        if game.status != 'waiting' or game.player_o_id:
+            return JsonResponse({'error': 'Эту игру уже занял другой игрок.'}, status=409)
+        if TicTacToeGame.objects.filter(Q(player_x=request.user) | Q(player_o=request.user), status__in=['waiting','active']).exclude(pk=game.pk).exists():
+            return JsonResponse({'error': 'Сначала завершите текущую игру.'}, status=409)
+        game.player_o, game.status, game.version = request.user, 'active', game.version + 1
+        game.save(update_fields=['player_o','status','version','updated_at'])
+    return JsonResponse(_tic_tac_toe_payload(game, request.user))
+
+
+@login_required
+def tic_tac_toe_state(request, game_id):
+    game = get_object_or_404(TicTacToeGame.objects.select_related('player_x','player_o'), pk=game_id)
+    if request.user.id not in (game.player_x_id, game.player_o_id):
+        return JsonResponse({'error': 'Нет доступа к этой игре.'}, status=403)
+    return JsonResponse(_tic_tac_toe_payload(game, request.user))
+
+
+@login_required
+@require_POST
+def tic_tac_toe_move(request, game_id):
+    try:
+        position = int(json.loads(request.body or '{}').get('position'))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return JsonResponse({'error': 'Некорректный ход.'}, status=400)
+    if position not in range(9):
+        return JsonResponse({'error': 'Некорректная клетка.'}, status=400)
+    with transaction.atomic():
+        game = get_object_or_404(TicTacToeGame.objects.select_for_update().select_related('player_x','player_o'), pk=game_id)
+        symbol = 'X' if game.player_x_id == request.user.id else ('O' if game.player_o_id == request.user.id else '')
+        if not symbol:
+            return JsonResponse({'error': 'Нет доступа к этой игре.'}, status=403)
+        if game.status != 'active' or game.current_turn != symbol:
+            return JsonResponse({'error': 'Сейчас нельзя сделать этот ход.'}, status=409)
+        board = list(game.board)
+        if board[position] != '-':
+            return JsonResponse({'error': 'Эта клетка уже занята.'}, status=409)
+        board[position] = symbol
+        game.board = ''.join(board)
+        if any(board[a] == board[b] == board[c] == symbol for a,b,c in TIC_TAC_TOE_LINES):
+            game.status, game.winner = 'finished', symbol
+        elif '-' not in board:
+            game.status, game.winner = 'finished', 'D'
+        else:
+            game.current_turn = 'O' if symbol == 'X' else 'X'
+        game.version += 1
+        game.save(update_fields=['board','current_turn','status','winner','version','updated_at'])
+    return JsonResponse(_tic_tac_toe_payload(game, request.user))
 
 
 def _split_passport_combined(passport_combined):

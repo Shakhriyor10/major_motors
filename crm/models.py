@@ -907,6 +907,27 @@ class ServiceOrder(TimeStampedModel):
         return f'Заказ-наряд {self.vehicle}'
 
 
+class TicTacToeGame(TimeStampedModel):
+    class Status(models.TextChoices):
+        WAITING = 'waiting', 'Ожидает соперника'
+        ACTIVE = 'active', 'Идёт игра'
+        FINISHED = 'finished', 'Завершена'
+
+    player_x = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tic_tac_toe_games_as_x')
+    player_o = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tic_tac_toe_games_as_o', null=True, blank=True)
+    board = models.CharField(max_length=9, default='---------')
+    current_turn = models.CharField(max_length=1, default='X')
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.WAITING)
+    winner = models.CharField(max_length=1, blank=True)
+    version = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f'Крестики-нолики #{self.pk}'
+
+
 class ServiceItem(TimeStampedModel):
     service_order = models.ForeignKey(ServiceOrder, on_delete=models.CASCADE, related_name='items')
     description = models.TextField()
