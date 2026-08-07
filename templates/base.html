@@ -100,7 +100,7 @@
     }
   </style>
 </head>
-<body class="bg-light theme-body theme-{{ site_theme.preset|default:'classic' }} nav-{{ site_theme.navigation|default:'top' }} cards-{{ site_theme.card_style|default:'elevated' }}{% if site_theme.compact %} compact-ui{% endif %}" data-cash-uzs="{{ cash_account.uzs_balance|default:0|unlocalize }}"
+<body class="bg-light theme-body theme-{{ site_theme.preset|default:'classic' }} nav-{{ site_theme.navigation|default:'top' }} cards-{{ site_theme.card_style|default:'elevated' }} vehicle-cards-{{ site_theme.vehicle_card_style|default:'horizontal' }}{% if site_theme.compact %} compact-ui{% endif %}" data-cash-uzs="{{ cash_account.uzs_balance|default:0|unlocalize }}"
       data-cash-usd="{{ cash_account.usd_balance|default:0|unlocalize }}"
       data-bank-uzs="{{ bank_account.uzs_balance|default:0|unlocalize }}"
       data-bank-usd="{{ bank_account.usd_balance|default:0|unlocalize }}"
@@ -133,16 +133,6 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'lounge' %}">Салон</a></li>
         </ul>
         <div class="d-flex align-items-center gap-3 text-white">
-          <button
-            class="btn btn-link text-white text-end p-0 text-decoration-none"
-            type="button"
-            id="open-balance-modal"
-          >
-            <div class="small text-white-50">Касса и счет</div>
-            <div class="fw-semibold" id="navbar-uzs">-- UZS</div>
-            <div class="small" id="navbar-usd">-- USD</div>
-          </button>
-          <button class="btn btn-outline-light btn-sm" id="open-conversion-modal" type="button" aria-label="Конвертация валюты">⇄</button>
           {% if request.user.is_authenticated %}
             <div class="text-end">
               <div class="small text-white-50">Пользователь</div>

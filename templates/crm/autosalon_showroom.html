@@ -184,6 +184,57 @@
       box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
     }
 
+    body .showroom-card {
+      background: var(--theme-surface, #fff);
+      color: var(--theme-text, #0f172a);
+      border-radius: var(--card-radius, 18px);
+    }
+
+    body .showroom-title,
+    body .showroom-price-option { color: var(--theme-text, #0f172a); }
+
+    body.vehicle-cards-square #showroom-list {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 20px !important;
+      align-items: start;
+    }
+
+    body.vehicle-cards-square .showroom-card > .row { display: block; }
+    body.vehicle-cards-square .showroom-card > .row > [class*="col-"] { width: 100%; max-width: 100%; }
+    body.vehicle-cards-square .showroom-media.ratio-21x9 { --bs-aspect-ratio: 62%; }
+    body.vehicle-cards-square .showroom-body { min-height: 310px; }
+    body.vehicle-cards-square .showroom-price { min-width: 130px; }
+
+    body.vehicle-cards-compact #showroom-list {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+      gap: 12px !important;
+      align-items: start;
+    }
+
+    body.vehicle-cards-compact .showroom-card > .row { display: block; }
+    body.vehicle-cards-compact .showroom-card > .row > [class*="col-"] { width: 100%; max-width: 100%; }
+    body.vehicle-cards-compact .showroom-media.ratio-21x9 { --bs-aspect-ratio: 52%; }
+    body.vehicle-cards-compact .showroom-body { padding: 11px 12px; gap: .4rem !important; }
+    body.vehicle-cards-compact .showroom-title { font-size: .95rem; }
+    body.vehicle-cards-compact .showroom-subtitle { font-size: .72rem; }
+    body.vehicle-cards-compact .showroom-price { min-width: 110px; }
+    body.vehicle-cards-compact .showroom-price-option { font-size: .82rem; }
+    body.vehicle-cards-compact .showroom-attributes { grid-template-columns: 1fr 1fr; gap: 5px; }
+
+    body.vehicle-cards-minimal .showroom-card {
+      border-radius: 0;
+      box-shadow: none;
+      border: 0;
+      border-left: 4px solid var(--major-red);
+      border-bottom: 1px solid color-mix(in srgb, var(--theme-text) 14%, transparent);
+    }
+
+    body.vehicle-cards-minimal .showroom-card:hover { transform: none; box-shadow: none; background: var(--major-red-soft); }
+    body.vehicle-cards-minimal .showroom-media::after { display: none; }
+    body.vehicle-cards-minimal .showroom-media img { border-radius: 0; }
+
     .showroom-media {
       position: relative;
       background: #eef2f7;

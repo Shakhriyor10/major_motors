@@ -32,12 +32,19 @@ class SiteTheme(TimeStampedModel):
         GLASS = 'glass', 'Стекло'
         FLAT = 'flat', 'Плоские'
 
+    class VehicleCardStyle(models.TextChoices):
+        HORIZONTAL = 'horizontal', 'Горизонтальные'
+        SQUARE = 'square', 'Квадратная сетка'
+        COMPACT = 'compact', 'Компактные'
+        MINIMAL = 'minimal', 'Минималистичные'
+
     primary_color = models.CharField(max_length=7, default='#b4232f')
     preset = models.CharField(max_length=16, choices=Preset.choices, default=Preset.CLASSIC)
     navigation = models.CharField(max_length=16, choices=Navigation.choices, default=Navigation.TOP)
     card_style = models.CharField(max_length=16, choices=CardStyle.choices, default=CardStyle.ELEVATED)
     radius = models.PositiveSmallIntegerField(default=16)
     compact = models.BooleanField(default=False)
+    vehicle_card_style = models.CharField(max_length=16, choices=VehicleCardStyle.choices, default=VehicleCardStyle.HORIZONTAL)
 
     @classmethod
     def get_current(cls):

@@ -108,11 +108,11 @@ class ThemeSettingsTests(TestCase):
     def test_design_is_saved_and_applied_to_base_template(self):
         response = self.client.post(reverse('theme-settings'), {
             'primary_color': '#2563eb', 'preset': 'midnight', 'navigation': 'sidebar',
-            'card_style': 'glass', 'radius': '24', 'compact': '1',
+            'card_style': 'glass', 'vehicle_card_style': 'square', 'radius': '24', 'compact': '1',
         })
         self.assertEqual(response.status_code, 302)
         theme = SiteTheme.get_current()
-        self.assertEqual((theme.preset, theme.navigation, theme.card_style, theme.radius, theme.compact),
-                         ('midnight', 'sidebar', 'glass', 24, True))
+        self.assertEqual((theme.preset, theme.navigation, theme.card_style, theme.vehicle_card_style, theme.radius, theme.compact),
+                         ('midnight', 'sidebar', 'glass', 'square', 24, True))
         page = self.client.get(reverse('theme-settings'))
-        self.assertContains(page, 'theme-midnight nav-sidebar cards-glass compact-ui')
+        self.assertContains(page, 'theme-midnight nav-sidebar cards-glass vehicle-cards-square compact-ui')

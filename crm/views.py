@@ -170,6 +170,7 @@ def theme_settings(request):
         preset = request.POST.get('preset', '')
         navigation = request.POST.get('navigation', '')
         card_style = request.POST.get('card_style', '')
+        vehicle_card_style = request.POST.get('vehicle_card_style', '')
         try:
             radius = int(request.POST.get('radius', '16'))
         except ValueError:
@@ -180,6 +181,8 @@ def theme_settings(request):
             error = 'Выберите корректный дизайн и расположение меню.'
         elif card_style not in SiteTheme.CardStyle.values or radius not in (0, 8, 16, 24):
             error = 'Выберите корректный стиль карточек.'
+        elif vehicle_card_style not in SiteTheme.VehicleCardStyle.values:
+            error = 'Выберите корректный дизайн автомобильных карточек.'
         else:
             theme.primary_color = primary_color
             theme.preset = preset
@@ -187,6 +190,7 @@ def theme_settings(request):
             theme.card_style = card_style
             theme.radius = radius
             theme.compact = request.POST.get('compact') == '1'
+            theme.vehicle_card_style = vehicle_card_style
             theme.save()
             return redirect(f"{reverse('theme-settings')}?saved=1")
 
