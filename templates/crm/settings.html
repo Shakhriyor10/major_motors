@@ -1,86 +1,22 @@
 {% extends "base.html" %}
-
-{% block title %}Настройки оформления · Major Motors{% endblock %}
-
+{% block title %}Настройки дизайна · Major Motors{% endblock %}
 {% block extra_styles %}
-  <style>
-    .theme-settings-card {
-      max-width: 760px;
-      border: 0;
-      border-radius: 22px;
-      overflow: hidden;
-      box-shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
-    }
-
-    .theme-preview {
-      min-height: 150px;
-      padding: 28px;
-      color: #fff;
-      background: linear-gradient(110deg,
-        color-mix(in srgb, var(--preview-color) 60%, #000),
-        var(--preview-color) 55%,
-        color-mix(in srgb, var(--preview-color) 72%, #fff)
-      );
-      transition: background 160ms ease;
-    }
-
-    .theme-color-control {
-      width: 84px;
-      height: 52px;
-      padding: 4px;
-      cursor: pointer;
-    }
-
-    .theme-hex {
-      min-width: 110px;
-      font-variant-numeric: tabular-nums;
-      text-transform: uppercase;
-    }
-  </style>
+<style>
+.design-shell{max-width:1100px;margin:auto}.design-option{position:relative}.design-option input{position:absolute;opacity:0}.design-tile{display:block;border:2px solid transparent;border-radius:16px;padding:10px;background:var(--theme-surface);cursor:pointer;transition:.18s}.design-option input:checked+.design-tile{border-color:var(--major-red);box-shadow:0 0 0 3px var(--major-red-soft)}.design-tile:hover{transform:translateY(-2px)}.palette{height:105px;border-radius:11px;padding:14px;color:#fff;display:flex;align-items:flex-end;font-weight:700}.palette.classic{background:linear-gradient(135deg,#66141d,#b4232f)}.palette.ocean{background:linear-gradient(135deg,#073b5c,#168aad)}.palette.emerald{background:linear-gradient(135deg,#064e3b,#10b981)}.palette.violet{background:linear-gradient(135deg,#3b1763,#8b5cf6)}.palette.midnight{background:linear-gradient(135deg,#070c15,#1e3a5f)}.palette.graphite{background:linear-gradient(135deg,#101114,#4b5563)}.layout-preview{height:100px;border-radius:10px;background:#eef1f5;display:flex;overflow:hidden}.layout-preview.sidebar:before{content:'';width:28%;background:var(--major-red)}.layout-preview.top{flex-direction:column}.layout-preview.top:before{content:'';height:28%;background:var(--major-red)}.mini-card{margin:14px;flex:1;background:white;border-radius:8px;box-shadow:0 5px 15px #0002}.settings-section{background:var(--theme-surface);border-radius:var(--card-radius);padding:24px;margin-bottom:20px}.settings-section h2{font-size:1.05rem;margin-bottom:16px}
+</style>
 {% endblock %}
-
 {% block content %}
-  <div class="card theme-settings-card mx-auto" id="theme-settings-card" style="--preview-color: {{ theme.primary_color }};">
-    <div class="theme-preview" id="theme-preview">
-      <div class="small text-white-50 mb-2">Предпросмотр навигации</div>
-      <h1 class="h3 mb-2">Оформление Major Motors</h1>
-      <p class="mb-0 opacity-75">Выбранный цвет применяется ко всему интерфейсу и печатному графику кредита.</p>
-    </div>
-    <div class="card-body p-4 p-md-5">
-      <h2 class="h5 mb-2">Основной цвет проекта</h2>
-      <p class="text-muted mb-4">Выберите оттенок — тёмная и светлая части градиента будут рассчитаны автоматически.</p>
-
-      {% if theme_saved %}
-        <div class="alert alert-success">Цвет сохранён и уже применяется ко всем страницам.</div>
-      {% endif %}
-      {% if theme_error %}
-        <div class="alert alert-danger">{{ theme_error }}</div>
-      {% endif %}
-
-      <form method="post" class="d-flex flex-wrap align-items-end gap-3">
-        {% csrf_token %}
-        <div>
-          <label class="form-label" for="primary-color">Цвет</label>
-          <input class="form-control form-control-color theme-color-control" type="color" id="primary-color" name="primary_color" value="{{ theme.primary_color }}" title="Выберите основной цвет">
-        </div>
-        <div>
-          <label class="form-label" for="theme-hex">HEX</label>
-          <input class="form-control theme-hex" id="theme-hex" value="{{ theme.primary_color }}" readonly>
-        </div>
-        <button class="btn btn-primary px-4" type="submit">Сохранить цвет</button>
-      </form>
-    </div>
-  </div>
+<div class="design-shell"><div class="mb-4"><div class="text-uppercase text-primary small fw-bold">Персонализация CRM</div><h1 class="h2 mb-1">Дизайн интерфейса</h1><p class="text-muted">Выберите готовую тему, расположение меню и стиль элементов. Настройки сохраняются в базе и применяются ко всей системе.</p></div>
+{% if theme_saved %}<div class="alert alert-success">Дизайн сохранён и уже применяется ко всем страницам.</div>{% endif %}{% if theme_error %}<div class="alert alert-danger">{{ theme_error }}</div>{% endif %}
+<form method="post" id="design-form">{% csrf_token %}
+<section class="settings-section"><h2>1. Готовый дизайн</h2><div class="row g-3">
+{% for value,label in theme.Preset.choices %}<div class="col-6 col-lg-4"><label class="design-option w-100"><input type="radio" name="preset" value="{{ value }}" {% if theme.preset == value %}checked{% endif %}><span class="design-tile"><span class="palette {{ value }}">{{ label }}</span></span></label></div>{% endfor %}
+</div></section>
+<section class="settings-section"><h2>2. Расположение навигации</h2><div class="row g-3">
+<div class="col-md-6"><label class="design-option w-100"><input type="radio" name="navigation" value="top" {% if theme.navigation == 'top' %}checked{% endif %}><span class="design-tile"><span class="layout-preview top"><i class="mini-card"></i></span><b class="d-block mt-2">Меню сверху</b><small class="text-muted">Классический компактный вариант</small></span></label></div>
+<div class="col-md-6"><label class="design-option w-100"><input type="radio" name="navigation" value="sidebar" {% if theme.navigation == 'sidebar' %}checked{% endif %}><span class="design-tile"><span class="layout-preview sidebar"><i class="mini-card"></i></span><b class="d-block mt-2">Меню слева</b><small class="text-muted">Современный рабочий кабинет</small></span></label></div>
+</div></section>
+<section class="settings-section"><h2>3. Карточки и элементы</h2><div class="row g-3"><div class="col-md-4"><label class="form-label">Стиль карточек</label><select class="form-select" name="card_style">{% for value,label in theme.CardStyle.choices %}<option value="{{ value }}" {% if theme.card_style == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div><div class="col-md-4"><label class="form-label">Скругление</label><select class="form-select" name="radius"><option value="0" {% if theme.radius == 0 %}selected{% endif %}>Без скругления</option><option value="8" {% if theme.radius == 8 %}selected{% endif %}>Небольшое</option><option value="16" {% if theme.radius == 16 %}selected{% endif %}>Среднее</option><option value="24" {% if theme.radius == 24 %}selected{% endif %}>Большое</option></select></div><div class="col-md-4"><label class="form-label">Акцентный цвет</label><div class="d-flex gap-2"><input class="form-control form-control-color" type="color" id="primary-color" name="primary_color" value="{{ theme.primary_color }}"><input class="form-control" id="theme-hex" value="{{ theme.primary_color }}" readonly></div></div></div><div class="form-check form-switch mt-4"><input type="checkbox" class="form-check-input" id="compact" name="compact" value="1" {% if theme.compact %}checked{% endif %}><label class="form-check-label" for="compact">Компактный режим — меньше отступов, больше информации на экране</label></div></section>
+<div class="d-flex justify-content-end"><button class="btn btn-primary btn-lg px-5" type="submit">Сохранить дизайн</button></div></form></div>
 {% endblock %}
-
-{% block extra_scripts %}
-  <script>
-    const colorPicker = document.getElementById('primary-color');
-    const themePreview = document.getElementById('theme-settings-card');
-    const themeHex = document.getElementById('theme-hex');
-    colorPicker?.addEventListener('input', () => {
-      themePreview?.style.setProperty('--preview-color', colorPicker.value);
-      if (themeHex) themeHex.value = colorPicker.value.toUpperCase();
-    });
-  </script>
-{% endblock %}
+{% block extra_scripts %}<script>const picker=document.getElementById('primary-color'),hex=document.getElementById('theme-hex');picker?.addEventListener('input',()=>hex.value=picker.value.toUpperCase());</script>{% endblock %}

@@ -14,7 +14,30 @@ class TimeStampedModel(models.Model):
 
 
 class SiteTheme(TimeStampedModel):
+    class Preset(models.TextChoices):
+        CLASSIC = 'classic', 'Major Classic'
+        OCEAN = 'ocean', 'Ocean Blue'
+        EMERALD = 'emerald', 'Emerald'
+        VIOLET = 'violet', 'Royal Violet'
+        MIDNIGHT = 'midnight', 'Midnight'
+        GRAPHITE = 'graphite', 'Graphite'
+
+    class Navigation(models.TextChoices):
+        TOP = 'top', 'Сверху'
+        SIDEBAR = 'sidebar', 'Слева'
+
+    class CardStyle(models.TextChoices):
+        ELEVATED = 'elevated', 'С тенью'
+        BORDERED = 'bordered', 'С рамкой'
+        GLASS = 'glass', 'Стекло'
+        FLAT = 'flat', 'Плоские'
+
     primary_color = models.CharField(max_length=7, default='#b4232f')
+    preset = models.CharField(max_length=16, choices=Preset.choices, default=Preset.CLASSIC)
+    navigation = models.CharField(max_length=16, choices=Navigation.choices, default=Navigation.TOP)
+    card_style = models.CharField(max_length=16, choices=CardStyle.choices, default=CardStyle.ELEVATED)
+    radius = models.PositiveSmallIntegerField(default=16)
+    compact = models.BooleanField(default=False)
 
     @classmethod
     def get_current(cls):

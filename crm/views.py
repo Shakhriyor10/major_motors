@@ -167,11 +167,27 @@ def theme_settings(request):
 
     if request.method == 'POST':
         primary_color = request.POST.get('primary_color', '').strip().lower()
+        preset = request.POST.get('preset', '')
+        navigation = request.POST.get('navigation', '')
+        card_style = request.POST.get('card_style', '')
+        try:
+            radius = int(request.POST.get('radius', '16'))
+        except ValueError:
+            radius = 16
         if not re.fullmatch(r'#[0-9a-f]{6}', primary_color):
             error = 'Выберите корректный цвет в формате #RRGGBB.'
+        elif preset not in SiteTheme.Preset.values or navigation not in SiteTheme.Navigation.values:
+            error = 'Выберите корректный дизайн и расположение меню.'
+        elif card_style not in SiteTheme.CardStyle.values or radius not in (0, 8, 16, 24):
+            error = 'Выберите корректный стиль карточек.'
         else:
             theme.primary_color = primary_color
-            theme.save(update_fields=['primary_color', 'updated_at'])
+            theme.preset = preset
+            theme.navigation = navigation
+            theme.card_style = card_style
+            theme.radius = radius
+            theme.compact = request.POST.get('compact') == '1'
+            theme.save()
             return redirect(f"{reverse('theme-settings')}?saved=1")
 
     return render(request, 'crm/settings.html', {

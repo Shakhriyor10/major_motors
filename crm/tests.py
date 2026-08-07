@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from .checkers import captures_from, initial_board, legal_moves
-from .models import CheckersGame, TicTacToeGame
+from .models import CheckersGame, SiteTheme, TicTacToeGame
 
 class TicTacToeGameTests(TestCase):
     def setUp(self):
@@ -92,3 +92,27 @@ class CheckersApiTests(TestCase):
         self.assertEqual((accepted['status'], accepted['winner']), ('finished', 'd'))
         rematch = self.wc.post(reverse('checkers-rematch', args=[game.id])).json()
         self.assertEqual((rematch['status'], rematch['player_white'], rematch['player_black']), ('active', 'black', 'white'))
+
+
+class ThemeSettingsTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user('designer', password='test')
+        self.client.force_login(self.user)
+
+    def test_settings_page_renders_all_presets(self):
+        response = self.client.get(reverse('theme-settings'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Midnight')
+        self.assertContains(response, 'Меню слева')
+
+    def test_design_is_saved_and_applied_to_base_template(self):
+        response = self.client.post(reverse('theme-settings'), {
+            'primary_color': '#2563eb', 'preset': 'midnight', 'navigation': 'sidebar',
+            'card_style': 'glass', 'radius': '24', 'compact': '1',
+        })
+        self.assertEqual(response.status_code, 302)
+        theme = SiteTheme.get_current()
+        self.assertEqual((theme.preset, theme.navigation, theme.card_style, theme.radius, theme.compact),
+                         ('midnight', 'sidebar', 'glass', 24, True))
+        page = self.client.get(reverse('theme-settings'))
+        self.assertContains(page, 'theme-midnight nav-sidebar cards-glass compact-ui')
