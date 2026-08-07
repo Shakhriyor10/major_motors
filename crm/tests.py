@@ -171,7 +171,7 @@ class SnakeApiTests(TestCase):
         self.assertEqual((state['best_score'], state['games_played']), (5, 2))
 
     def test_impossible_score_is_rejected(self):
-        response = self.client.post(reverse('snake-submit'), json.dumps({'score': 398}), content_type='application/json')
+        response = self.client.post(reverse('snake-submit'), json.dumps({'score': 100001}), content_type='application/json')
         self.assertEqual(response.status_code, 400)
         self.assertFalse(SnakeScore.objects.filter(user=self.user).exists())
 

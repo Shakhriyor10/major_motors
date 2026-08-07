@@ -40,7 +40,7 @@ def submit(request):
         score = int(json.loads(request.body or '{}').get('score'))
     except (TypeError, ValueError, json.JSONDecodeError):
         return JsonResponse({'error': 'Некорректный результат.'}, status=400)
-    if score < 0 or score > 397:
+    if score < 0 or score > 100000:
         return JsonResponse({'error': 'Результат выходит за границы игрового поля.'}, status=400)
     with transaction.atomic():
         record, _ = SnakeScore.objects.select_for_update().get_or_create(user=request.user)
