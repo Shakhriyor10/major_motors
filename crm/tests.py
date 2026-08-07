@@ -116,3 +116,33 @@ class ThemeSettingsTests(TestCase):
                          ('midnight', 'sidebar', 'glass', 'square', 24, True))
         page = self.client.get(reverse('theme-settings'))
         self.assertContains(page, 'theme-midnight nav-sidebar cards-glass vehicle-cards-square compact-ui')
+
+
+class GamesHubTests(TestCase):
+    def setUp(self):
+        users = get_user_model()
+        self.user = users.objects.create_user('regular-player', password='test')
+        self.admin = users.objects.create_superuser('game-admin', 'admin@example.com', 'test')
+
+    def test_hub_contains_separate_game_cards(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('lounge'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Крестики-нолики')
+        self.assertContains(response, 'Русские шашки')
+        self.assertNotContains(response, 'Полный сброс игр')
+
+    def test_only_admin_can_fully_reset_all_games(self):
+        TicTacToeGame.objects.create(player_x=self.user)
+        CheckersGame.objects.create(player_white=self.user, board=initial_board())
+        self.client.force_login(self.user)
+        denied = self.client.post(reverse('games-reset'))
+        self.assertEqual(denied.status_code, 403)
+        self.assertEqual(TicTacToeGame.objects.count() + CheckersGame.objects.count(), 2)
+
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse('games-reset'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['deleted'], 2)
+        self.assertFalse(TicTacToeGame.objects.exists())
+        self.assertFalse(CheckersGame.objects.exists())

@@ -22,6 +22,7 @@ from .models import (
     CashAccount,
     CashConversion,
     CashEmployee,
+    CheckersGame,
     CurrencyRate,
     Customer,
     CustomerDocument,
@@ -57,7 +58,33 @@ def _tic_tac_toe_payload(game, user):
 
 @login_required
 def lounge(request):
+    return render(request, 'crm/games.html', {
+        'tic_tac_toe_count': TicTacToeGame.objects.count(),
+        'checkers_count': CheckersGame.objects.count(),
+    })
+
+
+@login_required
+def tic_tac_toe_page(request):
     return render(request, 'crm/lounge.html')
+
+
+@login_required
+@require_POST
+def games_reset(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Полный сброс доступен только администратору.'}, status=403)
+    with transaction.atomic():
+        tic_count = TicTacToeGame.objects.count()
+        checkers_count = CheckersGame.objects.count()
+        TicTacToeGame.objects.all().delete()
+        CheckersGame.objects.all().delete()
+    return JsonResponse({
+        'ok': True,
+        'deleted': tic_count + checkers_count,
+        'tic_tac_toe': tic_count,
+        'checkers': checkers_count,
+    })
 
 
 @login_required
