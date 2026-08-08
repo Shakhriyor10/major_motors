@@ -4,7 +4,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from .checkers import captures_from, initial_board, legal_moves
 from .battleship import random_fleet, validate_ships
-from .models import BattleshipGame, CheckersGame, SiteTheme, SnakeScore, TicTacToeGame
+from .models import BattleshipGame, CheckersGame, ClassicSnakeScore, SiteTheme, SnakeScore, TicTacToeGame
 
 class TicTacToeGameTests(TestCase):
     def setUp(self):
@@ -133,6 +133,7 @@ class GamesHubTests(TestCase):
         self.assertContains(response, 'Русские шашки')
         self.assertContains(response, 'Змейка')
         self.assertContains(response, 'Морской бой')
+        self.assertContains(response, 'Классическая змейка')
         self.assertNotContains(response, 'Полный сброс игр')
 
     def test_only_admin_can_fully_reset_all_games(self):
@@ -174,6 +175,24 @@ class SnakeApiTests(TestCase):
         response = self.client.post(reverse('snake-submit'), json.dumps({'score': 100001}), content_type='application/json')
         self.assertEqual(response.status_code, 400)
         self.assertFalse(SnakeScore.objects.filter(user=self.user).exists())
+
+
+class ClassicSnakeApiTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user('classic-snake-player', password='test')
+        self.client.force_login(self.user)
+
+    def test_classic_records_are_saved_separately(self):
+        self.assertEqual(self.client.get(reverse('classic-snake')).status_code, 200)
+        response = self.client.post(reverse('classic-snake-submit'), json.dumps({'score': 7}), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        record = ClassicSnakeScore.objects.get(user=self.user)
+        self.assertEqual((record.best_score, record.games_played), (7, 1))
+        self.assertFalse(SnakeScore.objects.filter(user=self.user).exists())
+
+    def test_classic_impossible_score_is_rejected(self):
+        response = self.client.post(reverse('classic-snake-submit'), json.dumps({'score': 398}), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
 
 
 class BattleshipTests(TestCase):

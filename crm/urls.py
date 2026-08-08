@@ -5,6 +5,7 @@ from . import views
 from . import checkers as checkers_views
 from . import snake as snake_views
 from . import battleship as battleship_views
+from . import classic_snake as classic_snake_views
 
 urlpatterns = [
     path('login/', auth_views.LoginView.as_view(), name='login'),
@@ -39,6 +40,9 @@ urlpatterns = [
     path('lounge/snake/', snake_views.page, name='snake'),
     path('lounge/snake/state/', snake_views.state, name='snake-state'),
     path('lounge/snake/submit/', snake_views.submit, name='snake-submit'),
+    path('lounge/classic-snake/', classic_snake_views.page, name='classic-snake'),
+    path('lounge/classic-snake/state/', classic_snake_views.state, name='classic-snake-state'),
+    path('lounge/classic-snake/submit/', classic_snake_views.submit, name='classic-snake-submit'),
     path('lounge/battleship/', battleship_views.page, name='battleship'),
     path('lounge/battleship/lobby/', battleship_views.lobby, name='battleship-lobby'),
     path('lounge/battleship/create/', battleship_views.create, name='battleship-create'),

@@ -23,6 +23,7 @@ from .models import (
     CashConversion,
     CashEmployee,
     BattleshipGame,
+    ClassicSnakeScore,
     CheckersGame,
     CurrencyRate,
     Customer,
@@ -64,6 +65,7 @@ def lounge(request):
         'tic_tac_toe_count': TicTacToeGame.objects.count(),
         'checkers_count': CheckersGame.objects.count(),
         'snake_players': SnakeScore.objects.count(),
+        'classic_snake_players': ClassicSnakeScore.objects.count(),
         'battleship_count': BattleshipGame.objects.count(),
     })
 
@@ -82,17 +84,20 @@ def games_reset(request):
         tic_count = TicTacToeGame.objects.count()
         checkers_count = CheckersGame.objects.count()
         snake_count = SnakeScore.objects.count()
+        classic_snake_count = ClassicSnakeScore.objects.count()
         battleship_count = BattleshipGame.objects.count()
         TicTacToeGame.objects.all().delete()
         CheckersGame.objects.all().delete()
         SnakeScore.objects.all().delete()
+        ClassicSnakeScore.objects.all().delete()
         BattleshipGame.objects.all().delete()
     return JsonResponse({
         'ok': True,
-        'deleted': tic_count + checkers_count + snake_count + battleship_count,
+        'deleted': tic_count + checkers_count + snake_count + classic_snake_count + battleship_count,
         'tic_tac_toe': tic_count,
         'checkers': checkers_count,
         'snake': snake_count,
+        'classic_snake': classic_snake_count,
         'battleship': battleship_count,
     })
 
