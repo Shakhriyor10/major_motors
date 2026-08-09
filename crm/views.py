@@ -24,6 +24,7 @@ from .models import (
     CashEmployee,
     BattleshipGame,
     ClassicSnakeScore,
+    Game2048Score,
     CheckersGame,
     CurrencyRate,
     Customer,
@@ -66,6 +67,7 @@ def lounge(request):
         'checkers_count': CheckersGame.objects.count(),
         'snake_players': SnakeScore.objects.count(),
         'classic_snake_players': ClassicSnakeScore.objects.count(),
+        'game_2048_players': Game2048Score.objects.count(),
         'battleship_count': BattleshipGame.objects.count(),
     })
 
@@ -85,19 +87,22 @@ def games_reset(request):
         checkers_count = CheckersGame.objects.count()
         snake_count = SnakeScore.objects.count()
         classic_snake_count = ClassicSnakeScore.objects.count()
+        game_2048_count = Game2048Score.objects.count()
         battleship_count = BattleshipGame.objects.count()
         TicTacToeGame.objects.all().delete()
         CheckersGame.objects.all().delete()
         SnakeScore.objects.all().delete()
         ClassicSnakeScore.objects.all().delete()
+        Game2048Score.objects.all().delete()
         BattleshipGame.objects.all().delete()
     return JsonResponse({
         'ok': True,
-        'deleted': tic_count + checkers_count + snake_count + classic_snake_count + battleship_count,
+        'deleted': tic_count + checkers_count + snake_count + classic_snake_count + game_2048_count + battleship_count,
         'tic_tac_toe': tic_count,
         'checkers': checkers_count,
         'snake': snake_count,
         'classic_snake': classic_snake_count,
+        'game_2048': game_2048_count,
         'battleship': battleship_count,
     })
 

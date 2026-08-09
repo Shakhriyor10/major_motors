@@ -118,7 +118,6 @@ class ThemeSettingsTests(TestCase):
         page = self.client.get(reverse('theme-settings'))
         self.assertContains(page, 'theme-midnight nav-sidebar cards-glass vehicle-cards-square compact-ui')
 
-
 class GamesHubTests(TestCase):
     def setUp(self):
         users = get_user_model()

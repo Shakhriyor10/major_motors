@@ -1007,6 +1007,19 @@ class ClassicSnakeScore(TimeStampedModel):
         return f'{self.user}: {self.best_score}'
 
 
+class Game2048Score(TimeStampedModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='game_2048_score')
+    best_score = models.PositiveIntegerField(default=0)
+    best_tile = models.PositiveIntegerField(default=0)
+    games_played = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-best_score', '-best_tile', 'updated_at']
+
+    def __str__(self):
+        return f'{self.user}: {self.best_score} (плитка {self.best_tile})'
+
+
 class BattleshipGame(TimeStampedModel):
     class Status(models.TextChoices):
         WAITING = 'waiting', 'Ожидает соперника'
