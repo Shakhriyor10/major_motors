@@ -5986,8 +5986,8 @@ OOO «MAJOR MOTORS SAM»</div>
         updateCreditPrintTable();
         applyCreditScheduleColumnVisibility();
         const months = Math.min(parseInt(creditMonthsInput?.value, 10) || 0, 60);
-        creditPrintArea.classList.toggle('credit-print-compact', months > 36);
-        if (months > 36) {
+        creditPrintArea.classList.toggle('credit-print-compact', months > 31);
+        if (months > 31) {
           const rowHeightMm = Math.max(3.4, Math.min(5.35, 205 / months));
           const bodyFontPx = Math.max(8.5, Math.min(11.4, 16 - (months * 0.125)));
           const headFontPx = Math.max(7.5, bodyFontPx - 1);
