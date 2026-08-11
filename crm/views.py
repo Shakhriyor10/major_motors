@@ -45,6 +45,7 @@ from .models import (
     VehicleExpense,
     VehicleMedia,
 )
+from .telegram_leads import notify_lead_saved
 
 
 TIC_TAC_TOE_LINES = ((0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),(2,5,8),(0,4,8),(2,4,6))
@@ -605,6 +606,7 @@ def leads(request):
                 lead.visit_date = date.today()
                 lead.employee_id = employee_id
             lead.save()
+            notify_lead_saved(lead, contact_type, created=created)
         return redirect(get_return_url())
     leads_qs = LeadEntry.objects.select_related('employee')
     sort = request.GET.get('sort', 'recent')
