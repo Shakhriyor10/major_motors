@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 SECRET_KEY = '*fub=xb96%@a#2a5j4djb3gl20lvr)!8u567j^h976+9@f$9ux'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -121,11 +121,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_DIR = BASE_DIR / 'static'
-STATICFILES_DIRS = [
-    STATIC_DIR
-]
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_DIR = BASE_DIR / 'static'
+# STATICFILES_DIRS = [
+#     STATIC_DIR
+# ]
 
 
 MEDIA_URL = '/media/'
@@ -138,3 +138,12 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
+
+# Telegram lead bot (aiogram v3). Keep secrets in environment variables.
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
+TELEGRAM_LEADS_CHAT_ID = os.environ.get('TELEGRAM_LEADS_CHAT_ID', '').strip()
+TELEGRAM_ALLOWED_USER_IDS = {
+    int(value.strip())
+    for value in os.environ.get('TELEGRAM_ALLOWED_USER_IDS', '').split(',')
+    if value.strip().lstrip('-').isdigit()
+}
