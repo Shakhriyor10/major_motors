@@ -529,6 +529,42 @@ def customers(request):
 
 
 @login_required
+def lead_phone_history(request):
+    """Return the existing lead's call history before a new interaction is saved."""
+    phone_digits = re.sub(r'\D', '', request.GET.get('phone', ''))
+    local_digits = phone_digits[-9:]
+    if len(local_digits) != 9:
+        return JsonResponse({'exists': False})
+
+    matches = []
+    for lead in LeadEntry.objects.only('id', 'name', 'phone', 'last_call_at', 'call_count', 'updated_at'):
+        stored_digits = re.sub(r'\D', '', lead.phone or '')
+        if stored_digits[-9:] == local_digits:
+            matches.append(lead)
+
+    if not matches:
+        return JsonResponse({'exists': False})
+
+    lead = max(
+        matches,
+        key=lambda item: (item.last_call_at or date.min, item.updated_at),
+    )
+    last_call_at = lead.last_call_at
+    return JsonResponse(
+        {
+            'exists': True,
+            'id': lead.id,
+            'name': lead.name,
+            'has_calls': bool(lead.call_count and last_call_at),
+            'call_count': lead.call_count or 0,
+            'last_call_at': last_call_at.isoformat() if last_call_at else None,
+            'last_call_display': last_call_at.strftime('%d.%m.%Y') if last_call_at else None,
+            'called_today': last_call_at == date.today(),
+        }
+    )
+
+
+@login_required
 def leads(request):
     employees_qs = CashEmployee.objects.order_by('last_name', 'first_name')
 

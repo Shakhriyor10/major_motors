@@ -30,6 +30,7 @@
             >
           </div>
           <input type="hidden" name="phone" id="leadPhone">
+          <div id="leadPhoneHistory" class="alert d-none mt-2 mb-0 py-2 px-3 small" role="status" aria-live="polite"></div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Тип обращения</label>
@@ -311,7 +312,11 @@
     const leadRows = leadsTableBody ? Array.from(leadsTableBody.querySelectorAll('tr')) : [];
     const leadPhoneDisplay = document.getElementById('leadPhoneDisplay');
     const leadPhoneHidden = document.getElementById('leadPhone');
+    const leadPhoneHistory = document.getElementById('leadPhoneHistory');
     const leadForm = document.getElementById('leadForm');
+    const leadPhoneHistoryUrl = "{% url 'lead-phone-history' %}";
+    let phoneHistoryRequest = null;
+    let phoneHistoryTimer = null;
 
     const formatPhoneDigits = (value) => {
       const digits = (value || '').replace(/\D/g, '').slice(0, 9);
@@ -337,6 +342,49 @@
         return '';
       }
       return `+998 ${formatPhoneDigits(localDigits)}`;
+    };
+
+    const hidePhoneHistory = () => {
+      if (!leadPhoneHistory) return;
+      leadPhoneHistory.className = 'alert d-none mt-2 mb-0 py-2 px-3 small';
+      leadPhoneHistory.textContent = '';
+    };
+
+    const showPhoneHistory = (data) => {
+      if (!leadPhoneHistory) return;
+      leadPhoneHistory.className = `alert mt-2 mb-0 py-2 px-3 small ${data.called_today ? 'alert-danger' : 'alert-warning'}`;
+      if (data.called_today) {
+        leadPhoneHistory.textContent = `Внимание: этому клиенту (${data.name}) уже звонили сегодня. Всего звонков: ${data.call_count}.`;
+      } else if (data.has_calls) {
+        leadPhoneHistory.textContent = `По этому номеру уже был разговор с клиентом ${data.name}. Последний звонок: ${data.last_call_display}. Всего звонков: ${data.call_count}.`;
+      } else {
+        leadPhoneHistory.className = 'alert alert-info mt-2 mb-0 py-2 px-3 small';
+        leadPhoneHistory.textContent = `Клиент ${data.name} уже есть в базе, но звонки ещё не зафиксированы.`;
+      }
+    };
+
+    const checkPhoneHistory = (localDigits) => {
+      clearTimeout(phoneHistoryTimer);
+      phoneHistoryRequest?.abort();
+      if (localDigits.length !== 9) {
+        hidePhoneHistory();
+        return;
+      }
+      phoneHistoryTimer = window.setTimeout(async () => {
+        phoneHistoryRequest = new AbortController();
+        try {
+          const response = await fetch(`${leadPhoneHistoryUrl}?phone=${encodeURIComponent(localDigits)}`, {
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            signal: phoneHistoryRequest.signal,
+          });
+          if (!response.ok) throw new Error('Phone history lookup failed');
+          const data = await response.json();
+          if (getLocalPhoneDigits(leadPhoneDisplay?.value || '') !== localDigits) return;
+          data.exists ? showPhoneHistory(data) : hidePhoneHistory();
+        } catch (error) {
+          if (error.name !== 'AbortError') hidePhoneHistory();
+        }
+      }, 250);
     };
 
     const getStatusLabel = (status) => {
@@ -424,6 +472,7 @@
         if (leadPhoneHidden) {
           leadPhoneHidden.value = formatted ? `+998 ${formatted}` : '';
         }
+        checkPhoneHistory(getLocalPhoneDigits(formatted));
       });
     }
 

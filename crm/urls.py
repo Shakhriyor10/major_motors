@@ -17,6 +17,7 @@ urlpatterns = [
     path('roles/', views.roles, name='roles'),
     path('customers/', views.customers, name='customers'),
     path('leads/', views.leads, name='leads'),
+    path('leads/phone-history/', views.lead_phone_history, name='lead-phone-history'),
     path('autosalon/', views.autosalon, name='autosalon'),
     path('inventory/', views.inventory, name='inventory'),
     path('deals/', views.deals, name='deals'),

@@ -1,10 +1,35 @@
 import json
+from datetime import date
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from .checkers import captures_from, initial_board, legal_moves
 from .battleship import random_fleet, validate_ships
-from .models import BattleshipGame, CheckersGame, ClassicSnakeScore, SiteTheme, SnakeScore, TicTacToeGame
+from .models import BattleshipGame, CheckersGame, ClassicSnakeScore, LeadEntry, SiteTheme, SnakeScore, TicTacToeGame
+
+
+class LeadPhoneHistoryTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user('lead-manager', password='test')
+        self.client.force_login(self.user)
+
+    def test_finds_same_phone_with_different_format_and_reports_today_call(self):
+        LeadEntry.objects.create(
+            name='Тестовый клиент',
+            phone='+998 90-123-45-67',
+            last_call_at=date.today(),
+            call_count=2,
+        )
+        response = self.client.get(reverse('lead-phone-history'), {'phone': '901234567'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            (response.json()['exists'], response.json()['called_today'], response.json()['call_count']),
+            (True, True, 2),
+        )
+
+    def test_unknown_or_incomplete_phone_has_no_history(self):
+        self.assertEqual(self.client.get(reverse('lead-phone-history'), {'phone': '90123'}).json(), {'exists': False})
+        self.assertEqual(self.client.get(reverse('lead-phone-history'), {'phone': '991234567'}).json(), {'exists': False})
 
 class TicTacToeGameTests(TestCase):
     def setUp(self):
