@@ -21,6 +21,7 @@ urlpatterns = [
     path('autosalon/', views.autosalon, name='autosalon'),
     path('inventory/', views.inventory, name='inventory'),
     path('deals/', views.deals, name='deals'),
+    path('documents/', views.documents, name='documents'),
     path('cash/', views.cash_dashboard, name='cash-dashboard'),
     path('lounge/', views.lounge, name='lounge'),
     path('lounge/reset/', views.games_reset, name='games-reset'),

@@ -339,6 +339,11 @@ def roles(request):
 
 
 @login_required
+def documents(request):
+    return render(request, 'crm/documents.html')
+
+
+@login_required
 def customers(request):
     if request.method == 'POST':
         action = request.POST.get('action')
