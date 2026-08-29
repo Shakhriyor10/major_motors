@@ -1536,28 +1536,28 @@
   <ul class="nav nav-tabs mb-4" id="autosalonTabs" role="tablist">
     <li class="nav-item" role="presentation">
       <button
-        class="nav-link active"
+        class="nav-link"
         id="autosalon-showroom-tab"
         data-bs-toggle="tab"
         data-bs-target="#autosalon-showroom"
         type="button"
         role="tab"
         aria-controls="autosalon-showroom"
-        aria-selected="true"
+        aria-selected="false"
       >
         В продаже
       </button>
     </li>
     <li class="nav-item" role="presentation">
       <button
-        class="nav-link"
+        class="nav-link active"
         id="autosalon-credit-tab"
         data-bs-toggle="tab"
         data-bs-target="#autosalon-credit"
         type="button"
         role="tab"
         aria-controls="autosalon-credit"
-        aria-selected="false"
+        aria-selected="true"
       >
         Кредитный калькулятор
       </button>
@@ -1595,7 +1595,7 @@
   </ul>
 
   <div class="tab-content">
-    <div class="tab-pane fade show active" id="autosalon-showroom" role="tabpanel" aria-labelledby="autosalon-showroom-tab">
+    <div class="tab-pane fade" id="autosalon-showroom" role="tabpanel" aria-labelledby="autosalon-showroom-tab">
       <div class="vstack gap-4">
         <div class="card showroom-toolbar">
           <div class="card-body">
@@ -1923,7 +1923,7 @@
       </div>
     </div>
 
-    <div class="tab-pane fade" id="autosalon-credit" role="tabpanel" aria-labelledby="autosalon-credit-tab">
+    <div class="tab-pane fade show active" id="autosalon-credit" role="tabpanel" aria-labelledby="autosalon-credit-tab">
       <div id="credit-print-area" class="credit-print-area">
         <div class="credit-print-header d-none d-print-flex">
           <div class="credit-print-brand">
@@ -5294,6 +5294,11 @@ OOO «MAJOR MOTORS SAM»</div>
 
     if (creditCustomerNameInput && creditCustomerDataList) {
       creditCustomerNameInput.addEventListener('change', fillCreditCustomerPhone);
+    }
+
+    if (creditTabButton && typeof bootstrap !== 'undefined') {
+      const creditTab = bootstrap.Tab.getOrCreateInstance(creditTabButton);
+      creditTab.show();
     }
 
     const toggleCustomerFields = (disabled) => {
