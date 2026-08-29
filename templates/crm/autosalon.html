@@ -257,9 +257,12 @@
             <option value="model-desc">Модель Z → A</option>
           </select>
         </div>
+        <div class="col-12 col-md-4 col-lg-2">
+          <button class="btn btn-outline-secondary w-100" type="button" id="inventory-reset">Сбросить</button>
+        </div>
       </div>
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
-        <span class="text-muted small">По умолчанию проданные автомобили размещаются внизу списка.</span>
+        <span class="text-muted small">Показываются только важные данные, остальные — по кнопке «Подробнее».</span>
         <span class="badge text-bg-dark" id="inventory-count">0</span>
       </div>
     </div>
@@ -309,49 +312,61 @@
                 </span>
                 <span class="badge rounded-pill text-bg-secondary-subtle text-secondary">{{ vehicle.get_condition_display }}</span>
               </div>
-              <hr class="my-3">
-              <div class="row g-2 text-muted small">
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Кузов:</strong> {{ vehicle.body_type|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Цвет:</strong> {{ vehicle.color|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3">
-                  <strong class="text-dark">VIN в наличии:</strong>
-                  {% if vehicle.available_units_preview %}
-                    {{ vehicle.available_units_preview }}
-                  {% elif vehicle.vin %}
-                    {{ vehicle.vin }}
-                  {% else %}
-                    —
-                  {% endif %}
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                  <strong class="text-dark">В наличии:</strong>
+              <div class="row g-2 text-muted small mt-3">
+                <div class="col-6 col-md-3"><strong class="text-dark">В наличии:</strong>
                   {% if vehicle.available_units_count %}
                     {{ vehicle.available_units_count }} шт
                   {% else %}
                     {{ vehicle.stock_count }} шт
                   {% endif %}
                 </div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Модельный год:</strong> {{ vehicle.model_year|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Двигатель:</strong>
-                  {% if vehicle.engine_type_labels %}
-                    {{ vehicle.engine_type_labels|join:", " }}{% if vehicle.engine_volume %}, {{ vehicle.engine_volume }} см3{% endif %}
-                  {% elif vehicle.engine_volume %}
-                    {{ vehicle.engine_volume }} см3
-                  {% else %}
-                    —
-                  {% endif %}
-                </div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Мощность:</strong> {{ vehicle.horsepower|default:"—" }} л.с.</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">КПП:</strong> {{ vehicle.get_transmission_display|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Расход:</strong> {% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Запас хода:</strong> {% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Страна:</strong> {{ vehicle.country|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Посадочные места:</strong> {{ vehicle.seat_count|default:"—" }}</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Пробег:</strong> {{ vehicle.mileage|default:"—" }} км</div>
-                <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Полная масса:</strong> {% if vehicle.gross_weight %}{{ vehicle.gross_weight }} кг{% else %}—{% endif %}</div>
+                <div class="col-6 col-md-3"><strong class="text-dark">Год:</strong> {{ vehicle.model_year|default:"—" }}</div>
+                <div class="col-6 col-md-3"><strong class="text-dark">Цвет:</strong> {{ vehicle.color|default:"—" }}</div>
+                <div class="col-6 col-md-3"><strong class="text-dark">Фото:</strong> {{ vehicle.media.count }}</div>
               </div>
-              <div class="row g-2 text-muted small mt-2">
-                <div class="col-12 col-md-6"><strong class="text-dark">Фото:</strong> {{ vehicle.media.count }}</div>
+              <div class="mt-3">
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#inventory-details-{{ vehicle.id }}"
+                  aria-expanded="false"
+                  aria-controls="inventory-details-{{ vehicle.id }}"
+                >
+                  Подробнее
+                </button>
+              </div>
+              <div class="collapse mt-3" id="inventory-details-{{ vehicle.id }}">
+                <div class="row g-2 text-muted small">
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Кузов:</strong> {{ vehicle.body_type|default:"—" }}</div>
+                  <div class="col-12 col-md-6 col-lg-3">
+                    <strong class="text-dark">VIN в наличии:</strong>
+                    {% if vehicle.available_units_preview %}
+                      {{ vehicle.available_units_preview }}
+                    {% elif vehicle.vin %}
+                      {{ vehicle.vin }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </div>
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Двигатель:</strong>
+                    {% if vehicle.engine_type_labels %}
+                      {{ vehicle.engine_type_labels|join:", " }}{% if vehicle.engine_volume %}, {{ vehicle.engine_volume }} см3{% endif %}
+                    {% elif vehicle.engine_volume %}
+                      {{ vehicle.engine_volume }} см3
+                    {% else %}
+                      —
+                    {% endif %}
+                  </div>
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Мощность:</strong> {{ vehicle.horsepower|default:"—" }} л.с.</div>
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">КПП:</strong> {{ vehicle.get_transmission_display|default:"—" }}</div>
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Расход:</strong> {% if vehicle.fuel_consumption %}{{ vehicle.fuel_consumption }} л/100км{% else %}—{% endif %}</div>
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Запас хода:</strong> {% if vehicle.range_km %}{{ vehicle.range_km }} км{% else %}—{% endif %}</div>
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Страна:</strong> {{ vehicle.country|default:"—" }}</div>
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Посадочные места:</strong> {{ vehicle.seat_count|default:"—" }}</div>
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Пробег:</strong> {{ vehicle.mileage|default:"—" }} км</div>
+                  <div class="col-12 col-md-6 col-lg-3"><strong class="text-dark">Полная масса:</strong> {% if vehicle.gross_weight %}{{ vehicle.gross_weight }} кг{% else %}—{% endif %}</div>
+                </div>
               </div>
               {% if vehicle.available_units %}
                 <div class="mt-3">
@@ -664,6 +679,7 @@
     const inventoryModelFilter = document.getElementById('inventory-model-filter');
     const inventoryStatusFilter = document.getElementById('inventory-status-filter');
     const inventorySort = document.getElementById('inventory-sort');
+    const inventoryResetButton = document.getElementById('inventory-reset');
     const inventoryCount = document.getElementById('inventory-count');
     const inventoryEmpty = document.getElementById('inventory-empty');
     const inventoryCreateToggle = document.getElementById('inventoryCreateToggle');
@@ -799,6 +815,15 @@
     }
     if (inventorySort) {
       inventorySort.addEventListener('change', updateInventoryList);
+    }
+    if (inventoryResetButton) {
+      inventoryResetButton.addEventListener('click', () => {
+        if (inventorySearchInput) inventorySearchInput.value = '';
+        if (inventoryModelFilter) inventoryModelFilter.value = '';
+        if (inventoryStatusFilter) inventoryStatusFilter.value = '';
+        if (inventorySort) inventorySort.value = 'default';
+        updateInventoryList();
+      });
     }
     if (inventoryList) {
       updateInventoryList();
