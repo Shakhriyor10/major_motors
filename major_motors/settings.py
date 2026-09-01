@@ -141,6 +141,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Telegram lead bot (aiogram v3). Keep secrets in environment variables.
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()

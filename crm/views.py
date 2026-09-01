@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Prefetch, Q, Sum
+from django.db.models import Count, F, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce, Greatest
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -565,13 +565,16 @@ def lead_phone_history(request):
 
 
 @login_required
-def leads(request):
+def leads(request, manager_id=None):
     employees_qs = CashEmployee.objects.order_by('last_name', 'first_name')
+    selected_manager = get_object_or_404(CashEmployee, pk=manager_id) if manager_id else None
 
     def get_return_url():
         return_url = request.POST.get('return_url', '').strip()
         if return_url.startswith('/'):
             return return_url
+        if manager_id:
+            return reverse('leads-by-manager', kwargs={'manager_id': manager_id})
         return 'leads'
 
     if request.method == 'POST':
@@ -592,6 +595,7 @@ def leads(request):
                     'phone': request.POST.get('phone', '').strip(),
                     'comment': request.POST.get('comment', '').strip(),
                     'employee_id': request.POST.get('employee') or None,
+                    'next_action_date': parse_date(request.POST.get('next_action_date', '')),
                 }
                 status_value = request.POST.get('status')
                 if status_value in LeadEntry.Status.values:
@@ -611,6 +615,8 @@ def leads(request):
                                     'status_display': lead.get_status_display(),
                                     'employee_id': lead.employee_id,
                                     'employee_name': str(lead.employee) if lead.employee else '—',
+                                    'next_action_date': lead.next_action_date.isoformat() if lead.next_action_date else '',
+                                    'next_action_display': lead.next_action_date.strftime('%d.%m.%Y') if lead.next_action_date else '—',
                                 }
                             )
             return redirect(get_return_url())
@@ -623,7 +629,8 @@ def leads(request):
         phone = request.POST.get('phone', '').strip()
         comment = request.POST.get('comment', '').strip()
         contact_type = request.POST.get('contact_type', 'visit')
-        employee_id = request.POST.get('employee') or None
+        employee_id = request.POST.get('employee') or manager_id or None
+        next_action_date = parse_date(request.POST.get('next_action_date', ''))
         if name and phone:
             lead, created = LeadEntry.objects.get_or_create(
                 phone=phone,
@@ -633,6 +640,7 @@ def leads(request):
                 lead.name = name
             if comment:
                 lead.comment = comment
+            lead.next_action_date = next_action_date
             if contact_type == 'call':
                 lead.call_count = (lead.call_count or 0) + 1
                 lead.last_call_at = date.today()
@@ -645,6 +653,16 @@ def leads(request):
             notify_lead_saved(lead, contact_type, created=created)
         return redirect(get_return_url())
     leads_qs = LeadEntry.objects.select_related('employee')
+    search_query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', 'active')
+    if search_query:
+        leads_qs = leads_qs.filter(
+            Q(name__icontains=search_query) | Q(phone__icontains=search_query)
+        )
+    if status_filter == 'active':
+        leads_qs = leads_qs.exclude(status=LeadEntry.Status.CLOSED)
+    elif status_filter in LeadEntry.Status.values:
+        leads_qs = leads_qs.filter(status=status_filter)
     sort = request.GET.get('sort', 'recent')
     leads_qs = leads_qs.annotate(
         last_interaction_at=Greatest(
@@ -657,19 +675,27 @@ def leads(request):
     elif sort == '-status':
         leads_qs = leads_qs.order_by('-status', '-last_interaction_at', '-created_at')
     else:
-        leads_qs = leads_qs.order_by('-last_interaction_at', '-created_at')
+        leads_qs = leads_qs.order_by(
+            F('next_action_date').asc(nulls_last=True),
+            '-last_interaction_at',
+            '-created_at',
+        )
 
-    paginator = Paginator(leads_qs, 25)
+    paginator = Paginator(leads_qs, 50)
     page_obj = paginator.get_page(request.GET.get('page'))
 
+    template_name = 'crm/_leads_results.html' if request.headers.get('x-requested-with') == 'XMLHttpRequest' else 'crm/leads.html'
     return render(
         request,
-        'crm/leads.html',
+        template_name,
         {
             'leads': page_obj,
             'page_obj': page_obj,
             'employees': employees_qs,
             'sort': sort,
+            'search_query': search_query,
+            'status_filter': status_filter,
+            'selected_manager': selected_manager,
         },
     )
 
