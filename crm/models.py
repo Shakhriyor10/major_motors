@@ -361,6 +361,12 @@ class LeadEntry(TimeStampedModel):
         blank=True,
         verbose_name='Дата покупки или повторного звонка',
     )
+    next_action_notified_date = models.DateField(
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name='Дата действия, о которой уведомили',
+    )
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
     employee = models.ForeignKey(
         'CashEmployee',

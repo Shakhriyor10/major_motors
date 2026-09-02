@@ -15,12 +15,18 @@ def format_lead_message(lead, contact_type, created=True):
     comment = lead.comment or '—'
     if len(comment) > 2500:
         comment = comment[:2499] + '…'
+    next_action = (
+        lead.next_action_date.strftime('%d.%m.%Y')
+        if lead.next_action_date
+        else 'Не указана'
+    )
     return (
         f'<b>🔔 {heading}</b>\n\n'
         f'<b>Имя:</b> {escape(lead.name)}\n'
         f'<b>Телефон:</b> {escape(lead.phone)}\n'
         f'<b>Тип обращения:</b> {interaction}\n'
         f'<b>Кто обслужил:</b> {escape(employee)}\n'
+        f'<b>Дата покупки / повторного звонка:</b> {next_action}\n'
         f'<b>Комментарий:</b> {escape(comment)}'
     )
 

@@ -590,13 +590,17 @@ def leads(request, manager_id=None):
         if action == 'edit':
             lead_id = request.POST.get('lead_id')
             if lead_id:
+                next_action_date = parse_date(request.POST.get('next_action_date', ''))
                 update_data = {
                     'name': request.POST.get('name', '').strip(),
                     'phone': request.POST.get('phone', '').strip(),
                     'comment': request.POST.get('comment', '').strip(),
                     'employee_id': request.POST.get('employee') or None,
-                    'next_action_date': parse_date(request.POST.get('next_action_date', '')),
+                    'next_action_date': next_action_date,
                 }
+                current_lead = LeadEntry.objects.only('next_action_date').filter(pk=lead_id).first()
+                if current_lead and current_lead.next_action_date != next_action_date:
+                    update_data['next_action_notified_date'] = None
                 status_value = request.POST.get('status')
                 if status_value in LeadEntry.Status.values:
                     update_data['status'] = status_value
@@ -640,6 +644,8 @@ def leads(request, manager_id=None):
                 lead.name = name
             if comment:
                 lead.comment = comment
+            if lead.next_action_date != next_action_date:
+                lead.next_action_notified_date = None
             lead.next_action_date = next_action_date
             if contact_type == 'call':
                 lead.call_count = (lead.call_count or 0) + 1

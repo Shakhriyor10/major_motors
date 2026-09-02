@@ -1,5 +1,11 @@
+import asyncio
+import logging
+from html import escape
+
 from asgiref.sync import sync_to_async
 from django.conf import settings
+from django.db.models import F
+from django.utils import timezone
 
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
@@ -10,6 +16,7 @@ from .models import LeadEntry
 
 router = Router()
 PAGE_SIZE = 5
+logger = logging.getLogger(__name__)
 
 
 def _is_allowed(user_id):
@@ -41,8 +48,91 @@ def _lead_text(lead):
         f'📌 {interaction}\n'
         f'👤 {lead.employee or "Не указан"}\n'
         f'💬 {comment}\n'
+        f'📅 Следующее действие: {lead.next_action_date.strftime("%d.%m.%Y") if lead.next_action_date else "Не указано"}\n'
         f'Статус: {lead.get_status_display()}'
     )
+
+
+def _load_upcoming_leads(limit=20):
+    return list(
+        LeadEntry.objects.select_related('employee')
+        .exclude(status=LeadEntry.Status.CLOSED)
+        .filter(next_action_date__isnull=False)
+        .order_by('next_action_date', 'name')[:limit]
+    )
+
+
+def _load_due_leads():
+    today = timezone.localdate()
+    return list(
+        LeadEntry.objects.select_related('employee')
+        .exclude(status=LeadEntry.Status.CLOSED)
+        .filter(next_action_date__lte=today)
+        .exclude(next_action_notified_date=F('next_action_date'))
+        .order_by('next_action_date', 'name')
+    )
+
+
+def _mark_reminder_sent(lead_id, action_date):
+    LeadEntry.objects.filter(pk=lead_id, next_action_date=action_date).update(
+        next_action_notified_date=action_date
+    )
+
+
+def _upcoming_text(leads):
+    if not leads:
+        return 'Ближайших запланированных звонков пока нет.'
+    today = timezone.localdate()
+    items = []
+    for lead in leads:
+        if lead.next_action_date < today:
+            date_label = f'ПРОСРОЧЕНО · {lead.next_action_date:%d.%m.%Y}'
+        elif lead.next_action_date == today:
+            date_label = 'СЕГОДНЯ'
+        else:
+            date_label = lead.next_action_date.strftime('%d.%m.%Y')
+        items.append(
+            f'<b>{date_label}</b> · {escape(lead.name)}\n'
+            f'📞 {escape(lead.phone)}\n'
+            f'👤 {escape(str(lead.employee) if lead.employee else "Не указан")}'
+        )
+    return '<b>📅 Ближайшие звонки и покупки</b>\n\n' + '\n\n'.join(items)
+
+
+def _reminder_text(lead):
+    today = timezone.localdate()
+    overdue = lead.next_action_date < today
+    heading = '⚠️ Просроченное действие по лиду' if overdue else '⏰ Сегодня нужно связаться с лидом'
+    return (
+        f'<b>{heading}</b>\n\n'
+        f'<b>Дата:</b> {lead.next_action_date:%d.%m.%Y}\n'
+        f'<b>Имя:</b> {escape(lead.name)}\n'
+        f'<b>Телефон:</b> {escape(lead.phone)}\n'
+        f'<b>Менеджер:</b> {escape(str(lead.employee) if lead.employee else "Не указан")}\n'
+        f'<b>Комментарий:</b> {escape(lead.comment or "—")}'
+    )
+
+
+async def reminder_loop(bot):
+    """Send each due reminder once; a changed action date can be notified again."""
+    while True:
+        try:
+            if settings.TELEGRAM_LEADS_CHAT_ID:
+                due_leads = await sync_to_async(_load_due_leads, thread_sensitive=True)()
+                for lead in due_leads:
+                    await bot.send_message(
+                        chat_id=settings.TELEGRAM_LEADS_CHAT_ID,
+                        text=_reminder_text(lead),
+                        parse_mode='HTML',
+                    )
+                    await sync_to_async(_mark_reminder_sent, thread_sensitive=True)(
+                        lead.pk, lead.next_action_date
+                    )
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception('Telegram lead reminder check failed')
+        await asyncio.sleep(60)
 
 
 def _keyboard(page, total):
@@ -80,6 +170,15 @@ async def leads(message: Message):
         return
     text, markup = await _render_leads(0)
     await message.answer(text, reply_markup=markup)
+
+
+@router.message(Command('upcoming'))
+async def upcoming(message: Message):
+    if not _is_allowed(message.from_user.id):
+        await message.answer('У вас нет доступа к лидам.')
+        return
+    upcoming_leads = await sync_to_async(_load_upcoming_leads, thread_sensitive=True)()
+    await message.answer(_upcoming_text(upcoming_leads), parse_mode='HTML')
 
 
 @router.message(Command('chatid'))
