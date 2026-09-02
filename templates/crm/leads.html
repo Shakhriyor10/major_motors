@@ -82,8 +82,8 @@
         </div>
       </div>
       <div id="leadsResults">
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
+      <div class="table-responsive leads-table-wrap">
+        <table class="table align-middle mb-0 leads-table">
           <thead class="table-light">
             <tr>
               <th>Имя</th>
@@ -314,6 +314,52 @@
       background-color: rgba(255, 193, 7, 0.1);
       border-color: rgba(255, 193, 7, 0.6);
       color: #d39e00;
+    }
+    .leads-table-wrap {
+      scrollbar-width: thin;
+    }
+    .leads-table {
+      min-width: 1080px;
+      font-size: 0.82rem;
+      line-height: 1.25;
+    }
+    .leads-table > :not(caption) > * > * {
+      padding: 0.48rem 0.42rem;
+      vertical-align: middle;
+    }
+    .leads-table thead th {
+      font-size: 0.75rem;
+      line-height: 1.15;
+      white-space: normal;
+      vertical-align: middle;
+    }
+    .leads-table tbody td {
+      white-space: nowrap;
+    }
+    .leads-table tbody td:first-child,
+    .leads-table tbody td:nth-child(9) {
+      white-space: normal;
+      min-width: 105px;
+      max-width: 165px;
+    }
+    .leads-table .lead-status-badge {
+      font-size: 0.7rem;
+      padding: 0.3rem 0.48rem;
+    }
+    .leads-table td:last-child .btn {
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+    .leads-table td:last-child .d-flex {
+      gap: 0.45rem !important;
+    }
+    @media (max-width: 1400px) {
+      .leads-table {
+        font-size: 0.76rem;
+      }
+      .leads-table > :not(caption) > * > * {
+        padding: 0.4rem 0.32rem;
+      }
     }
   </style>
 {% endblock %}

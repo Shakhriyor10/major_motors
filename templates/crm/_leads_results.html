@@ -1,5 +1,5 @@
-<div class="table-responsive">
-  <table class="table align-middle mb-0">
+<div class="table-responsive leads-table-wrap">
+  <table class="table align-middle mb-0 leads-table">
     <thead class="table-light">
       <tr>
         <th>Имя</th><th>Номер телефона</th><th>Дата посещения</th><th>Посещений</th>
@@ -25,7 +25,7 @@
           </td>
           <td class="lead-status-cell"><span class="badge rounded-pill lead-status-badge {% if lead.status == 'open' %}lead-status-open{% elif lead.status == 'waiting' %}lead-status-waiting{% else %}lead-status-closed{% endif %}">{{ lead.get_status_display }}</span></td>
           <td class="text-end"><div class="d-flex gap-3 justify-content-end">
-            <button type="button" class="btn btn-link p-0 text-secondary lead-edit-button">Редактировать</button>
+            <button type="button" class="btn btn-link p-0 text-secondary lead-edit-button">Изм.</button>
             <form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="lead_id" value="{{ lead.id }}"><input type="hidden" name="return_url" value="{{ request.get_full_path }}"><button type="submit" class="btn btn-link text-danger p-0 lead-delete-button">Удалить</button></form>
           </div></td>
         </tr>
