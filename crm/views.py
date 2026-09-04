@@ -1462,7 +1462,7 @@ def autosalon(request):
         )
         .exclude(status=Vehicle.VehicleStatus.INACTIVE)
         .distinct()
-        .order_by('-created_at')
+        .order_by(F('sale_price').desc(nulls_last=True), '-created_at')
     )
     vehicles = list(vehicles_qs)
     model_units_map = defaultdict(list)
