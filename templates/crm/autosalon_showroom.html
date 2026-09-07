@@ -1739,7 +1739,8 @@
                               type="button"
                               data-price-type="subsidy11"
                               data-open-credit
-                              data-credit-mode="subsidy11"
+                              data-credit-mode="standard"
+                              data-credit-price-factor="0.11"
                               data-vehicle-name="{{ vehicle.name }}"
                               data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                               data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
@@ -5509,8 +5510,10 @@ OOO «MAJOR MOTORS SAM»</div>
         const requestedMode = button.dataset.creditMode || 'standard';
         const subsidyProgram = SUBSIDY_CREDIT_PROGRAMS[requestedMode] || null;
         const mode = subsidyProgram ? requestedMode : 'standard';
-        const resolvedPrice = subsidyProgram
-          ? roundMoneyValue(originalPrice + (originalPrice * subsidyProgram.priceFactor))
+        const clickedPriceFactor = parseNumber(button.dataset.creditPriceFactor);
+        const resolvedPriceFactor = clickedPriceFactor || subsidyProgram?.priceFactor || 0;
+        const resolvedPrice = resolvedPriceFactor > 0
+          ? roundMoneyValue(originalPrice + (originalPrice * resolvedPriceFactor))
           : originalPrice;
         const currency = button.dataset.vehicleCurrency?.toUpperCase() || 'UZS';
         setCreditMode(mode);
@@ -5526,7 +5529,7 @@ OOO «MAJOR MOTORS SAM»</div>
         }
         if (creditVehicleBadge) {
           const vehicleName = button.dataset.vehicleName || 'Автомобиль';
-          const badgePrefix = subsidyProgram ? subsidyProgram.label : 'Кредит';
+          const badgePrefix = clickedPriceFactor > 0 ? 'Субсидия 11%' : (subsidyProgram ? subsidyProgram.label : 'Кредит');
           creditVehicleBadge.textContent = `${badgePrefix} · ${vehicleName} · ${currency}`;
         }
         if (subsidyProgram) {
