@@ -2044,6 +2044,15 @@
                   <div class="form-text" id="credit-down-payment-hint">Введите процент от стоимости автомобиля.</div>
                 </div>
                 <div>
+                  <label class="form-label" for="credit-start-date">Дата выдачи кредита</label>
+                  <input type="date" class="form-control" id="credit-start-date">
+                </div>
+                <div>
+                  <label class="form-label" for="credit-first-payment-date">Дата первого платежа</label>
+                  <input type="date" class="form-control" id="credit-first-payment-date">
+                  <div class="form-text">Проценты рассчитываются по фактическим дням: Actual/365.</div>
+                </div>
+                <div>
                   <label class="form-label" for="credit-payment-type">Тип графика платежей</label>
                   <select class="form-select" id="credit-payment-type">
                     <option value="annuity" selected>Аннуитетный</option>
@@ -3767,6 +3776,8 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditDownPaymentValue = document.getElementById('credit-down-payment-value');
     const creditDownPaymentSuffix = document.getElementById('credit-down-payment-suffix');
     const creditDownPaymentHint = document.getElementById('credit-down-payment-hint');
+    const creditStartDateInput = document.getElementById('credit-start-date');
+    const creditFirstPaymentDateInput = document.getElementById('credit-first-payment-date');
     const creditPaymentType = document.getElementById('credit-payment-type');
     const creditShowInterestInput = document.getElementById('credit-show-interest');
     const creditShowPrincipalInput = document.getElementById('credit-show-principal');
@@ -4903,14 +4914,55 @@ OOO «MAJOR MOTORS SAM»</div>
       }
     };
 
-    const buildPaymentDate = (baseDate, index) => {
-      const date = new Date(baseDate);
-      if (Number.isNaN(date.getTime())) {
+    const parseCreditDate = (value) => {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+      if (!match) {
         return null;
       }
-      date.setMonth(date.getMonth() + index);
-      return date;
+      const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      return Number.isNaN(date.getTime()) ? null : date;
     };
+
+    const toCreditDateValue = (date) => {
+      const year = date.getFullYear();
+      const month = `${date.getMonth() + 1}`.padStart(2, '0');
+      const day = `${date.getDate()}`.padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const addCreditMonths = (sourceDate, months) => {
+      const year = sourceDate.getFullYear();
+      const month = sourceDate.getMonth() + months;
+      const day = sourceDate.getDate();
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      return new Date(year, month, Math.min(day, lastDay));
+    };
+
+    const buildCreditPaymentDates = (startDate, firstPaymentDate, months) => {
+      const dates = [];
+      for (let index = 0; index < months; index += 1) {
+        dates.push(addCreditMonths(firstPaymentDate, index));
+      }
+      // Банки обычно закрывают договор за день до той же даты через N месяцев.
+      const maturityDate = addCreditMonths(startDate, months);
+      maturityDate.setDate(maturityDate.getDate() - 1);
+      if (dates.length && (dates.length === 1 || maturityDate > dates[dates.length - 2])) {
+        dates[dates.length - 1] = maturityDate;
+      }
+      return dates;
+    };
+
+    const initializeCreditDates = () => {
+      const today = new Date();
+      if (creditStartDateInput && !creditStartDateInput.value) {
+        creditStartDateInput.value = toCreditDateValue(today);
+      }
+      if (creditFirstPaymentDateInput && !creditFirstPaymentDateInput.value) {
+        creditFirstPaymentDateInput.value = toCreditDateValue(addCreditMonths(today, 1));
+      }
+    };
+
+    initializeCreditDates();
 
     const getDaysBetweenDates = (leftDate, rightDate) => {
       if (!(leftDate instanceof Date) || !(rightDate instanceof Date)) {
@@ -5015,9 +5067,9 @@ OOO «MAJOR MOTORS SAM»</div>
         creditMonthsInput.value = '60';
       }
       const annualRate = parseNumber(creditAnnualRateInput.value);
-      const monthlyRate = annualRate > 0 ? annualRate / 12 / 100 : 0;
       const isDifferentiated = creditPaymentType?.value === 'differentiated';
-      const baseDate = new Date();
+      const baseDate = parseCreditDate(creditStartDateInput?.value) || new Date();
+      const firstPaymentDate = parseCreditDate(creditFirstPaymentDateInput?.value) || addCreditMonths(baseDate, 1);
 
       if (!price || !months) {
         setCreditSummary({
@@ -5067,16 +5119,28 @@ OOO «MAJOR MOTORS SAM»</div>
       let monthlyDisplay = '—';
       let fixedPrincipalPart = 0;
       let fixedPrincipalPartRounded = 0;
+      const paymentDates = buildCreditPaymentDates(baseDate, firstPaymentDate, months);
+      const periodRates = paymentDates.map((paymentDate, index) => {
+        const previousDate = index === 0 ? baseDate : paymentDates[index - 1];
+        const daysInPeriod = getDaysBetweenDates(previousDate, paymentDate);
+        return annualRate > 0 ? (annualRate / 100) * (daysInPeriod / 365) : 0;
+      });
 
       if (isDifferentiated) {
         fixedPrincipalPart = months > 0 ? creditAmount / months : 0;
         fixedPrincipalPartRounded = roundMoneyValue(fixedPrincipalPart);
-      } else if (monthlyRate === 0) {
+      } else if (annualRate <= 0) {
         monthlyPayment = creditAmount / months;
       } else {
-        const factor = Math.pow(1 + monthlyRate, months);
-        monthlyPayment = creditAmount * (monthlyRate * factor) / (factor - 1);
+        let accumulatedFactor = 1;
+        let discountedPayments = 0;
+        periodRates.forEach((periodRate) => {
+          accumulatedFactor *= (1 + periodRate);
+          discountedPayments += 1 / accumulatedFactor;
+        });
+        monthlyPayment = discountedPayments > 0 ? creditAmount / discountedPayments : 0;
       }
+      monthlyPayment = roundMoneyValue(monthlyPayment);
 
       let balance = creditAmount;
       const schedule = [];
@@ -5085,24 +5149,19 @@ OOO «MAJOR MOTORS SAM»</div>
       let maxPayment = 0;
 
       for (let index = 1; index <= months; index += 1) {
-        const paymentDate = buildPaymentDate(baseDate, index);
-        const previousDate = buildPaymentDate(baseDate, index - 1) || baseDate;
+        const paymentDate = paymentDates[index - 1];
+        const previousDate = index === 1 ? baseDate : paymentDates[index - 2];
         const daysInPeriod = getDaysBetweenDates(previousDate, paymentDate || previousDate);
         const differentiatedRate = (annualRate / 100) * (daysInPeriod / 365);
-        const interest = isDifferentiated
-          ? roundMoneyValue(balance * differentiatedRate)
-          : balance * monthlyRate;
-        let principal = isDifferentiated ? fixedPrincipalPartRounded : monthlyPayment - interest;
+        const interest = roundMoneyValue(balance * differentiatedRate);
+        let principal = isDifferentiated
+          ? fixedPrincipalPartRounded
+          : roundMoneyValue(monthlyPayment - interest);
         if (index === months) {
-          principal = isDifferentiated ? roundMoneyValue(balance) : balance;
+          principal = roundMoneyValue(balance);
         }
-        const payment = isDifferentiated
-          ? roundMoneyValue(principal + interest)
-          : principal + interest;
-        balance = Math.max(
-          isDifferentiated ? roundMoneyValue(balance - principal) : (balance - principal),
-          0,
-        );
+        const payment = roundMoneyValue(principal + interest);
+        balance = Math.max(roundMoneyValue(balance - principal), 0);
         totalPaid += payment;
         minPayment = Math.min(minPayment, payment);
         maxPayment = Math.max(maxPayment, payment);
@@ -5712,6 +5771,20 @@ OOO «MAJOR MOTORS SAM»</div>
 
     if (creditPaymentType) {
       creditPaymentType.addEventListener('change', calculateCreditSchedule);
+    }
+
+    if (creditStartDateInput) {
+      creditStartDateInput.addEventListener('change', () => {
+        const startDate = parseCreditDate(creditStartDateInput.value);
+        if (startDate && creditFirstPaymentDateInput) {
+          creditFirstPaymentDateInput.value = toCreditDateValue(addCreditMonths(startDate, 1));
+        }
+        calculateCreditSchedule();
+      });
+    }
+
+    if (creditFirstPaymentDateInput) {
+      creditFirstPaymentDateInput.addEventListener('change', calculateCreditSchedule);
     }
 
     if (creditMonthsInput) {
