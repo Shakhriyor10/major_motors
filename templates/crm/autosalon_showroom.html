@@ -1653,12 +1653,12 @@
                 <div class="showroom-toolbar-group-title">Показывать цены</div>
                 <div class="showroom-visibility-toggles">
                   <label class="showroom-visibility-toggle" for="showroom-toggle-base-price">
-                    <input type="checkbox" id="showroom-toggle-base-price" data-price-toggle="base" checked>
+                    <input type="checkbox" id="showroom-toggle-base-price" data-price-toggle="base">
                     <span>Текущая цена</span>
                   </label>
                   <label class="showroom-visibility-toggle" for="showroom-toggle-subsidy-11">
-                    <input type="checkbox" id="showroom-toggle-subsidy-11" data-price-toggle="subsidy11">
-                    <span>Субсидия 11%</span>
+                    <input type="checkbox" id="showroom-toggle-subsidy-11" data-price-toggle="subsidy11" checked>
+                    <span>Рассрочка</span>
                   </label>
                 </div>
                 <button class="btn btn-dark showroom-print-button" type="button" id="showroom-print-button">
@@ -1744,7 +1744,7 @@
                               data-vehicle-name="{{ vehicle.name }}"
                               data-vehicle-price="{{ vehicle.sale_price|default:vehicle.purchase_price }}"
                               data-vehicle-currency="{{ vehicle.sale_currency|default:vehicle.purchase_currency|upper }}"
-                              aria-label="Открыть субсидированный кредит 11%"
+                              aria-label="Открыть расчёт рассрочки"
                             >
                               <span data-showroom-price-option="{{ vehicle.sale_price|default:vehicle.purchase_price }}" data-subsidy-factor="0.11">
                                 {{ vehicle.sale_price|default:vehicle.purchase_price }}
@@ -2061,7 +2061,7 @@
                   <div class="form-text mb-2">Выберите, какие столбцы показывать в таблице и при печати графика.</div>
                   <div class="d-flex flex-column gap-2">
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="credit-show-net-down-payment">
+                      <input class="form-check-input" type="checkbox" id="credit-show-net-down-payment" checked>
                       <label class="form-check-label" for="credit-show-net-down-payment">Первоначальный взнос без страхования и сертификата</label>
                     </div>
                     <div class="form-check">
@@ -3793,11 +3793,11 @@ OOO «MAJOR MOTORS SAM»</div>
     const REDUCED_CREDIT_DOWN_PAYMENT_THRESHOLD = 40;
     const SUBSIDY_CREDIT_PROGRAMS = {
       subsidy11: {
-        label: 'Субсидия 11%',
+        label: 'Рассрочка',
         priceFactor: 0.11,
         defaultDownPayment: 30,
         allowedMonths: new Set([12, 24, 36]),
-        invalidMessage: 'Для субсидии 11% доступны взнос от 30% и срок 12, 24 или 36 месяцев.',
+        invalidMessage: 'Для рассрочки доступны взнос от 30% и срок 12, 24 или 36 месяцев.',
         rates: [
           { min: 30, max: 39.999999, rates: { 12: 0, 24: 11.5, 36: 16.5 } },
           { min: 40, max: 49.999999, rates: { 12: 0, 24: 9.0, 36: 15 } },
@@ -5588,7 +5588,7 @@ OOO «MAJOR MOTORS SAM»</div>
         }
         if (creditVehicleBadge) {
           const vehicleName = button.dataset.vehicleName || 'Автомобиль';
-          const badgePrefix = clickedPriceFactor > 0 ? 'Субсидия 11%' : (subsidyProgram ? subsidyProgram.label : 'Кредит');
+          const badgePrefix = clickedPriceFactor > 0 ? 'Рассрочка' : (subsidyProgram ? subsidyProgram.label : 'Кредит');
           creditVehicleBadge.textContent = `${badgePrefix} · ${vehicleName} · ${currency}`;
         }
         if (subsidyProgram) {
