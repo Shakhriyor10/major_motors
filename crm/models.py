@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -674,6 +675,39 @@ class CashEmployee(TimeStampedModel):
 
     def __str__(self):
         return f'{self.last_name} {self.first_name}'.strip()
+
+
+class AccountantClient(TimeStampedModel):
+    full_name = models.CharField(max_length=255)
+    vehicle_name = models.CharField(max_length=255)
+    manager = models.ForeignKey(CashEmployee, on_delete=models.SET_NULL, null=True, blank=True, related_name='accountant_clients')
+    client_date = models.DateField(default=timezone.localdate)
+    certificate_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='accountant_clients_created')
+
+    class Meta:
+        ordering = ['-client_date', '-id']
+        verbose_name = 'Клиент бухгалтера'
+        verbose_name_plural = 'Клиенты бухгалтера'
+
+    def __str__(self):
+        return f'{self.full_name} — {self.vehicle_name}'
+
+
+class AccountantExpense(TimeStampedModel):
+    client = models.ForeignKey(AccountantClient, on_delete=models.CASCADE, related_name='expenses')
+    description = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    expense_date = models.DateField(default=timezone.localdate)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='accountant_expenses_created')
+
+    class Meta:
+        ordering = ['-expense_date', '-id']
+        verbose_name = 'Расход клиента бухгалтера'
+        verbose_name_plural = 'Расходы клиентов бухгалтера'
+
+    def __str__(self):
+        return f'{self.description} — {self.amount}'
 
 
 class DealExtra(TimeStampedModel):

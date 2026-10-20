@@ -9,6 +9,10 @@ from . import classic_snake as classic_snake_views
 from . import game_2048 as game_2048_views
 
 urlpatterns = [
+    path('accountant/login/', views.accountant_login, name='accountant-login'),
+    path('accountant/logout/', views.accountant_logout, name='accountant-logout'),
+    path('accountant/', views.accountant, name='accountant'),
+    path('accountant/api/', views.accountant_api, name='accountant-api'),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('', views.home, name='home'),

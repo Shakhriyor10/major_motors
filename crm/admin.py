@@ -424,3 +424,17 @@ class ServiceOrderAdmin(admin.ModelAdmin):
 @admin.register(models.ServiceItem)
 class ServiceItemAdmin(admin.ModelAdmin):
     list_display = ('service_order', 'cost', 'labor_hours')
+
+
+@admin.register(models.AccountantClient)
+class AccountantClientAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'vehicle_name', 'manager', 'client_date', 'certificate_amount')
+    list_filter = ('client_date',)
+    search_fields = ('full_name', 'vehicle_name')
+
+
+@admin.register(models.AccountantExpense)
+class AccountantExpenseAdmin(admin.ModelAdmin):
+    list_display = ('client', 'description', 'amount', 'expense_date')
+    list_filter = ('expense_date',)
+    search_fields = ('client__full_name', 'description')

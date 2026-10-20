@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
@@ -19,6 +20,8 @@ from django.views.decorators.http import require_POST
 
 from .models import (
     BankAccount,
+    AccountantClient,
+    AccountantExpense,
     CashAccount,
     CashConversion,
     CashEmployee,
@@ -30,6 +33,7 @@ from .models import (
     Customer,
     CustomerDocument,
     Deal,
+    EmployeeProfile,
     Lead,
     LeadEntry,
     LeadSource,
@@ -205,6 +209,154 @@ def _get_passport_parts(request, fallback_series='', fallback_number=''):
 @login_required
 def home(request):
     return redirect('autosalon')
+
+
+def _is_accountant(user):
+    if not user.is_authenticated:
+        return False
+    try:
+        profile = user.employee_profile
+    except EmployeeProfile.DoesNotExist:
+        return False
+    return not user.is_superuser and profile.is_active and profile.role.name == Role.RoleName.ACCOUNTANT
+
+
+def accountant_login(request):
+    if request.user.is_authenticated and _is_accountant(request.user):
+        return redirect('accountant')
+    error = False
+    if request.method == 'POST':
+        user = authenticate(request, username=request.POST.get('username', '').strip(), password=request.POST.get('password', ''))
+        if user and _is_accountant(user):
+            login(request, user)
+            return redirect('accountant')
+        error = True
+    return render(request, 'registration/accountant_login.html', {'error': error})
+
+
+def accountant_logout(request):
+    if request.method == 'POST':
+        logout(request)
+    return redirect('accountant-login')
+
+
+@login_required(login_url='accountant-login')
+def accountant(request):
+    if not _is_accountant(request.user):
+        return redirect('accountant-login')
+    return render(request, 'crm/accountant.html')
+
+
+@login_required(login_url='accountant-login')
+def accountant_api(request):
+    if not _is_accountant(request.user):
+        return JsonResponse({'error': 'Доступ только для бухгалтера.'}, status=403)
+    if request.method == 'GET':
+        clients = AccountantClient.objects.select_related('manager').prefetch_related(
+            Prefetch('expenses', queryset=AccountantExpense.objects.order_by('-expense_date', '-id')),
+        ).annotate(expense_total=Coalesce(Sum('expenses__amount'), Decimal('0')))
+        q = request.GET.get('q', '').strip()
+        if q:
+            clients = clients.filter(Q(full_name__icontains=q) | Q(vehicle_name__icontains=q) | Q(manager__first_name__icontains=q) | Q(manager__last_name__icontains=q))
+        manager_filter = request.GET.get('manager', '').strip()
+        if manager_filter == 'none':
+            clients = clients.filter(manager__isnull=True)
+        elif manager_filter.isdigit():
+            clients = clients.filter(manager_id=int(manager_filter))
+        date_from = parse_date(request.GET.get('from', '') or '')
+        date_to = parse_date(request.GET.get('to', '') or '')
+        if date_from:
+            clients = clients.filter(client_date__gte=date_from)
+        if date_to:
+            clients = clients.filter(client_date__lte=date_to)
+        clients = clients.order_by('-client_date', '-id')
+        page = Paginator(clients, 50).get_page(request.GET.get('page', 1))
+        client_rows = []
+        for client in page.object_list:
+            expenses = list(client.expenses.all())
+            expense_total = client.expense_total or Decimal('0')
+            client_rows.append({
+                'id': client.id, 'name': client.full_name, 'vehicle': client.vehicle_name,
+                'manager': str(client.manager) if client.manager else '', 'manager_id': client.manager_id,
+                'date': client.client_date.isoformat(), 'certificate': str(client.certificate_amount),
+                'expense_total': str(expense_total), 'balance': str(client.certificate_amount - expense_total),
+                'expenses': [{'id': e.id, 'description': e.description, 'amount': str(e.amount), 'date': e.expense_date.isoformat()} for e in expenses],
+            })
+        summary_clients = AccountantClient.objects.all()
+        if date_from:
+            summary_clients = summary_clients.filter(client_date__gte=date_from)
+        if date_to:
+            summary_clients = summary_clients.filter(client_date__lte=date_to)
+        if manager_filter == 'none':
+            summary_clients = summary_clients.filter(manager__isnull=True)
+        elif manager_filter.isdigit():
+            summary_clients = summary_clients.filter(manager_id=int(manager_filter))
+        income = summary_clients.aggregate(total=Coalesce(Sum('certificate_amount'), Decimal('0')))['total']
+        summary_expenses = AccountantExpense.objects.all()
+        if date_from:
+            summary_expenses = summary_expenses.filter(expense_date__gte=date_from)
+        if date_to:
+            summary_expenses = summary_expenses.filter(expense_date__lte=date_to)
+        if manager_filter == 'none':
+            summary_expenses = summary_expenses.filter(client__manager__isnull=True)
+        elif manager_filter.isdigit():
+            summary_expenses = summary_expenses.filter(client__manager_id=int(manager_filter))
+        expense_sum = summary_expenses.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        managers = [{'id': employee.id, 'name': str(employee)} for employee in CashEmployee.objects.order_by('last_name', 'first_name')]
+        return JsonResponse({'results': client_rows, 'page': page.number, 'pages': page.paginator.num_pages, 'total': page.paginator.count, 'income': str(income), 'expenses': str(expense_sum), 'balance': str(income - expense_sum), 'managers': managers})
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается.'}, status=405)
+    action = request.POST.get('action', '')
+    try:
+        if action in ('save_client', 'save_expense'):
+            date_field = 'date'
+            parsed_date = parse_date(request.POST.get(date_field, ''))
+            if not parsed_date:
+                raise ValueError('Укажите корректную дату.')
+            amount = Decimal(request.POST.get('amount', ''))
+            if not amount.is_finite() or amount >= Decimal('1000000000000') or amount.normalize().as_tuple().exponent < -2:
+                raise ValueError('Сумма должна содержать не более двух знаков после запятой.')
+            if amount < 0 or (action == 'save_expense' and amount <= 0):
+                raise ValueError('Сумма должна быть больше нуля.')
+            if action == 'save_client':
+                client_id = request.POST.get('id', '').strip()
+                client = get_object_or_404(AccountantClient, pk=client_id) if client_id else AccountantClient(created_by=request.user)
+                name = request.POST.get('name', '').strip()
+                vehicle = request.POST.get('vehicle', '').strip()
+                if not name or not vehicle:
+                    raise ValueError('Заполните имя клиента и название машины.')
+                if len(name) > 255 or len(vehicle) > 255:
+                    raise ValueError('Имя клиента и название машины должны быть не длиннее 255 символов.')
+                manager_id = request.POST.get('manager', '').strip()
+                if manager_id and not CashEmployee.objects.filter(pk=manager_id).exists():
+                    raise ValueError('Выбранный менеджер не найден. Обновите страницу и выберите его снова.')
+                client.full_name, client.vehicle_name = name, vehicle
+                client.client_date, client.certificate_amount = parsed_date, amount
+                client.manager = CashEmployee.objects.filter(pk=manager_id).first() if manager_id else None
+                client.save()
+            else:
+                client = get_object_or_404(AccountantClient, pk=request.POST.get('client_id'))
+                expense_id = request.POST.get('id', '').strip()
+                expense = get_object_or_404(AccountantExpense, pk=expense_id, client=client) if expense_id else AccountantExpense(client=client, created_by=request.user)
+                description = request.POST.get('description', '').strip()
+                if not description:
+                    raise ValueError('Укажите описание расхода.')
+                if len(description) > 255:
+                    raise ValueError('Описание расхода должно быть не длиннее 255 символов.')
+                expense.description, expense.amount, expense.expense_date = description, amount, parsed_date
+                expense.save()
+            return JsonResponse({'ok': True})
+        if action == 'delete_client':
+            get_object_or_404(AccountantClient, pk=request.POST.get('id')).delete()
+            return JsonResponse({'ok': True})
+        if action == 'delete_expense':
+            get_object_or_404(AccountantExpense, pk=request.POST.get('id')).delete()
+            return JsonResponse({'ok': True})
+        return JsonResponse({'error': 'Неизвестное действие.'}, status=400)
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc) or 'Проверьте введённые данные.'}, status=400)
+    except InvalidOperation:
+        return JsonResponse({'error': 'Укажите корректную сумму.'}, status=400)
 
 
 @login_required

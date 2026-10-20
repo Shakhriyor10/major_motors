@@ -5,7 +5,72 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from .checkers import captures_from, initial_board, legal_moves
 from .battleship import random_fleet, validate_ships
-from .models import BattleshipGame, CheckersGame, ClassicSnakeScore, LeadEntry, SiteTheme, SnakeScore, TicTacToeGame
+from .models import (
+    AccountantClient, AccountantExpense, BattleshipGame, CashEmployee, CheckersGame,
+    ClassicSnakeScore, EmployeeProfile, LeadEntry, Role, SiteTheme, SnakeScore, TicTacToeGame,
+)
+
+
+class AccountantPortalTests(TestCase):
+    def setUp(self):
+        self.role = Role.objects.create(name=Role.RoleName.ACCOUNTANT)
+        self.user = get_user_model().objects.create_user('accountant-user', password='test')
+        EmployeeProfile.objects.create(user=self.user, role=self.role)
+        self.client.force_login(self.user)
+        self.manager_one = CashEmployee.objects.create(external_id='acct-manager-1', first_name='Иван', last_name='Первый')
+        self.manager_two = CashEmployee.objects.create(external_id='acct-manager-2', first_name='Анна', last_name='Вторая')
+
+    def test_accountant_page_renders_collapsed_filters_and_manager_selector(self):
+        response = self.client.get('/accountant/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="filters-panel"')
+        self.assertContains(response, 'id="manager-filter"')
+        self.assertContains(response, 'aria-expanded="false"')
+
+    def test_manager_filter_limits_clients_and_cash_totals(self):
+        first = AccountantClient.objects.create(
+            full_name='Клиент первого менеджера', vehicle_name='Dongfeng 008',
+            manager=self.manager_one, client_date=date.today(), certificate_amount='1000000',
+        )
+        second = AccountantClient.objects.create(
+            full_name='Клиент второго менеджера', vehicle_name='Другой автомобиль',
+            manager=self.manager_two, client_date=date.today(), certificate_amount='2000000',
+        )
+        AccountantExpense.objects.create(client=first, description='Полики', amount='400000', expense_date=date.today())
+        AccountantExpense.objects.create(client=second, description='Доставка', amount='100000', expense_date=date.today())
+
+        response = self.client.get('/accountant/api/', {'manager': self.manager_one.pk})
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual([row['id'] for row in payload['results']], [first.pk])
+        self.assertEqual(payload['income'], '1000000')
+        self.assertEqual(payload['expenses'], '400000')
+        self.assertEqual(payload['balance'], '600000')
+
+    def test_superuser_cannot_enter_accountant_portal(self):
+        superuser = get_user_model().objects.create_superuser('site-admin', 'admin@example.com', 'test')
+        EmployeeProfile.objects.create(user=superuser, role=self.role)
+        client = Client()
+        client.force_login(superuser)
+
+        self.assertEqual(client.get('/accountant/').status_code, 302)
+        self.assertEqual(client.get('/accountant/api/').status_code, 403)
+
+    def test_client_list_uses_fifty_records_per_page(self):
+        AccountantClient.objects.bulk_create([
+            AccountantClient(full_name=f'Клиент {index}', vehicle_name='Машина', certificate_amount='100')
+            for index in range(51)
+        ])
+
+        first_page = self.client.get('/accountant/api/')
+        second_page = self.client.get('/accountant/api/', {'page': 2})
+
+        self.assertEqual(first_page.json()['total'], 51)
+        self.assertEqual(len(first_page.json()['results']), 50)
+        self.assertEqual(second_page.json()['page'], 2)
+        self.assertEqual(len(second_page.json()['results']), 1)
 
 
 class LeadPhoneHistoryTests(TestCase):
