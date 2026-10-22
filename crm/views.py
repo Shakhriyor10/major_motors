@@ -383,21 +383,24 @@ def accountant_overview_api(request):
             salaries = salaries.filter(payment_date__lte=date_to)
             other_expenses = other_expenses.filter(expense_date__lte=date_to)
 
-        certificate_income, all_expenses = _accountant_ledger_totals(date_from, date_to)
-        client_expense_total = client_expenses.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-        salary_expense_total = salaries.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-        other_expense_total = other_expenses.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-        client_count = clients.count()
-
         certificates = clients.filter(certificate_amount__gt=0).order_by('-client_date', '-id')
         expenses_by_client = client_expenses.order_by('-expense_date', '-id')
         payroll = salaries.order_by('-payment_date', '-id')
         other = other_expenses.order_by('-expense_date', '-id')
+        matching_clients = clients
         if q:
             certificates = certificates.filter(Q(full_name__icontains=q) | Q(vehicle_name__icontains=q))
             expenses_by_client = expenses_by_client.filter(Q(description__icontains=q) | Q(client__full_name__icontains=q) | Q(client__vehicle_name__icontains=q))
             payroll = payroll.filter(Q(employee__first_name__icontains=q) | Q(employee__last_name__icontains=q) | Q(employee__position__icontains=q) | Q(note__icontains=q))
             other = other.filter(Q(description__icontains=q) | Q(note__icontains=q))
+            matching_clients = matching_clients.filter(Q(full_name__icontains=q) | Q(vehicle_name__icontains=q))
+
+        certificate_income = certificates.aggregate(total=Coalesce(Sum('certificate_amount'), Decimal('0')))['total']
+        client_expense_total = expenses_by_client.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        salary_expense_total = payroll.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        other_expense_total = other.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        all_expenses = client_expense_total + salary_expense_total + other_expense_total
+        client_count = matching_clients.count()
 
         total = certificates.count() + expenses_by_client.count() + payroll.count() + other.count()
         try:
