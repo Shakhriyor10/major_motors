@@ -26,6 +26,8 @@ class AccountantPortalTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="filters-panel"')
         self.assertContains(response, 'id="manager-filter"')
+        self.assertContains(response, 'class="client-table"')
+        self.assertContains(response, 'data-action="toggle-client"')
         self.assertContains(response, 'aria-expanded="false"')
 
     def test_manager_filter_limits_clients_and_cash_totals(self):

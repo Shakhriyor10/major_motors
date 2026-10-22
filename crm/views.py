@@ -1,5 +1,6 @@
 import json
 import re
+import uuid
 from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
@@ -22,6 +23,7 @@ from .models import (
     BankAccount,
     AccountantClient,
     AccountantExpense,
+    AccountantOtherExpense,
     CashAccount,
     CashConversion,
     CashEmployee,
@@ -34,6 +36,7 @@ from .models import (
     CustomerDocument,
     Deal,
     EmployeeProfile,
+    EmployeeSalaryTransaction,
     Lead,
     LeadEntry,
     LeadSource,
@@ -221,6 +224,31 @@ def _is_accountant(user):
     return not user.is_superuser and profile.is_active and profile.role.name == Role.RoleName.ACCOUNTANT
 
 
+def _accountant_ledger_balance():
+    certificate_income, expenses = _accountant_ledger_totals()
+    return certificate_income - expenses
+
+
+def _accountant_ledger_totals(date_from=None, date_to=None):
+    clients = AccountantClient.objects.all()
+    client_expenses = AccountantExpense.objects.all()
+    salary_expenses = EmployeeSalaryTransaction.objects.all()
+    other_expenses = AccountantOtherExpense.objects.all()
+    if date_from:
+        clients = clients.filter(client_date__gte=date_from)
+        client_expenses = client_expenses.filter(expense_date__gte=date_from)
+        salary_expenses = salary_expenses.filter(payment_date__gte=date_from)
+        other_expenses = other_expenses.filter(expense_date__gte=date_from)
+    if date_to:
+        clients = clients.filter(client_date__lte=date_to)
+        client_expenses = client_expenses.filter(expense_date__lte=date_to)
+        salary_expenses = salary_expenses.filter(payment_date__lte=date_to)
+        other_expenses = other_expenses.filter(expense_date__lte=date_to)
+    certificate_income = clients.aggregate(total=Coalesce(Sum('certificate_amount'), Decimal('0')))['total']
+    total_expenses = sum((queryset.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] for queryset in (client_expenses, salary_expenses, other_expenses)), Decimal('0'))
+    return certificate_income, total_expenses
+
+
 def accountant_login(request):
     if request.user.is_authenticated and _is_accountant(request.user):
         return redirect('accountant')
@@ -244,7 +272,167 @@ def accountant_logout(request):
 def accountant(request):
     if not _is_accountant(request.user):
         return redirect('accountant-login')
+    certificate_income, ledger_expenses = _accountant_ledger_totals()
+    return render(request, 'crm/accountant_home.html', {
+        'client_count': AccountantClient.objects.count(),
+        'employee_count': CashEmployee.objects.count(),
+        'certificate_income': certificate_income,
+        'ledger_expenses': ledger_expenses,
+        'cash_balance': certificate_income - ledger_expenses,
+    })
+
+
+@login_required(login_url='accountant-login')
+def accountant_clients(request):
+    if not _is_accountant(request.user):
+        return redirect('accountant-login')
     return render(request, 'crm/accountant.html')
+
+
+@login_required(login_url='accountant-login')
+def accountant_expenses(request):
+    if not _is_accountant(request.user):
+        return redirect('accountant-login')
+    return render(request, 'crm/accountant_expenses.html')
+
+
+@login_required(login_url='accountant-login')
+def accountant_expenses_api(request):
+    if not _is_accountant(request.user):
+        return JsonResponse({'error': 'Доступ только для бухгалтера.'}, status=403)
+    if request.method == 'GET':
+        date_from = parse_date(request.GET.get('from', '').strip()) if request.GET.get('from') else None
+        date_to = parse_date(request.GET.get('to', '').strip()) if request.GET.get('to') else None
+        if (request.GET.get('from') and not date_from) or (request.GET.get('to') and not date_to):
+            return JsonResponse({'error': 'Укажите корректный период дат.'}, status=400)
+        if date_from and date_to and date_from > date_to:
+            return JsonResponse({'error': 'Дата начала периода позже даты окончания.'}, status=400)
+        expenses = AccountantOtherExpense.objects.all()
+        if date_from:
+            expenses = expenses.filter(expense_date__gte=date_from)
+        if date_to:
+            expenses = expenses.filter(expense_date__lte=date_to)
+        q = request.GET.get('q', '').strip()
+        if q:
+            expenses = expenses.filter(Q(description__icontains=q) | Q(note__icontains=q))
+        total = expenses.count()
+        amount_total = expenses.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        page = Paginator(expenses.order_by('-expense_date', '-id'), 50).get_page(request.GET.get('page', 1))
+        return JsonResponse({'results': [
+            {'id': item.id, 'description': item.description, 'amount': str(item.amount), 'date': item.expense_date.isoformat(), 'note': item.note}
+            for item in page.object_list
+        ], 'total': total, 'amount_total': str(amount_total), 'page': page.number, 'pages': page.paginator.num_pages or 1})
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается.'}, status=405)
+    action = request.POST.get('action', '')
+    expense_id = request.POST.get('id', '').strip()
+    try:
+        if action == 'delete_other_expense':
+            get_object_or_404(AccountantOtherExpense, pk=expense_id).delete()
+            return JsonResponse({'ok': True})
+        if action != 'save_other_expense':
+            return JsonResponse({'error': 'Неизвестное действие.'}, status=400)
+        description = request.POST.get('description', '').strip()
+        note = request.POST.get('note', '').strip()
+        expense_date = parse_date(request.POST.get('date', ''))
+        amount = Decimal(request.POST.get('amount', ''))
+        if not description:
+            raise ValueError('Укажите название расхода.')
+        if len(description) > 255 or len(note) > 255:
+            raise ValueError('Текст не должен быть длиннее 255 символов.')
+        if not expense_date:
+            raise ValueError('Укажите корректную дату расхода.')
+        if not amount.is_finite() or amount <= 0 or amount >= Decimal('1000000000000') or amount.as_tuple().exponent < -2:
+            raise ValueError('Сумма расхода должна быть больше нуля и содержать не более двух знаков после запятой.')
+        expense = get_object_or_404(AccountantOtherExpense, pk=expense_id) if expense_id else AccountantOtherExpense(created_by=request.user)
+        expense.description, expense.amount, expense.expense_date, expense.note = description, amount, expense_date, note
+        expense.save()
+        return JsonResponse({'ok': True, 'id': expense.id})
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        return JsonResponse({'error': str(exc) or 'Проверьте введённые данные.'}, status=400)
+
+
+@login_required(login_url='accountant-login')
+def accountant_overview_api(request):
+    if not _is_accountant(request.user):
+        return JsonResponse({'error': 'Доступ только для бухгалтера.'}, status=403)
+
+    if request.method == 'GET':
+        date_from_raw = request.GET.get('from', '').strip()
+        date_to_raw = request.GET.get('to', '').strip()
+        date_from = parse_date(date_from_raw) if date_from_raw else None
+        date_to = parse_date(date_to_raw) if date_to_raw else None
+        if (date_from_raw and not date_from) or (date_to_raw and not date_to):
+            return JsonResponse({'error': 'Укажите корректный период дат.'}, status=400)
+        if date_from and date_to and date_from > date_to:
+            return JsonResponse({'error': 'Дата начала периода позже даты окончания.'}, status=400)
+
+        q = request.GET.get('q', '').strip()
+        clients = AccountantClient.objects.all()
+        client_expenses = AccountantExpense.objects.select_related('client').all()
+        salaries = EmployeeSalaryTransaction.objects.select_related('employee').all()
+        other_expenses = AccountantOtherExpense.objects.all()
+        if date_from:
+            clients = clients.filter(client_date__gte=date_from)
+            client_expenses = client_expenses.filter(expense_date__gte=date_from)
+            salaries = salaries.filter(payment_date__gte=date_from)
+            other_expenses = other_expenses.filter(expense_date__gte=date_from)
+        if date_to:
+            clients = clients.filter(client_date__lte=date_to)
+            client_expenses = client_expenses.filter(expense_date__lte=date_to)
+            salaries = salaries.filter(payment_date__lte=date_to)
+            other_expenses = other_expenses.filter(expense_date__lte=date_to)
+
+        certificate_income, all_expenses = _accountant_ledger_totals(date_from, date_to)
+        client_expense_total = client_expenses.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        salary_expense_total = salaries.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        other_expense_total = other_expenses.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        client_count = clients.count()
+
+        certificates = clients.filter(certificate_amount__gt=0).order_by('-client_date', '-id')
+        expenses_by_client = client_expenses.order_by('-expense_date', '-id')
+        payroll = salaries.order_by('-payment_date', '-id')
+        other = other_expenses.order_by('-expense_date', '-id')
+        if q:
+            certificates = certificates.filter(Q(full_name__icontains=q) | Q(vehicle_name__icontains=q))
+            expenses_by_client = expenses_by_client.filter(Q(description__icontains=q) | Q(client__full_name__icontains=q) | Q(client__vehicle_name__icontains=q))
+            payroll = payroll.filter(Q(employee__first_name__icontains=q) | Q(employee__last_name__icontains=q) | Q(employee__position__icontains=q) | Q(note__icontains=q))
+            other = other.filter(Q(description__icontains=q) | Q(note__icontains=q))
+
+        total = certificates.count() + expenses_by_client.count() + payroll.count() + other.count()
+        try:
+            page_number = max(1, int(request.GET.get('page', '1')))
+        except (TypeError, ValueError):
+            page_number = 1
+        pages = max(1, (total + 49) // 50)
+        page_number = min(page_number, pages)
+        take = page_number * 50
+        movements = []
+        for item in certificates[:take]:
+            movements.append({'id': item.id, 'date': item.client_date.isoformat(), 'type': 'income', 'type_label': 'Приход сертификата', 'source': item.full_name, 'description': item.vehicle_name, 'amount': str(item.certificate_amount), 'editable': False})
+        for item in expenses_by_client[:take]:
+            movements.append({'id': item.id, 'date': item.expense_date.isoformat(), 'type': 'expense', 'type_label': 'Расход клиента', 'source': item.client.full_name, 'description': item.description, 'amount': str(item.amount), 'editable': False})
+        for item in payroll[:take]:
+            movements.append({'id': item.id, 'date': item.payment_date.isoformat(), 'type': 'expense', 'type_label': item.get_transaction_type_display(), 'source': str(item.employee), 'description': item.note or item.get_transaction_type_display(), 'amount': str(item.amount), 'editable': False})
+        for item in other[:take]:
+            movements.append({'id': item.id, 'date': item.expense_date.isoformat(), 'type': 'expense', 'type_label': 'Общий расход', 'source': 'Прочие расходы', 'description': item.description, 'note': item.note, 'amount': str(item.amount), 'editable': True})
+        movements.sort(key=lambda item: (item['date'], item['id'], item['type_label']), reverse=True)
+        offset = (page_number - 1) * 50
+        return JsonResponse({
+            'client_count': client_count,
+            'income': str(certificate_income),
+            'client_expenses': str(client_expense_total),
+            'salary_expenses': str(salary_expense_total),
+            'other_expenses': str(other_expense_total),
+            'expenses': str(all_expenses),
+            'cash': str(certificate_income - all_expenses),
+            'results': movements[offset:offset + 50],
+            'total': total,
+            'page': page_number,
+            'pages': pages,
+        })
+
+    return JsonResponse({'error': 'Метод не поддерживается.'}, status=405)
 
 
 @login_required(login_url='accountant-login')
@@ -302,6 +490,17 @@ def accountant_api(request):
         elif manager_filter.isdigit():
             summary_expenses = summary_expenses.filter(client__manager_id=int(manager_filter))
         expense_sum = summary_expenses.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        if not manager_filter:
+            salary_expenses = EmployeeSalaryTransaction.objects.all()
+            other_expenses = AccountantOtherExpense.objects.all()
+            if date_from:
+                salary_expenses = salary_expenses.filter(payment_date__gte=date_from)
+                other_expenses = other_expenses.filter(expense_date__gte=date_from)
+            if date_to:
+                salary_expenses = salary_expenses.filter(payment_date__lte=date_to)
+                other_expenses = other_expenses.filter(expense_date__lte=date_to)
+            expense_sum += salary_expenses.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            expense_sum += other_expenses.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
         managers = [{'id': employee.id, 'name': str(employee)} for employee in CashEmployee.objects.order_by('last_name', 'first_name')]
         return JsonResponse({'results': client_rows, 'page': page.number, 'pages': page.paginator.num_pages, 'total': page.paginator.count, 'income': str(income), 'expenses': str(expense_sum), 'balance': str(income - expense_sum), 'managers': managers})
     if request.method != 'POST':
@@ -357,6 +556,177 @@ def accountant_api(request):
         return JsonResponse({'error': str(exc) or 'Проверьте введённые данные.'}, status=400)
     except InvalidOperation:
         return JsonResponse({'error': 'Укажите корректную сумму.'}, status=400)
+
+
+@login_required(login_url='accountant-login')
+def accountant_salary(request):
+    if not _is_accountant(request.user):
+        return redirect('accountant-login')
+    return render(request, 'crm/accountant_salary.html')
+
+
+@login_required(login_url='accountant-login')
+def accountant_salary_api(request):
+    if not _is_accountant(request.user):
+        return JsonResponse({'error': 'Доступ только для бухгалтера.'}, status=403)
+
+    if request.method == 'GET':
+        today = timezone.localdate()
+        month_value = request.GET.get('month', '')
+        month_start = parse_date(f'{month_value}-01') if re.fullmatch(r'\d{4}-\d{2}', month_value) else None
+        if not month_start:
+            month_start = today.replace(day=1)
+            month_value = month_start.strftime('%Y-%m')
+        next_month = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1)
+        month_end = next_month - timedelta(days=1)
+
+        employees = CashEmployee.objects.all().order_by('last_name', 'first_name')
+        query = request.GET.get('q', '').strip()
+        if query:
+            employees = employees.filter(
+                Q(first_name__icontains=query) | Q(last_name__icontains=query) |
+                Q(position__icontains=query) | Q(phone_primary__icontains=query)
+            )
+        employee_rows = list(employees)
+        employee_ids = [employee.id for employee in employee_rows]
+        totals = {
+            row['employee_id']: row
+            for row in EmployeeSalaryTransaction.objects.filter(
+                employee_id__in=employee_ids,
+                payment_date__gte=month_start,
+                payment_date__lte=month_end,
+            ).values('employee_id').annotate(
+                salary_paid=Coalesce(Sum('amount', filter=Q(transaction_type=EmployeeSalaryTransaction.TransactionType.SALARY)), Decimal('0')),
+                advances=Coalesce(Sum('amount', filter=Q(transaction_type=EmployeeSalaryTransaction.TransactionType.ADVANCE)), Decimal('0')),
+            )
+        }
+        employees_data = []
+        for employee in employee_rows:
+            paid = totals.get(employee.id, {})
+            salary = employee.salary_amount or Decimal('0')
+            salary_paid = paid.get('salary_paid', Decimal('0'))
+            advances = paid.get('advances', Decimal('0'))
+            employees_data.append({
+                'id': employee.id,
+                'first_name': employee.first_name,
+                'last_name': employee.last_name,
+                'name': str(employee),
+                'position': employee.position,
+                'phone': employee.phone_primary,
+                'start_date': employee.start_date.isoformat() if employee.start_date else '',
+                'salary_day': employee.salary_day,
+                'salary': str(salary),
+                'salary_paid': str(salary_paid),
+                'advances': str(advances),
+                'remaining': str(salary - salary_paid - advances),
+            })
+
+        transactions = EmployeeSalaryTransaction.objects.select_related('employee').filter(
+            payment_date__gte=month_start, payment_date__lte=month_end,
+        )
+        if query:
+            transactions = transactions.filter(
+                Q(employee__first_name__icontains=query) | Q(employee__last_name__icontains=query) |
+                Q(employee__position__icontains=query) | Q(note__icontains=query)
+            )
+        page = Paginator(transactions.order_by('-payment_date', '-id'), 50).get_page(request.GET.get('page', 1))
+        transaction_rows = [{
+            'id': item.id,
+            'employee_id': item.employee_id,
+            'employee': str(item.employee),
+            'type': item.transaction_type,
+            'type_label': item.get_transaction_type_display(),
+            'amount': str(item.amount),
+            'date': item.payment_date.isoformat(),
+            'note': item.note,
+        } for item in page.object_list]
+        month_transactions = EmployeeSalaryTransaction.objects.filter(payment_date__gte=month_start, payment_date__lte=month_end)
+        salary_total = month_transactions.filter(transaction_type=EmployeeSalaryTransaction.TransactionType.SALARY).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        advance_total = month_transactions.filter(transaction_type=EmployeeSalaryTransaction.TransactionType.ADVANCE).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+        certificate_income, accountant_expenses = _accountant_ledger_totals()
+        return JsonResponse({
+            'month': month_value,
+            'income': str(certificate_income),
+            'expenses': str(accountant_expenses),
+            'cash': str(certificate_income - accountant_expenses),
+            'salary_total': str(salary_total),
+            'advance_total': str(advance_total),
+            'employees': employees_data,
+            'transactions': transaction_rows,
+            'page': page.number,
+            'pages': page.paginator.num_pages,
+            'transaction_count': page.paginator.count,
+        })
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается.'}, status=405)
+    action = request.POST.get('action', '')
+    try:
+        if action == 'save_employee':
+            employee_id = request.POST.get('id', '').strip()
+            first_name = request.POST.get('first_name', '').strip()
+            last_name = request.POST.get('last_name', '').strip()
+            position = request.POST.get('position', '').strip()
+            if not first_name or not last_name:
+                raise ValueError('Укажите имя и фамилию сотрудника.')
+            salary = Decimal(request.POST.get('salary', ''))
+            if not salary.is_finite() or salary < 0 or salary >= Decimal('10000000000') or salary.as_tuple().exponent < -2:
+                raise ValueError('Укажите корректный размер месячной зарплаты.')
+            salary_day_raw = request.POST.get('salary_day', '').strip()
+            salary_day = int(salary_day_raw) if salary_day_raw else None
+            if salary_day is not None and not 1 <= salary_day <= 31:
+                raise ValueError('День выплаты должен быть от 1 до 31.')
+            start_date_raw = request.POST.get('start_date', '').strip()
+            start_date = parse_date(start_date_raw) if start_date_raw else None
+            if start_date_raw and not start_date:
+                raise ValueError('Укажите корректную дату начала работы.')
+            employee = get_object_or_404(CashEmployee, pk=employee_id) if employee_id else CashEmployee(external_id=uuid.uuid4().hex, created_by=request.user)
+            employee.first_name = first_name
+            employee.last_name = last_name
+            employee.position = position
+            employee.phone_primary = request.POST.get('phone', '').strip()[:32]
+            employee.salary_amount = salary
+            employee.salary_day = salary_day
+            employee.start_date = start_date
+            employee.updated_by = request.user
+            employee.save()
+            return JsonResponse({'ok': True, 'id': employee.id})
+
+        if action in ('save_payment', 'delete_payment'):
+            with transaction.atomic():
+                if action == 'delete_payment':
+                    payment = get_object_or_404(EmployeeSalaryTransaction.objects.select_for_update(), pk=request.POST.get('id'))
+                    payment.delete()
+                    return JsonResponse({'ok': True, 'cash': str(_accountant_ledger_balance())})
+
+                employee = get_object_or_404(CashEmployee, pk=request.POST.get('employee_id'))
+                payment_id = request.POST.get('id', '').strip()
+                payment = get_object_or_404(EmployeeSalaryTransaction.objects.select_for_update(), pk=payment_id) if payment_id else EmployeeSalaryTransaction(created_by=request.user)
+                transaction_type = request.POST.get('type', '').strip()
+                if transaction_type not in EmployeeSalaryTransaction.TransactionType.values:
+                    raise ValueError('Выберите зарплату или аванс.')
+                payment_date = parse_date(request.POST.get('date', ''))
+                if not payment_date:
+                    raise ValueError('Укажите корректную дату выплаты.')
+                amount = Decimal(request.POST.get('amount', ''))
+                if not amount.is_finite() or amount <= 0 or amount >= Decimal('1000000000000') or amount.as_tuple().exponent < -2:
+                    raise ValueError('Сумма выплаты должна быть больше нуля и содержать не более двух знаков после запятой.')
+                old_amount = payment.amount if payment.pk else Decimal('0')
+                difference = amount - old_amount
+                available_cash = _accountant_ledger_balance()
+                if difference > available_cash:
+                    raise ValueError('В кассе недостаточно денег для этой выплаты.')
+                payment.employee = employee
+                payment.transaction_type = transaction_type
+                payment.amount = amount
+                payment.payment_date = payment_date
+                payment.note = request.POST.get('note', '').strip()[:255]
+                payment.save()
+                return JsonResponse({'ok': True, 'cash': str(_accountant_ledger_balance())})
+
+        return JsonResponse({'error': 'Неизвестное действие.'}, status=400)
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        return JsonResponse({'error': str(exc) or 'Проверьте введённые данные.'}, status=400)
 
 
 @login_required
@@ -2149,5 +2519,9 @@ def cash_employee_delete(request):
     if not external_id:
         return JsonResponse({'error': 'missing_id'}, status=400)
 
-    CashEmployee.objects.filter(external_id=external_id).delete()
+    employee = CashEmployee.objects.filter(external_id=external_id).first()
+    if employee and EmployeeSalaryTransaction.objects.filter(employee=employee).exists():
+        return JsonResponse({'error': 'Нельзя удалить сотрудника с историей выплат.'}, status=400)
+    if employee:
+        employee.delete()
     return JsonResponse({'status': 'ok'})

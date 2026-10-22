@@ -438,3 +438,17 @@ class AccountantExpenseAdmin(admin.ModelAdmin):
     list_display = ('client', 'description', 'amount', 'expense_date')
     list_filter = ('expense_date',)
     search_fields = ('client__full_name', 'description')
+
+
+@admin.register(models.AccountantOtherExpense)
+class AccountantOtherExpenseAdmin(admin.ModelAdmin):
+    list_display = ('description', 'amount', 'expense_date', 'note', 'created_by')
+    list_filter = ('expense_date',)
+    search_fields = ('description', 'note')
+
+
+@admin.register(models.EmployeeSalaryTransaction)
+class EmployeeSalaryTransactionAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'transaction_type', 'amount', 'payment_date', 'created_by')
+    list_filter = ('transaction_type', 'payment_date')
+    search_fields = ('employee__first_name', 'employee__last_name', 'note')

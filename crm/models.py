@@ -710,6 +710,56 @@ class AccountantExpense(TimeStampedModel):
         return f'{self.description} — {self.amount}'
 
 
+class AccountantOtherExpense(TimeStampedModel):
+    description = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    expense_date = models.DateField(default=timezone.localdate)
+    note = models.CharField(max_length=255, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='accountant_other_expenses_created',
+    )
+
+    class Meta:
+        ordering = ['-expense_date', '-id']
+        verbose_name = 'Прочий расход бухгалтера'
+        verbose_name_plural = 'Прочие расходы бухгалтера'
+
+    def __str__(self):
+        return f'{self.description} — {self.amount}'
+
+
+class EmployeeSalaryTransaction(TimeStampedModel):
+    class TransactionType(models.TextChoices):
+        SALARY = 'salary', 'Зарплата'
+        ADVANCE = 'advance', 'Аванс'
+
+    employee = models.ForeignKey(CashEmployee, on_delete=models.PROTECT, related_name='salary_transactions')
+    transaction_type = models.CharField(max_length=16, choices=TransactionType.choices)
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    payment_date = models.DateField(default=timezone.localdate)
+    note = models.CharField(max_length=255, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='employee_salary_transactions_created',
+    )
+
+    class Meta:
+        ordering = ['-payment_date', '-id']
+        verbose_name = 'Выплата зарплаты сотруднику'
+        verbose_name_plural = 'Выплаты зарплаты сотрудникам'
+        indexes = [models.Index(fields=['payment_date', 'employee'], name='sal_tx_date_emp_idx')]
+
+    def __str__(self):
+        return f'{self.get_transaction_type_display()} — {self.employee}: {self.amount}'
+
+
 class DealExtra(TimeStampedModel):
     deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name='extras')
     name = models.CharField(max_length=128)
