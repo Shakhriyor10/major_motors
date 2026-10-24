@@ -123,8 +123,8 @@
               <input id="fuel_consumption" name="fuel_consumption" type="number" min="0" step="0.1" class="form-control">
             </div>
             <div class="col-12 col-md-6 col-lg-4">
-              <label for="range_km" class="form-label">Запас хода (км)</label>
-              <input id="range_km" name="range_km" type="number" min="0" step="1" class="form-control">
+              <label for="range_km" class="form-label">Запас хода, км (электро/общий)</label>
+              <input id="range_km" name="range_km" type="text" inputmode="numeric" pattern="[0-9]+(/[0-9]+)?" placeholder="Например, 50/1000" class="form-control">
             </div>
             <div class="col-12 col-md-6 col-lg-4">
               <label for="condition" class="form-label">Состояние</label>
@@ -562,8 +562,8 @@
                     <input id="edit-fuel-consumption-{{ vehicle.id }}" name="fuel_consumption" type="number" min="0" step="0.1" class="form-control" value="{{ vehicle.fuel_consumption|default:'' }}">
                   </div>
                   <div class="col-12 col-md-6 col-lg-4">
-                    <label class="form-label" for="edit-range-km-{{ vehicle.id }}">Запас хода (км)</label>
-                    <input id="edit-range-km-{{ vehicle.id }}" name="range_km" type="number" min="0" step="1" class="form-control" value="{{ vehicle.range_km|default:'' }}">
+                    <label class="form-label" for="edit-range-km-{{ vehicle.id }}">Запас хода, км (электро/общий)</label>
+                    <input id="edit-range-km-{{ vehicle.id }}" name="range_km" type="text" inputmode="numeric" pattern="[0-9]+(/[0-9]+)?" placeholder="Например, 50/1000" class="form-control" value="{{ vehicle.range_km|default:'' }}">
                   </div>
                     <div class="col-12 col-md-6 col-lg-4">
                       <label class="form-label" for="edit-condition-{{ vehicle.id }}">Состояние</label>

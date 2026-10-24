@@ -214,6 +214,13 @@ def home(request):
     return redirect('autosalon')
 
 
+def _normalize_range_km(value):
+    value = re.sub(r'\s+', '', value or '')
+    if not value:
+        return None
+    return value if re.fullmatch(r'\d+(?:/\d+)?', value) else None
+
+
 def _is_accountant(user):
     if not user.is_authenticated:
         return False
@@ -1282,7 +1289,7 @@ def _create_vehicle_from_form(request, options_qs):
         horsepower=to_int(request.POST.get('horsepower')),
         transmission=request.POST.get('transmission', ''),
         fuel_consumption=to_decimal(request.POST.get('fuel_consumption')),
-        range_km=to_int(request.POST.get('range_km')),
+        range_km=_normalize_range_km(request.POST.get('range_km')),
         condition=request.POST.get('condition') or Vehicle.Condition.NEW,
         mileage=unit_mileage,
         country=request.POST.get('country', '').strip(),
@@ -1438,7 +1445,7 @@ def _update_vehicle_from_form(request, vehicle, options_qs):
         vehicle.fuel_consumption = to_decimal(request.POST.get('fuel_consumption'))
         update_fields.append('fuel_consumption')
     if has_field('range_km'):
-        vehicle.range_km = to_int(request.POST.get('range_km'))
+        vehicle.range_km = _normalize_range_km(request.POST.get('range_km'))
         update_fields.append('range_km')
     if has_field('condition'):
         vehicle.condition = request.POST.get('condition') or Vehicle.Condition.NEW
