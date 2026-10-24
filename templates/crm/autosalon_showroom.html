@@ -270,6 +270,28 @@
       font-size: 0.82rem;
     }
 
+    .showroom-inactive-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 5px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #fff1f0;
+      color: #ad3434;
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .showroom-inactive-status::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
     .showroom-price {
       min-width: 160px;
       text-align: right;
@@ -1715,6 +1737,9 @@
                               —
                             {% endif %}
                           </div>
+                          {% if vehicle.status == 'inactive' %}
+                            <span class="showroom-inactive-status" role="status">Неактивный</span>
+                          {% endif %}
                         </div>
                         <div class="showroom-price">
                           <div class="showroom-price-list">

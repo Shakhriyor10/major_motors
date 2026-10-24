@@ -1985,7 +1985,6 @@ def autosalon(request):
             Prefetch('reservations', queryset=active_reservations, to_attr='active_reservations'),
             Prefetch('units', queryset=available_units, to_attr='available_units'),
         )
-        .exclude(status=Vehicle.VehicleStatus.INACTIVE)
         .distinct()
         .order_by(F('sale_price').desc(nulls_last=True), '-created_at')
     )
