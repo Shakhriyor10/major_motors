@@ -452,3 +452,11 @@ class EmployeeSalaryTransactionAdmin(admin.ModelAdmin):
     list_display = ('employee', 'transaction_type', 'amount', 'payment_date', 'created_by')
     list_filter = ('transaction_type', 'payment_date')
     search_fields = ('employee__first_name', 'employee__last_name', 'note')
+
+
+@admin.register(models.ManagerRating)
+class ManagerRatingAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'score', 'rated_on', 'lead')
+    list_filter = ('employee', 'rated_on')
+    search_fields = ('lead__name', 'lead__phone', 'employee__first_name', 'employee__last_name')
+    raw_id_fields = ('lead',)

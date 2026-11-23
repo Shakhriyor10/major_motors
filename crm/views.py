@@ -10,7 +10,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Count, F, Prefetch, Q, Sum
+from django.db.models import Avg, Count, F, Prefetch, Q, Sum
 from django.db.models.functions import Coalesce, Greatest
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -39,6 +39,7 @@ from .models import (
     EmployeeSalaryTransaction,
     Lead,
     LeadEntry,
+    ManagerRating,
     LeadSource,
     PowerOfAttorney,
     Reservation,
@@ -280,7 +281,12 @@ def accountant(request):
     if not _is_accountant(request.user):
         return redirect('accountant-login')
     certificate_income, ledger_expenses = _accountant_ledger_totals()
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
     return render(request, 'crm/accountant_home.html', {
+        'rating_stats': manager_rating_stats(month_start, today),
+        'rating_from': month_start,
+        'rating_to': today,
         'client_count': AccountantClient.objects.count(),
         'employee_count': CashEmployee.objects.count(),
         'certificate_income': certificate_income,
@@ -1104,6 +1110,40 @@ def parse_manager_rating(value):
     return rating if 1 <= rating <= 10 else None
 
 
+def sync_latest_manager_rating(lead_id, employee_id, score):
+    """Editing a lead corrects the rating of its most recent contact."""
+    latest = ManagerRating.objects.filter(lead_id=lead_id).order_by('-rated_on', '-id').first()
+    if not score or not employee_id:
+        if latest:
+            latest.delete()
+        return
+    if latest:
+        if latest.score != score or latest.employee_id != int(employee_id):
+            latest.score = score
+            latest.employee_id = employee_id
+            latest.save(update_fields=['score', 'employee'])
+    else:
+        ManagerRating.objects.create(lead_id=lead_id, employee_id=employee_id, score=score)
+
+
+def manager_rating_stats(date_from, date_to):
+    rows = (
+        ManagerRating.objects.filter(rated_on__gte=date_from, rated_on__lte=date_to)
+        .values('employee_id', 'employee__first_name', 'employee__last_name')
+        .annotate(total=Sum('score'), count=Count('id'), average=Avg('score'))
+        .order_by('-total', '-average')
+    )
+    return [
+        {
+            'name': f"{row['employee__last_name']} {row['employee__first_name']}".strip(),
+            'total': row['total'],
+            'count': row['count'],
+            'average': round(row['average'], 1),
+        }
+        for row in rows
+    ]
+
+
 @login_required
 def leads(request, manager_id=None):
     employees_qs = CashEmployee.objects.order_by('last_name', 'first_name')
@@ -1147,6 +1187,9 @@ def leads(request, manager_id=None):
                     update_data['status'] = status_value
                 if update_data['name'] and update_data['phone']:
                     LeadEntry.objects.filter(pk=lead_id).update(**update_data)
+                    sync_latest_manager_rating(
+                        lead_id, update_data['employee_id'], update_data['manager_rating']
+                    )
                     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                         lead = LeadEntry.objects.select_related('employee').filter(pk=lead_id).first()
                         if lead:
@@ -1200,6 +1243,8 @@ def leads(request, manager_id=None):
                 lead.employee_id = employee_id
             lead.manager_rating = manager_rating
             lead.save()
+            if manager_rating and employee_id:
+                ManagerRating.objects.create(lead=lead, employee_id=employee_id, score=manager_rating)
             notify_lead_saved(lead, contact_type, created=created)
         return redirect(get_return_url())
     leads_qs = LeadEntry.objects.select_related('employee')

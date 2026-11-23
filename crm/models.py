@@ -387,6 +387,33 @@ class LeadEntry(TimeStampedModel):
         return f'{self.name} ({self.phone})'
 
 
+class ManagerRating(models.Model):
+    """One manager rating per lead contact, so monthly points keep their history."""
+
+    lead = models.ForeignKey(LeadEntry, on_delete=models.CASCADE, related_name='ratings')
+    employee = models.ForeignKey(
+        'CashEmployee',
+        on_delete=models.CASCADE,
+        related_name='manager_ratings',
+        verbose_name='Менеджер',
+    )
+    score = models.PositiveSmallIntegerField(
+        choices=[(i, str(i)) for i in range(1, 11)],
+        verbose_name='Оценка',
+    )
+    rated_on = models.DateField(default=timezone.localdate, verbose_name='Дата оценки')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-rated_on', '-id']
+        indexes = [models.Index(fields=['rated_on', 'employee'], name='mgr_rating_date_emp_idx')]
+        verbose_name = 'Оценка менеджера'
+        verbose_name_plural = 'Оценки менеджеров'
+
+    def __str__(self):
+        return f'{self.employee}: {self.score}/10 ({self.rated_on:%d.%m.%Y})'
+
+
 class VehicleOption(models.Model):
     name = models.CharField(max_length=128, unique=True)
 
