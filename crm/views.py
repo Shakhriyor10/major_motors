@@ -616,6 +616,13 @@ def accountant_salary_api(request):
                 advances=Coalesce(Sum('amount', filter=Q(transaction_type=EmployeeSalaryTransaction.TransactionType.ADVANCE)), Decimal('0')),
             )
         }
+        rating_points = dict(
+            ManagerRating.objects.filter(
+                employee_id__in=employee_ids,
+                rated_on__gte=month_start,
+                rated_on__lte=min(month_end, today),
+            ).values('employee_id').annotate(total=Sum('score')).values_list('employee_id', 'total')
+        )
         employees_data = []
         for employee in employee_rows:
             paid = totals.get(employee.id, {})
@@ -635,6 +642,7 @@ def accountant_salary_api(request):
                 'salary_paid': str(salary_paid),
                 'advances': str(advances),
                 'remaining': str(salary - salary_paid - advances),
+                'rating_points': rating_points.get(employee.id, 0),
             })
 
         transactions = EmployeeSalaryTransaction.objects.select_related('employee').filter(
