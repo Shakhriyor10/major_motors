@@ -12,9 +12,10 @@
         <tr data-lead-id="{{ lead.id }}" data-lead-name="{{ lead.name|escape }}"
             data-lead-phone="{{ lead.phone|escape }}" data-lead-comment="{{ lead.comment|default:''|escape }}"
             data-lead-status="{{ lead.status }}" data-lead-employee-id="{{ lead.employee_id|default:'' }}"
+            data-lead-manager-rating="{{ lead.manager_rating|default:'' }}"
             data-lead-next-action-date="{{ lead.next_action_date|date:'Y-m-d' }}">
           <td>{{ lead.name }}</td><td>{{ lead.phone }}</td><td>{{ lead.visit_date|default:"—" }}</td>
-          <td>{{ lead.visit_count }}</td><td>{{ lead.employee|default:"—" }}</td>
+          <td>{{ lead.visit_count }}</td><td>{{ lead.employee|default:"—" }}{% if lead.manager_rating %} <span class="badge text-bg-light border">{{ lead.manager_rating }}/10</span>{% endif %}</td>
           <td>{{ lead.last_call_at|default:"—" }}</td><td>{{ lead.call_count }}</td>
           <td>{% if lead.next_action_date %}<strong>{{ lead.next_action_date|date:"d.m.Y" }}</strong>{% else %}—{% endif %}</td>
           <td>

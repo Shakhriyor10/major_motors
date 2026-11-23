@@ -49,6 +49,14 @@
           </select>
         </div>
         <div class="col-md-4">
+          <label class="form-label" for="leadManagerRating">Оценка менеджера</label>
+          <select name="manager_rating" id="leadManagerRating" class="form-select">
+            <option value="">—</option>
+            {% for i in "123456789"|make_list %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            <option value="10">10</option>
+          </select>
+        </div>
+        <div class="col-md-4">
           <label class="form-label">Дата покупки или повторного звонка</label>
           <input type="date" name="next_action_date" class="form-control">
         </div>
@@ -108,13 +116,14 @@
                 data-lead-comment="{{ lead.comment|default:''|escape }}"
                 data-lead-status="{{ lead.status }}"
                 data-lead-employee-id="{{ lead.employee_id|default:'' }}"
+                data-lead-manager-rating="{{ lead.manager_rating|default:'' }}"
                 data-lead-next-action-date="{{ lead.next_action_date|date:'Y-m-d' }}"
               >
                 <td>{{ lead.name }}</td>
                 <td>{{ lead.phone }}</td>
                 <td>{{ lead.visit_date|default:"—" }}</td>
                 <td>{{ lead.visit_count }}</td>
-                <td>{{ lead.employee|default:"—" }}</td>
+                <td>{{ lead.employee|default:"—" }}{% if lead.manager_rating %} <span class="badge text-bg-light border">{{ lead.manager_rating }}/10</span>{% endif %}</td>
                 <td>{{ lead.last_call_at|default:"—" }}</td>
                 <td>{{ lead.call_count }}</td>
                 <td>{% if lead.next_action_date %}<strong>{{ lead.next_action_date|date:"d.m.Y" }}</strong>{% else %}—{% endif %}</td>
@@ -264,6 +273,14 @@
                 {% for employee in employees %}
                   <option value="{{ employee.id }}">{{ employee }}</option>
                 {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="leadEditManagerRating">Оценка менеджера</label>
+              <select class="form-select" name="manager_rating" id="leadEditManagerRating">
+                <option value="">—</option>
+                {% for i in "123456789"|make_list %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                <option value="10">10</option>
               </select>
             </div>
             <div class="mb-3">
@@ -605,6 +622,7 @@
     const leadEditPhoneDisplay = document.getElementById('leadEditPhoneDisplay');
     const leadEditPhone = document.getElementById('leadEditPhone');
     const leadEditEmployee = document.getElementById('leadEditEmployee');
+    const leadEditManagerRating = document.getElementById('leadEditManagerRating');
     const leadEditStatus = document.getElementById('leadEditStatus');
     const leadEditNextActionDate = document.getElementById('leadEditNextActionDate');
     const leadEditComment = document.getElementById('leadEditComment');
@@ -660,6 +678,7 @@
           leadEditPhone.value = formattedLocal ? `+998 ${formattedLocal}` : '';
         }
         if (leadEditEmployee) leadEditEmployee.value = row.dataset.leadEmployeeId || '';
+        if (leadEditManagerRating) leadEditManagerRating.value = row.dataset.leadManagerRating || '';
         if (leadEditStatus) leadEditStatus.value = row.dataset.leadStatus || 'open';
         if (leadEditNextActionDate) leadEditNextActionDate.value = row.dataset.leadNextActionDate || '';
         if (leadEditComment) leadEditComment.value = row.dataset.leadComment || '';
@@ -705,12 +724,21 @@
           row.dataset.leadComment = data.comment || '';
           row.dataset.leadStatus = data.status || 'open';
           row.dataset.leadEmployeeId = data.employee_id || '';
+          row.dataset.leadManagerRating = data.manager_rating || '';
           row.dataset.leadNextActionDate = data.next_action_date || '';
 
           const cells = row.querySelectorAll('td');
           if (cells[0]) cells[0].textContent = data.name || '';
           if (cells[1]) cells[1].textContent = normalizeLeadPhone(data.phone || '');
-          if (cells[4]) cells[4].textContent = data.employee_name || '—';
+          if (cells[4]) {
+            cells[4].textContent = data.employee_name || '—';
+            if (data.manager_rating) {
+              const ratingBadge = document.createElement('span');
+              ratingBadge.className = 'badge text-bg-light border';
+              ratingBadge.textContent = `${data.manager_rating}/10`;
+              cells[4].append(' ', ratingBadge);
+            }
+          }
           if (cells[7]) cells[7].textContent = data.next_action_display || '—';
           if (cells[8]) {
             cells[8].innerHTML = renderCommentCell(data.comment || '');

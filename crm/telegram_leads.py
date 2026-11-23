@@ -26,6 +26,7 @@ def format_lead_message(lead, contact_type, created=True):
         f'<b>Телефон:</b> {escape(lead.phone)}\n'
         f'<b>Тип обращения:</b> {interaction}\n'
         f'<b>Кто обслужил:</b> {escape(employee)}\n'
+        f'<b>Оценка менеджера:</b> {f"{lead.manager_rating}/10" if lead.manager_rating else "—"}\n'
         f'<b>Дата покупки / повторного звонка:</b> {next_action}\n'
         f'<b>Комментарий:</b> {escape(comment)}'
     )

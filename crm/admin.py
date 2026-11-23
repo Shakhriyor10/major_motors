@@ -243,7 +243,7 @@ class LeadEntryAdmin(admin.ModelAdmin):
     date_hierarchy = 'next_action_date'
     readonly_fields = ('next_action_notified_date', 'created_at', 'updated_at')
     fieldsets = (
-        ('Клиент', {'fields': ('name', 'phone', 'employee', 'status')}),
+        ('Клиент', {'fields': ('name', 'phone', 'employee', 'manager_rating', 'status')}),
         ('Следующее действие', {'fields': ('next_action_date', 'next_action_notified_date')}),
         ('История обращений', {'fields': (('visit_date', 'visit_count'), ('last_call_at', 'call_count'))}),
         ('Комментарий', {'fields': ('comment',)}),

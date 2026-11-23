@@ -1096,6 +1096,14 @@ def lead_phone_history(request):
     )
 
 
+def parse_manager_rating(value):
+    try:
+        rating = int(value)
+    except (TypeError, ValueError):
+        return None
+    return rating if 1 <= rating <= 10 else None
+
+
 @login_required
 def leads(request, manager_id=None):
     employees_qs = CashEmployee.objects.order_by('last_name', 'first_name')
@@ -1128,6 +1136,7 @@ def leads(request, manager_id=None):
                     'phone': request.POST.get('phone', '').strip(),
                     'comment': request.POST.get('comment', '').strip(),
                     'employee_id': request.POST.get('employee') or None,
+                    'manager_rating': parse_manager_rating(request.POST.get('manager_rating')),
                     'next_action_date': next_action_date,
                 }
                 current_lead = LeadEntry.objects.only('next_action_date').filter(pk=lead_id).first()
@@ -1151,6 +1160,7 @@ def leads(request, manager_id=None):
                                     'status_display': lead.get_status_display(),
                                     'employee_id': lead.employee_id,
                                     'employee_name': str(lead.employee) if lead.employee else '—',
+                                    'manager_rating': lead.manager_rating or '',
                                     'next_action_date': lead.next_action_date.isoformat() if lead.next_action_date else '',
                                     'next_action_display': lead.next_action_date.strftime('%d.%m.%Y') if lead.next_action_date else '—',
                                 }
@@ -1166,6 +1176,7 @@ def leads(request, manager_id=None):
         comment = request.POST.get('comment', '').strip()
         contact_type = request.POST.get('contact_type', 'visit')
         employee_id = request.POST.get('employee') or manager_id or None
+        manager_rating = parse_manager_rating(request.POST.get('manager_rating'))
         next_action_date = parse_date(request.POST.get('next_action_date', ''))
         if name and phone:
             lead, created = LeadEntry.objects.get_or_create(
@@ -1187,6 +1198,7 @@ def leads(request, manager_id=None):
                 lead.visit_count = (lead.visit_count or 0) + 1
                 lead.visit_date = date.today()
                 lead.employee_id = employee_id
+            lead.manager_rating = manager_rating
             lead.save()
             notify_lead_saved(lead, contact_type, created=created)
         return redirect(get_return_url())

@@ -376,6 +376,12 @@ class LeadEntry(TimeStampedModel):
         blank=True,
         related_name='lead_entries',
     )
+    manager_rating = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        choices=[(i, str(i)) for i in range(1, 11)],
+        verbose_name='Оценка менеджера',
+    )
 
     def __str__(self):
         return f'{self.name} ({self.phone})'
