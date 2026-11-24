@@ -2219,10 +2219,7 @@
               <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <h3 class="h6 mb-0">Данные доверенности</h3>
                 <div class="d-flex flex-wrap gap-2">
-                  <button class="btn btn-primary" type="submit" id="save-attorney">
-                    Сохранить
-                  </button>
-                  <button class="btn btn-outline-primary" type="button" id="print-attorney">
+                  <button class="btn btn-primary" type="submit" id="print-attorney" name="print_after_save" value="1">
                     Печать
                   </button>
                 </div>
@@ -2436,7 +2433,8 @@ OOO «MAJOR MOTORS SAM»</textarea>
                   rows="4"
                   placeholder="Если заполнить, этот текст полностью заменит абзац про автомобиль."
                 ></textarea>
-                <div class="form-text">Заполните, если хотите вставить собственный текст целиком.</div>
+                <div class="form-text">Заполните, если хотите вставить собственный текст целиком. Имя машины и марка заполнятся автоматически.</div>
+                <div class="form-text d-none" id="attorney-vehicle-parse-status" role="status" aria-live="polite"></div>
               </div>
               <div>
                 <label class="form-label" for="attorney-vehicle-name">Имя машины</label>
@@ -3861,7 +3859,6 @@ OOO «MAJOR MOTORS SAM»</div>
     const creditPrintVehicleRow = document.getElementById('credit-print-vehicle-row');
     const creditScheduleBody = document.getElementById('credit-schedule-body');
     const attorneyForm = document.getElementById('attorney-form');
-    const attorneyPrintButton = document.getElementById('print-attorney');
     const attorneyPrintArea = document.getElementById('attorney-print-area');
     const attorneyIdInput = document.getElementById('attorney-id');
     const attorneyLogoImageDataInput = document.getElementById('attorney-logo-image-data');
@@ -6115,10 +6112,6 @@ OOO «MAJOR MOTORS SAM»</div>
     applyCreditCertificatePrintVisibility();
     applyCreditScheduleColumnVisibility();
 
-    if (attorneyPrintButton) {
-      attorneyPrintButton.addEventListener('click', triggerAttorneyPrint);
-    }
-
     const escapeCsvField = (value) => {
       const stringValue = value === null || value === undefined ? '' : `${value}`;
       if (/[\";\n\r]/.test(stringValue)) {
@@ -6201,7 +6194,139 @@ OOO «MAJOR MOTORS SAM»</div>
       if (selectedRecord) {
         showAttorneyTab();
         loadAttorneyRecord(selectedRecord);
+        const pageUrl = new URL(window.location.href);
+        if (pageUrl.searchParams.get('print') === '1') {
+          pageUrl.searchParams.delete('print');
+          window.history.replaceState({}, '', pageUrl);
+          const printWhenReady = () => window.setTimeout(triggerAttorneyPrint, 300);
+          if (document.readyState === 'complete') {
+            printWhenReady();
+          } else {
+            window.addEventListener('load', printWhenReady, { once: true });
+          }
+        }
       }
+    }
+
+    // vehicle-parser:start
+    const VEHICLE_BRANDS = [
+      'Mercedes-Benz', 'Land Rover', 'Range Rover', 'Great Wall', 'Alfa Romeo', 'Aston Martin', 'Rolls-Royce',
+      'Lynk & Co', 'Li Auto', 'Li Xiang', 'Dongfeng', 'Forthing', 'Voyah', 'BYD', 'Chery', 'Exeed', 'Jetour', 'Jaecoo', 'Omoda',
+      'Haval', 'Tank', 'Wey', 'Geely', 'Zeekr', 'Changan', 'Avatr', 'Deepal', 'Hongqi', 'Leapmotor', 'Xpeng', 'NIO',
+      'GAC', 'Aion', 'JAC', 'Kaiyi', 'Jetta', 'Skywell', 'Seres', 'Aito', 'Denza', 'Neta', 'Ora', 'MG', 'Chevrolet',
+      'Ravon', 'Daewoo', 'Kia', 'Hyundai', 'Genesis', 'Toyota', 'Lexus', 'Nissan', 'Infiniti', 'Honda', 'Mazda',
+      'Mitsubishi', 'Subaru', 'Suzuki', 'Volkswagen', 'Skoda', 'Audi', 'BMW', 'Mini', 'Mercedes', 'Porsche', 'Volvo',
+      'Ford', 'Tesla', 'Jeep', 'Cadillac', 'Lincoln', 'Peugeot', 'Citroen', 'Renault', 'Opel', 'Fiat', 'Lada', 'UAZ',
+      'GAZ', 'Isuzu', 'Foton', 'Shacman', 'Howo', 'Sinotruk', 'Yutong', 'Higer',
+      'Шевроле', 'Равон', 'Дэу', 'Киа', 'Хендай', 'Хёндай', 'Хундай', 'Тойота', 'Лексус', 'Ниссан', 'Хонда',
+      'Мазда', 'Фольксваген', 'Шкода', 'Ауди', 'БМВ', 'Мерседес-Бенц', 'Мерседес', 'Лада', 'УАЗ', 'ГАЗ',
+      'Донгфенг', 'Чери', 'Хавал', 'Джили', 'Чанган', 'Тесла', 'Форд',
+    ].sort((a, b) => b.length - a.length);
+
+    const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // What ends the car name: a comma, or the specs that usually follow it in the paragraph.
+    const VEHICLE_NAME_STOP = /\s*[,;(]|\s+(?:гибрид|электр|бензин|дизел|\d{4}\s*(?:г\.|года)|года\s+выпуска|VIN\b|цвет|номер|кузов|двигател|шасси)/i;
+    const VEHICLE_NAME_INTRO = /(?:марки|марка)\s*[:\-–—]?\s*[«"']?/gi;
+
+    const findBrand = (text) => {
+      const lower = text.toLowerCase();
+      for (const brand of VEHICLE_BRANDS) {
+        const pattern = new RegExp(`(^|[^\\p{L}\\d])(${escapeRegExp(brand.toLowerCase())})(?=$|[^\\p{L}\\d])`, 'u');
+        const match = pattern.exec(lower);
+        if (match) {
+          return { brand, index: match.index + match[1].length };
+        }
+      }
+      return null;
+    };
+
+    const cleanVehicleName = (raw) => {
+      const stop = raw.search(VEHICLE_NAME_STOP);
+      const name = (stop >= 0 ? raw.slice(0, stop) : raw).replace(/[«»"']/g, '').replace(/\s+/g, ' ').trim();
+      return name.split(' ').slice(0, 6).join(' ');
+    };
+
+    const parseVehicleParagraph = (text) => {
+      const source = (text || '').replace(/\s+/g, ' ').trim();
+      if (!source) return { vehicleName: '', make: '' };
+      let vehicleName = '';
+      // 1) "...автомобиля марки Dongfeng YiPai 008 Ultra, ..."
+      for (const match of source.matchAll(VEHICLE_NAME_INTRO)) {
+        const candidate = cleanVehicleName(source.slice(match.index + match[0].length));
+        if (candidate && /\p{L}/u.test(candidate)) {
+          vehicleName = candidate;
+          break;
+        }
+      }
+      // 2) No "марки" in the text: the name starts at the first known brand.
+      if (!vehicleName) {
+        const found = findBrand(source);
+        if (found) {
+          vehicleName = cleanVehicleName(source.slice(found.index));
+        }
+      }
+      if (!vehicleName) return { vehicleName: '', make: '' };
+      const found = findBrand(vehicleName);
+      let make = vehicleName.split(' ')[0];
+      if (found) {
+        vehicleName = vehicleName.slice(found.index);
+        make = vehicleName.slice(0, found.brand.length);
+      }
+      return { vehicleName, make };
+    };
+    // vehicle-parser:end
+
+    const attorneyFullTextInput = document.getElementById('attorney-company-full-text');
+    const attorneyVehicleNameInput = document.getElementById('attorney-vehicle-name');
+    const attorneyMakeInput = document.getElementById('attorney-make');
+    const attorneyParseStatus = document.getElementById('attorney-vehicle-parse-status');
+    const attorneyAutoFilled = new WeakMap();
+
+    const setAttorneyParseStatus = (text, tone = 'muted') => {
+      if (!attorneyParseStatus) return;
+      attorneyParseStatus.textContent = text;
+      attorneyParseStatus.className = `form-text text-${tone}${text ? '' : ' d-none'}`;
+    };
+
+    // Overwrite a field only if it is empty or still holds our previous auto-fill,
+    // so a manual correction is never lost.
+    const autoFillAttorneyField = (input, value) => {
+      if (!input || !value) return false;
+      const current = input.value.trim();
+      if (current && current !== attorneyAutoFilled.get(input)) return false;
+      input.value = value;
+      attorneyAutoFilled.set(input, value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    };
+
+    const fillAttorneyVehicleFromText = () => {
+      const text = (attorneyFullTextInput?.value || '').trim();
+      if (!text) {
+        setAttorneyParseStatus('');
+        return;
+      }
+      const { vehicleName, make } = parseVehicleParagraph(text);
+      if (!vehicleName) {
+        setAttorneyParseStatus('Не удалось определить автомобиль — заполните «Имя машины» и «Марку» вручную.', 'warning');
+        return;
+      }
+      const filledName = autoFillAttorneyField(attorneyVehicleNameInput, vehicleName);
+      const filledMake = autoFillAttorneyField(attorneyMakeInput, make);
+      updateAttorneyPreview();
+      if (filledName || filledMake) {
+        setAttorneyParseStatus(`Заполнено автоматически: ${vehicleName} · ${make}`, 'success');
+      } else {
+        setAttorneyParseStatus(`Найдено: ${vehicleName} · ${make}. Поля изменены вручную — оставлены как есть.`, 'muted');
+      }
+    };
+
+    if (attorneyFullTextInput) {
+      let attorneyParseTimer = null;
+      attorneyFullTextInput.addEventListener('input', () => {
+        clearTimeout(attorneyParseTimer);
+        attorneyParseTimer = window.setTimeout(fillAttorneyVehicleFromText, 400);
+      });
     }
 
     const applyAttorneyFilters = () => {

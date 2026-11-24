@@ -1669,7 +1669,8 @@ def autosalon(request):
                     created_by=request.user if request.user.is_authenticated else None,
                     **attorney_data,
                 )
-            return redirect(f"{reverse('autosalon')}?attorney_id={attorney.pk}#autosalon-attorney")
+            print_flag = '&print=1' if request.POST.get('print_after_save') else ''
+            return redirect(f"{reverse('autosalon')}?attorney_id={attorney.pk}{print_flag}#autosalon-attorney")
         if action == 'sell_vehicle':
             vehicle_id = request.POST.get('vehicle_id')
             if vehicle_id:
